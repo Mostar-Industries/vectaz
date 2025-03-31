@@ -1,8 +1,6 @@
-
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChartIcon, Package, Users, Globe, Warehouse } from 'lucide-react';
-
 interface AnalyticsTabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -12,7 +10,6 @@ interface AnalyticsTabsProps {
   countriesContent: React.ReactNode;
   warehousesContent: React.ReactNode;
 }
-
 const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
   activeTab,
   onTabChange,
@@ -22,8 +19,7 @@ const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
   countriesContent,
   warehousesContent
 }) => {
-  return (
-    <Tabs defaultValue={activeTab} onValueChange={onTabChange} className="w-full">
+  return <Tabs defaultValue={activeTab} onValueChange={onTabChange} className="w-full mx-[11px] my-px py-[6px] px-0">
       <TabsList className="grid grid-cols-5 mb-6 bg-muted/80 p-1 rounded-lg">
         <TabsTrigger value="overview" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:shadow">
           <BarChartIcon className="h-4 w-4" />
@@ -66,8 +62,6 @@ const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
       <TabsContent value="warehouses" className="mt-0">
         {warehousesContent}
       </TabsContent>
-    </Tabs>
-  );
+    </Tabs>;
 };
-
 export default AnalyticsTabs;

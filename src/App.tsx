@@ -12,6 +12,7 @@ import { isSystemBooted, boot } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
 import { ThemeProvider } from "./ThemeProvider";
+import FloatingDeepTalk from "./components/FloatingDeepTalk";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -105,6 +106,9 @@ const App = () => {
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                
+                {/* Floating DeepTalk appears on every page */}
+                <FloatingDeepTalk />
               </BrowserRouter>
           
               {/* UI Components for notifications */}

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 export default {
 	darkMode: ["class"],
@@ -179,6 +178,7 @@ export default {
 				'fade-in-up': 'fade-in-up 0.8s ease-out',
 				'glitch': 'glitch 0.8s ease-in-out',
 				'text-gradient': 'text-gradient 8s ease infinite',
+				"spin-slow": "spin 8s linear infinite",
 			},
 			backgroundImage: {
 				'grid-pattern': 'radial-gradient(circle, rgba(0, 162, 255, 0.1) 1px, transparent 1px)',

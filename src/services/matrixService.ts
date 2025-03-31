@@ -6,6 +6,7 @@ import { loadDecisionMatrix, MatrixData } from "@/utils/decisionMatrixParser";
 // Retrieve matrix data from database
 export const retrieveDecisionMatrix = async (): Promise<MatrixData | null> => {
   try {
+    // Initialize the Supabase client with the right method
     const { data, error } = await supabase.rpc('get_latest_decision_matrix');
     
     if (error) throw error;
@@ -31,13 +32,14 @@ export const storeDecisionMatrix = async (matrixData: MatrixData): Promise<boole
       matrix: matrixData.rows
     };
     
-    const { error } = await supabase.rpc('store_decision_matrix', {
+    // Use the correct typing for RPC calls
+    const response = await supabase.rpc('store_decision_matrix', {
       alternatives_data: decisionMatrix.alternatives,
       criteria_data: decisionMatrix.criteria,
       matrix_data: decisionMatrix.matrix
     });
     
-    if (error) throw error;
+    if (response.error) throw response.error;
     return true;
   } catch (error) {
     console.error("Error storing decision matrix:", error);
@@ -58,18 +60,18 @@ export const runMatrixCalculation = async (matrixData: MatrixData): Promise<any>
   
   try {
     // Call the Edge Function to process the matrix
-    const { data, error } = await supabase.functions.invoke('process-decision-matrix', {
+    const response = await supabase.functions.invoke('process-decision-matrix', {
       body: { matrix: matrixData.rows }
     });
     
-    if (error) throw error;
+    if (response.error) throw response.error;
     
     toast({
       title: "Success",
       description: "Matrix calculation completed successfully",
     });
     
-    return data;
+    return response.data;
   } catch (error) {
     console.error("Error processing matrix:", error);
     toast({

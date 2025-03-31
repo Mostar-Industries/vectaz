@@ -9,12 +9,6 @@ export interface DecisionMatrix {
   matrix: number[][];
 }
 
-// Interface for the Supabase RPC response
-interface SupabaseRpcResponse {
-  data: any;
-  error: Error | null;
-}
-
 // Matrix data interface for component usage
 export interface MatrixData {
   rows: number[][];
@@ -81,7 +75,7 @@ export const parseDecisionMatrix = (csvData: string): DecisionMatrix | null => {
  */
 export const saveDecisionMatrix = async (matrix: DecisionMatrix): Promise<boolean> => {
   try {
-    // Call the RPC function to store the matrix data
+    // Call the RPC function to store the matrix data with proper typing
     const response = await supabase.rpc('store_decision_matrix', {
       alternatives_data: matrix.alternatives,
       criteria_data: matrix.criteria,
@@ -104,7 +98,7 @@ export const saveDecisionMatrix = async (matrix: DecisionMatrix): Promise<boolea
  */
 export const loadDecisionMatrix = async (): Promise<DecisionMatrix | null> => {
   try {
-    // Call the RPC function to get the latest matrix
+    // Call the RPC function to get the latest matrix with proper typing
     const response = await supabase.rpc('get_latest_decision_matrix');
     
     if (response.error) throw response.error;

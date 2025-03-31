@@ -20,7 +20,7 @@ const DecisionMatrix: React.FC = () => {
 
   // Load matrix data on component mount
   useEffect(() => {
-    const loadData = async () => {
+    const loadMatrixData = async () => {
       setIsLoading(true);
       
       // Try to load from Supabase first
@@ -49,7 +49,7 @@ const DecisionMatrix: React.FC = () => {
       setIsLoading(false);
     };
     
-    loadData();
+    loadMatrixData();
     
     // Set up Supabase realtime subscription for calculation results
     const channel = supabase

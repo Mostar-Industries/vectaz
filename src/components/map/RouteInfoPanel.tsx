@@ -11,14 +11,14 @@ interface RouteInfoPanelProps {
 const RouteInfoPanel: React.FC<RouteInfoPanelProps> = ({ route, onClose }) => {
   return (
     <div className="absolute top-4 right-4 pointer-events-none z-10">
-      <div className="bg-background/80 backdrop-blur-sm p-3 rounded-md shadow-lg border border-border max-w-xs">
+      <div className="glassmorphism-card p-3 rounded-md shadow-md border border-mostar-light-blue/30 max-w-xs">
         <div className="flex items-start justify-between mb-2">
-          <h3 className="font-bold flex items-center">
+          <h3 className="font-bold flex items-center text-cyber-blue">
             <Info className="h-4 w-4 mr-1" />
             Route Details
           </h3>
           <button 
-            className="pointer-events-auto h-5 w-5 rounded-full bg-background/50 flex items-center justify-center"
+            className="pointer-events-auto h-5 w-5 rounded-full bg-mostar-dark/90 flex items-center justify-center text-muted-foreground hover:text-white transition-colors"
             onClick={onClose}
           >
             ×

@@ -19,10 +19,10 @@ const OverviewContent: React.FC<OverviewContentProps> = ({
     <div className="space-y-6">
       {/* Metrics Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="glassmorphism-card border-mostar-light-blue/20 hover:border-mostar-light-blue/40 hover:shadow-neon-blue transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Package className="h-4 w-4 mr-2 text-primary" />
+            <CardTitle className="text-sm font-medium flex items-center text-cyber-blue">
+              <Package className="h-4 w-4 mr-2 text-mostar-light-blue" />
               Total Shipments
             </CardTitle>
           </CardHeader>
@@ -34,10 +34,10 @@ const OverviewContent: React.FC<OverviewContentProps> = ({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glassmorphism-card border-mostar-cyan/20 hover:border-mostar-cyan/40 hover:shadow-neon-cyan transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Clock className="h-4 w-4 mr-2 text-amber-500" />
+            <CardTitle className="text-sm font-medium flex items-center text-mostar-cyan">
+              <Clock className="h-4 w-4 mr-2 text-mostar-cyan" />
               Avg Transit Time
             </CardTitle>
           </CardHeader>
@@ -49,10 +49,10 @@ const OverviewContent: React.FC<OverviewContentProps> = ({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glassmorphism-card-magenta border-mostar-magenta/20 hover:border-mostar-magenta/40 hover:shadow-neon-magenta transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
+            <CardTitle className="text-sm font-medium flex items-center text-cyber-magenta">
+              <AlertTriangle className="h-4 w-4 mr-2 text-mostar-magenta" />
               Disruption Score
             </CardTitle>
           </CardHeader>
@@ -64,10 +64,10 @@ const OverviewContent: React.FC<OverviewContentProps> = ({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="glassmorphism-card-green border-mostar-green/20 hover:border-mostar-green/40 hover:shadow-neon-green transition-all duration-300">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center">
-              <Shield className="h-4 w-4 mr-2 text-green-500" />
+            <CardTitle className="text-sm font-medium flex items-center text-cyber-green">
+              <Shield className="h-4 w-4 mr-2 text-mostar-green" />
               Resilience Score
             </CardTitle>
           </CardHeader>
@@ -82,29 +82,25 @@ const OverviewContent: React.FC<OverviewContentProps> = ({
 
       {/* Visualization Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="border border-border/30 shadow-sm hover:border-border/50 transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl font-semibold">Resilience Analysis</CardTitle>
-            <CardDescription>Key resilience metrics visualization</CardDescription>
-          </CardHeader>
-          <CardContent className="px-0 py-0">
-            <div className="h-[360px]">
-              <ShipmentResilienceChart metrics={shipmentMetrics} />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="cyber-panel rounded-md overflow-hidden border border-mostar-light-blue/20 hover:border-mostar-light-blue/40 transition-all duration-300">
+          <div className="p-4">
+            <h3 className="text-xl font-semibold text-cyber-blue">Resilience Analysis</h3>
+            <p className="text-sm text-muted-foreground">Key resilience metrics visualization</p>
+          </div>
+          <div className="h-[360px]">
+            <ShipmentResilienceChart metrics={shipmentMetrics} />
+          </div>
+        </div>
         
-        <Card className="border border-border/30 shadow-sm hover:border-border/50 transition-all">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl font-semibold">Shipment Mode Distribution</CardTitle>
-            <CardDescription>Breakdown by transportation mode</CardDescription>
-          </CardHeader>
-          <CardContent className="px-0">
-            <div className="h-[360px]">
-              <ShipmentModeChart shipmentsByMode={shipmentMetrics.shipmentsByMode} />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="cyber-panel rounded-md overflow-hidden border border-mostar-light-blue/20 hover:border-mostar-light-blue/40 transition-all duration-300">
+          <div className="p-4">
+            <h3 className="text-xl font-semibold text-cyber-blue">Shipment Mode Distribution</h3>
+            <p className="text-sm text-muted-foreground">Breakdown by transportation mode</p>
+          </div>
+          <div className="h-[360px]">
+            <ShipmentModeChart shipmentsByMode={shipmentMetrics.shipmentsByMode} />
+          </div>
+        </div>
       </div>
     </div>
   );

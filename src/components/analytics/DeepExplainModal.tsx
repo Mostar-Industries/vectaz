@@ -32,10 +32,10 @@ const DeepExplainModal: React.FC<DeepExplainModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl glassmorphism-card border-mostar-light-blue/30 shadow-neon-blue">
         <DialogHeader>
-          <DialogTitle className="text-lg flex items-center">
-            <FlaskConical className="h-5 w-5 mr-2 text-primary" />
+          <DialogTitle className="text-lg flex items-center text-cyber-blue">
+            <FlaskConical className="h-5 w-5 mr-2 text-mostar-light-blue" />
             {explanation.title}
           </DialogTitle>
           <DialogDescription className="text-sm">
@@ -45,8 +45,8 @@ const DeepExplainModal: React.FC<DeepExplainModalProps> = ({
 
         <div className="space-y-4 my-2">
           <div>
-            <h4 className="text-sm font-medium flex items-center mb-1">
-              <Calculator className="h-4 w-4 mr-2 text-muted-foreground" />
+            <h4 className="text-sm font-medium flex items-center mb-1 text-mostar-light-blue">
+              <Calculator className="h-4 w-4 mr-2 text-mostar-light-blue" />
               Calculation Method
             </h4>
             <p className="text-sm text-muted-foreground">{explanation.calculation}</p>
@@ -55,16 +55,16 @@ const DeepExplainModal: React.FC<DeepExplainModalProps> = ({
             </p>
           </div>
 
-          <Separator />
+          <Separator className="bg-mostar-light-blue/10" />
 
           <div>
-            <h4 className="text-sm font-medium flex items-center mb-1">
-              <Scale className="h-4 w-4 mr-2 text-muted-foreground" />
+            <h4 className="text-sm font-medium flex items-center mb-1 text-mostar-light-blue">
+              <Scale className="h-4 w-4 mr-2 text-mostar-light-blue" />
               Methodology
             </h4>
             <p className="text-sm text-muted-foreground">{explanation.methodology}</p>
-            <div className="bg-primary/5 p-2 rounded text-xs mt-2 border border-primary/10">
-              <p className="font-medium text-primary">Neutrosophic AHP-TOPSIS Approach:</p>
+            <div className="bg-mostar-blue/5 p-2 rounded text-xs mt-2 border border-mostar-light-blue/20">
+              <p className="font-medium text-cyber-blue">Neutrosophic AHP-TOPSIS Approach:</p>
               <p className="mt-1">
                 This metric is calculated using our Neutrosophic AHP-TOPSIS methodology, which handles 
                 uncertainty and incomplete information common in logistics data. This approach produces 
@@ -73,17 +73,17 @@ const DeepExplainModal: React.FC<DeepExplainModalProps> = ({
             </div>
           </div>
 
-          <Separator />
+          <Separator className="bg-mostar-light-blue/10" />
 
           <div>
-            <h4 className="text-sm font-medium flex items-center mb-1">
-              <Lightbulb className="h-4 w-4 mr-2 text-muted-foreground" />
+            <h4 className="text-sm font-medium flex items-center mb-1 text-mostar-light-blue">
+              <Lightbulb className="h-4 w-4 mr-2 text-mostar-light-blue" />
               Interpretation & Recommendations
             </h4>
             <p className="text-sm text-muted-foreground">{explanation.interpretation}</p>
             
             <div className="mt-3">
-              <p className="text-sm font-medium">Recommended Actions:</p>
+              <p className="text-sm font-medium text-mostar-light-blue">Recommended Actions:</p>
               <ul className="text-sm text-muted-foreground list-disc pl-5 mt-1 space-y-1">
                 {explanation.recommendations.map((rec, index) => (
                   <li key={index}>{rec}</li>
@@ -94,7 +94,7 @@ const DeepExplainModal: React.FC<DeepExplainModalProps> = ({
         </div>
 
         <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
+          <Button onClick={() => onOpenChange(false)} className="cyber-button">Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

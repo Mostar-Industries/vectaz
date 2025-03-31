@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -6,16 +7,16 @@
 
 @layer base {
   :root {
-    --background: 222 47% 7%;
+    --background: 225 47% 5%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 10%;
+    --card: 224 47% 4%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 7%;
+    --popover: 224 47% 4%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 100% 45%;
+    --primary: 210 100% 50%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -44,7 +45,7 @@
   }
   body {
     @apply bg-mostar-dark text-foreground font-body antialiased overflow-x-hidden;
-    background-image: radial-gradient(circle at 50% 0%, rgba(0, 162, 255, 0.15) 0%, rgba(10, 14, 23, 0.5) 60%);
+    background-image: radial-gradient(circle at 50% 0%, rgba(0, 162, 255, 0.07) 0%, rgba(5, 8, 16, 0.7) 70%);
     background-attachment: fixed;
   }
   
@@ -63,15 +64,15 @@
   }
   
   ::-webkit-scrollbar-track {
-    @apply bg-mostar-dark;
+    @apply bg-mostar-darkest;
   }
   
   ::-webkit-scrollbar-thumb {
-    @apply bg-mostar-blue/50 rounded-full transition-colors;
+    @apply bg-mostar-blue/30 rounded-full transition-colors;
   }
   
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-mostar-light-blue;
+    @apply bg-mostar-light-blue/50;
   }
   
   /* Scanline effect for cyberpunk feel */
@@ -96,7 +97,7 @@
     width: 100%;
     height: 100%;
     z-index: 9999;
-    background-color: #0A0E17;
+    background-color: #050810;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -118,49 +119,69 @@
     100% { transform: rotate(360deg); }
   }
   
-  /* Tech card hover effects */
-  .tech-card {
-    @apply relative overflow-hidden rounded-lg border border-white/10 p-6 transition-all duration-300;
-    background: rgba(10, 14, 23, 0.5);
-    backdrop-filter: blur(12px);
+  /* Cyber-themed card effects */
+  .cyber-card {
+    @apply relative overflow-hidden rounded-md border border-mostar-light-blue/10 p-6 glassmorphism-card transition-all duration-300;
   }
   
-  .tech-card::before {
+  .cyber-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(51, 161, 255, 0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(51, 161, 255, 0.08), transparent);
     transform: translateX(-100%);
     transition: transform 0.6s;
+    pointer-events: none;
   }
   
-  .tech-card:hover::before {
+  .cyber-card:hover::before {
     transform: translateX(100%);
   }
   
-  .tech-card .glow-line {
+  .cyber-card .glow-line {
     @apply absolute h-px bg-gradient-to-r from-transparent via-mostar-light-blue to-transparent w-0 transition-all duration-500;
+    pointer-events: none;
   }
   
-  .tech-card:hover .glow-line {
+  .cyber-card:hover .glow-line {
     @apply w-full;
+  }
+  
+  /* Terminal-style card */
+  .terminal-card {
+    @apply relative overflow-hidden rounded-md cyber-terminal p-4 transition-all duration-300;
+  }
+  
+  .terminal-card:hover {
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(51, 161, 255, 0.3);
+  }
+  
+  /* Cyberpunk command card */
+  .command-card {
+    @apply bg-mostar-darkest/80 backdrop-blur-md rounded-md border border-mostar-light-blue/20 p-3 my-1 transition-all duration-300;
+    box-shadow: 0 0 5px rgba(51, 161, 255, 0.1);
+  }
+  
+  .command-card:hover {
+    @apply border-mostar-light-blue/30;
+    box-shadow: 0 0 10px rgba(51, 161, 255, 0.2);
   }
   
   /* Futuristic button */
   .button-cyber {
-    @apply relative overflow-hidden font-display uppercase tracking-wide text-sm font-medium py-3 px-6 bg-mostar-dark border border-mostar-light-blue/30 rounded text-white transition-all duration-300;
+    @apply relative overflow-hidden font-display uppercase tracking-wide text-sm font-medium py-3 px-6 bg-mostar-darkest border border-mostar-light-blue/30 rounded text-white transition-all duration-300;
   }
   
   .button-cyber::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-mostar-blue to-mostar-light-blue opacity-0 transition-opacity duration-300;
+    @apply absolute inset-0 bg-gradient-to-r from-mostar-blue/20 to-mostar-light-blue/20 opacity-0 transition-opacity duration-300;
   }
   
   .button-cyber:hover::before {
-    @apply opacity-20;
+    @apply opacity-100;
   }
   
   .button-cyber::after {
@@ -172,9 +193,132 @@
     @apply w-full;
   }
   
-  /* Data scroll effect */
-  .data-scroll {
-    animation: data-flow 20s linear infinite;
+  /* Primary futuristic button with glow */
+  .button-cyber-primary {
+    @apply relative overflow-hidden font-display uppercase tracking-wide text-sm font-medium py-3 px-6 bg-mostar-blue/20 border border-mostar-light-blue/50 rounded text-white transition-all duration-300;
+    box-shadow: 0 0 10px rgba(51, 161, 255, 0.2);
+  }
+  
+  .button-cyber-primary:hover {
+    @apply bg-mostar-blue/30 border-mostar-light-blue/80;
+    box-shadow: 0 0 15px rgba(51, 161, 255, 0.4);
+  }
+  
+  /* Nav tab styles */
+  .cyber-tab {
+    @apply relative py-2 px-4 text-sm font-medium text-muted-foreground transition-colors border-b-2 border-transparent;
+  }
+  
+  .cyber-tab.active {
+    @apply text-mostar-light-blue border-mostar-light-blue text-glow-blue;
+  }
+  
+  .cyber-tab::after {
+    content: '';
+    @apply absolute bottom-0 left-0 h-[2px] w-0 bg-mostar-light-blue/50 transition-all duration-300;
+  }
+  
+  .cyber-tab:hover::after {
+    @apply w-full;
+  }
+  
+  /* Terminal text output */
+  .terminal-text {
+    @apply font-mono text-sm leading-relaxed;
+  }
+  
+  .terminal-text .command {
+    @apply text-mostar-light-blue;
+  }
+  
+  .terminal-text .info {
+    @apply text-mostar-terminal-green;
+  }
+  
+  .terminal-text .warning {
+    @apply text-yellow-500;
+  }
+  
+  .terminal-text .error {
+    @apply text-red-500;
+  }
+  
+  .terminal-text .system {
+    @apply text-mostar-purple;
+  }
+  
+  /* Glowing text variants */
+  .text-cyber-blue {
+    @apply text-mostar-light-blue text-glow-blue;
+  }
+  
+  .text-cyber-green {
+    @apply text-mostar-green text-glow-green;
+  }
+  
+  .text-cyber-magenta {
+    @apply text-mostar-magenta text-glow-magenta;
+  }
+  
+  .text-cyber-bright-magenta {
+    @apply text-mostar-bright-magenta text-glow-bright-magenta;
+  }
+  
+  /* Security badge */
+  .security-badge {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+    background: rgba(255, 202, 0, 0.1);
+    border: 1px solid rgba(255, 202, 0, 0.3);
+    color: #ffca00;
+    text-shadow: 0 0 5px rgba(255, 202, 0, 0.5);
+  }
+  
+  /* Status indicators */
+  .status-indicator {
+    @apply relative inline-block h-2 w-2 rounded-full;
+  }
+  
+  .status-indicator::after {
+    @apply absolute inset-0 rounded-full;
+    content: '';
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .status-indicator.online {
+    @apply bg-mostar-green;
+  }
+  
+  .status-indicator.online::after {
+    box-shadow: 0 0 8px rgba(0, 255, 157, 0.7);
+  }
+  
+  .status-indicator.warning {
+    @apply bg-mostar-yellow;
+  }
+  
+  .status-indicator.warning::after {
+    box-shadow: 0 0 8px rgba(255, 202, 0, 0.7);
+  }
+  
+  .status-indicator.error {
+    @apply bg-red-500;
+  }
+  
+  .status-indicator.error::after {
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+  }
+  
+  /* Data visualization elements */
+  .data-node {
+    @apply absolute h-1.5 w-1.5 rounded-full bg-mostar-light-blue;
+    box-shadow: 0 0 5px rgba(51, 161, 255, 0.8);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+  
+  .data-link {
+    @apply absolute bg-mostar-light-blue/30;
+    height: 1px;
+    transform-origin: 0 0;
   }
   
   /* Music player effects */
@@ -224,8 +368,6 @@
   .music-controls:hover {
     box-shadow: 0 0 15px rgba(51, 161, 255, 0.5);
   }
-  
-  /* More custom classes can be added here */
 }
 
 /* Custom animations */

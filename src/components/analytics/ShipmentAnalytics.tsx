@@ -21,20 +21,32 @@ const ShipmentAnalytics: React.FC<ShipmentAnalyticsProps> = ({ metrics }) => {
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <MonthlyTrendChart monthlyTrend={metrics.monthlyTrend} />
-        <ShipmentStatusChart shipmentStatusCounts={metrics.shipmentStatusCounts} />
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <MonthlyTrendChart monthlyTrend={metrics.monthlyTrend} />
+        </div>
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <ShipmentStatusChart shipmentStatusCounts={metrics.shipmentStatusCounts} />
+        </div>
       </div>
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ShipmentModeChart shipmentsByMode={metrics.shipmentsByMode} />
-        <OnTimePerformanceChart delayedVsOnTimeRate={metrics.delayedVsOnTimeRate} />
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <ShipmentModeChart shipmentsByMode={metrics.shipmentsByMode} />
+        </div>
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <OnTimePerformanceChart delayedVsOnTimeRate={metrics.delayedVsOnTimeRate} />
+        </div>
       </div>
       
       {/* Charts Row 3 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ShipmentResilienceChart metrics={metrics} />
-        <ShipmentInsights metrics={metrics} />
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <ShipmentResilienceChart metrics={metrics} />
+        </div>
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <ShipmentInsights metrics={metrics} />
+        </div>
       </div>
     </div>
   );

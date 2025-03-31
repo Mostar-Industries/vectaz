@@ -66,13 +66,13 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
                 key={index}
                 className="absolute cursor-pointer"
                 style={{ 
-                  left: `${((route.destination_longitude + 180) / 360) * 100}%`, 
-                  top: `${((90 - route.destination_latitude) / 180) * 100}%`
+                  left: `${((route.destination.lng + 180) / 360) * 100}%`, 
+                  top: `${((90 - route.destination.lat) / 180) * 100}%`
                 }}
                 onClick={() => onRouteClick && onRouteClick(index)}
               >
-                <div className={`marker-inner destination ${route.delivery_status === 'Delivered' ? 'green' : route.delivery_status === 'In Transit' ? 'yellow' : 'red'}`}>
-                  <div className={`marker-pulse ${route.delivery_status === 'Delivered' ? 'green' : route.delivery_status === 'In Transit' ? 'yellow' : 'red'}`}></div>
+                <div className={`marker-inner destination ${route.deliveryStatus === 'Delivered' ? 'green' : route.deliveryStatus === 'In Transit' ? 'yellow' : 'red'}`}>
+                  <div className={`marker-pulse ${route.deliveryStatus === 'Delivered' ? 'green' : route.deliveryStatus === 'In Transit' ? 'yellow' : 'red'}`}></div>
                 </div>
               </div>
             ))}

@@ -21,7 +21,7 @@ const AppTabs: React.FC<AppTabsProps> = ({ activeTab, onTabChange, className }) 
 
   return (
     <div className={cn(
-      "fixed top-8 left-1/2 transform -translate-x-1/2 z-20 bg-black/60 backdrop-blur-md rounded-full shadow-[0_0_30px_rgba(0,149,255,0.25)] overflow-hidden border border-cyan-500/30 tech-glow",
+      "fixed top-8 left-1/2 transform -translate-x-1/2 z-20 bg-black/60 backdrop-blur-md rounded-full shadow-[0_0_20px_rgba(0,149,255,0.15)] overflow-hidden border border-cyan-500/30",
       className
     )}>
       <div className="flex items-center space-x-1 px-1">

@@ -1,314 +1,175 @@
 
-import React from 'react';
-import { 
-  Shipment, 
-  ForwarderPerformance, 
-  CountryPerformance, 
-  WarehousePerformance,
-  ShipmentMetrics 
-} from '@/types/deeptrack';
-import { supabase } from "@/integrations/supabase/client";
-import { useBaseDataStore } from '@/store/baseState';
+import { useState, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { useBaseDataStore } from '@/store/baseState';
+import { deepSight } from '@/services/deepExplain';
+import { supabase } from '@/integrations/supabase/client';
 
-interface DeepTalkHandlerProps {
-  shipmentData: Shipment[];
-  shipmentMetrics: ShipmentMetrics;
-  forwarderPerformance: ForwarderPerformance[];
-  countryPerformance: CountryPerformance[];
-  warehousePerformance: WarehousePerformance[];
-  kpiData: any;
-}
+// Helper function to check if query contains keywords
+const containsKeywords = (query: string, keywords: string[]): boolean => {
+  return keywords.some(keyword => 
+    query.toLowerCase().includes(keyword.toLowerCase())
+  );
+};
 
-export const useDeepTalkHandler = ({
-  shipmentData,
-  shipmentMetrics,
-  forwarderPerformance,
-  countryPerformance,
-  warehousePerformance,
-  kpiData
-}: DeepTalkHandlerProps) => {
+// Helper function to extract forwarder name from query
+const extractForwarderName = (query: string): string | null => {
+  const forwarders = ['DHL', 'Kuehne Nagel', 'Kenya Airways', 'MSC', 'Maersk', 'CMA CGM'];
   
-  const handleDeepTalkQuery = async (query: string): Promise<string> => {
+  for (const forwarder of forwarders) {
+    if (query.toLowerCase().includes(forwarder.toLowerCase())) {
+      return forwarder;
+    }
+  }
+  
+  return null;
+};
+
+// Helper function to extract country name from query
+const extractCountryName = (query: string): string | null => {
+  const countries = ['China', 'USA', 'Germany', 'Kenya', 'South Africa', 'India', 'Brazil'];
+  
+  for (const country of countries) {
+    if (query.toLowerCase().includes(country.toLowerCase())) {
+      return country;
+    }
+  }
+  
+  return null;
+};
+
+// Default responses for when data isn't available
+const getFallbackResponse = (query: string): string => {
+  // If query mentions performance comparison
+  if (containsKeywords(query, ['compare', 'versus', 'vs', 'against'])) {
+    const forwarder = extractForwarderName(query);
+    if (forwarder) {
+      return `I'd be happy to compare ${forwarder} with other forwarders, but I need to sync with the latest data. Please try again in a moment or check that the logistics database is properly connected.`;
+    }
+    
+    const country = extractCountryName(query);
+    if (country) {
+      return `I'd like to compare ${country}'s logistics performance with other countries, but I need to sync with the latest data. Please try again in a moment or check that the logistics database is properly connected.`;
+    }
+    
+    return `I'd be happy to run that comparison, but I need to sync with the latest data. Please try again in a moment or check that the logistics database is properly connected.`;
+  }
+  
+  // If query mentions optimization
+  if (containsKeywords(query, ['optimize', 'improve', 'better', 'enhance', 'efficiency'])) {
+    return `To provide optimization recommendations, I need access to the latest logistics data. Please ensure the database connection is active and try again.`;
+  }
+  
+  // If query mentions disruptions or risks
+  if (containsKeywords(query, ['disrupt', 'risk', 'delay', 'late', 'problem'])) {
+    return `I'd be happy to analyze disruption patterns and risks, but I need to sync with the latest data. Please try again in a moment or check that the logistics database is properly connected.`;
+  }
+  
+  // If query mentions trends
+  if (containsKeywords(query, ['trend', 'overtime', 'historical', 'pattern', 'forecast'])) {
+    return `To analyze trends accurately, I need access to the historical data. Please ensure the logistics database is properly connected and try again.`;
+  }
+  
+  // Default fallback
+  return `I'd be happy to answer that, but I need to sync with the latest logistics data. Please ensure the database connection is active and try again.`;
+};
+
+// Function to handle AI query response
+export const useDeepTalkHandler = () => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { isDataLoaded, shipmentData } = useBaseDataStore();
+  
+  const handleQuery = useCallback(async (query: string): Promise<string> => {
+    setIsProcessing(true);
+    
     try {
-      console.log("Processing query with advanced NLU:", query);
-      
-      // Create context data for the NLU processor with enhanced data structure
-      const contextData = {
-        shipmentData,
-        shipmentMetrics,
-        forwarderPerformance,
-        countryPerformance,
-        warehousePerformance,
-        kpiData,
-        // Add additional metadata to help with context-awareness
-        dataStats: {
-          totalShipments: shipmentData.length,
-          uniqueOrigins: [...new Set(shipmentData.map(s => s.origin_country))].length,
-          uniqueDestinations: [...new Set(shipmentData.map(s => s.destination_country))].length,
-          uniqueForwarders: [...new Set(shipmentData.map(s => s.freight_carrier))].length,
-          dateRange: getDateRange(shipmentData)
-        }
-      };
-      
-      try {
-        // Call the enhanced NLU processor edge function
-        const { data, error } = await supabase.functions.invoke('rasa-nlu-processor', {
-          body: { 
-            query,
-            context: contextData
-          }
-        });
-        
-        if (error) {
-          console.error("Error calling NLU processor:", error);
-          // Log the error details for debugging
-          console.error("Error details:", JSON.stringify(error));
-          
-          // Fallback to simple pattern matching if the edge function fails
-          console.log("Using fallback response generation");
-          return getFallbackResponse(query, contextData);
-        }
-        
-        console.log("NLU processor response:", data);
-        
-        // Return the response generated by the NLU processor
-        return data.response;
-      } catch (supabaseError) {
-        console.error("Supabase function error:", supabaseError);
-        toast({
-          title: "AI Processing Error",
-          description: "Could not connect to the NLU processor. Using fallback responses instead.",
-          variant: "destructive",
-        });
-        return getFallbackResponse(query, contextData);
-      }
-    } catch (error) {
-      console.error("Error in handleDeepTalkQuery:", error);
-      // Provide detailed error logging
-      console.error("Error details:", error instanceof Error ? error.stack : String(error));
-      
-      // Fallback to simple pattern matching
-      return "I apologize, but I'm having trouble analyzing the data right now. Please try again in a moment.";
-    }
-  };
-
-  // Helper function to get date range of shipment data
-  const getDateRange = (shipments: Shipment[]): { start: string, end: string } => {
-    const dates = shipments
-      .filter(s => s.date_of_collection)
-      .map(s => new Date(s.date_of_collection).getTime());
-    
-    if (dates.length === 0) {
-      return { start: 'unknown', end: 'unknown' };
-    }
-    
-    const startDate = new Date(Math.min(...dates));
-    const endDate = new Date(Math.max(...dates));
-    
-    return {
-      start: startDate.toISOString().split('T')[0],
-      end: endDate.toISOString().split('T')[0]
-    };
-  };
-
-  // Enhanced fallback response generator with more detailed answers
-  const getFallbackResponse = (query: string, context: any): string => {
-    const { 
-      shipmentData, 
-      shipmentMetrics, 
-      forwarderPerformance, 
-      countryPerformance, 
-      warehousePerformance,
-      kpiData 
-    } = context;
-    
-    const lowerQuery = query.toLowerCase();
-    
-    if (lowerQuery.includes('disruption') || lowerQuery.includes('risk') || lowerQuery.includes('delay')) {
-      const highRiskCountries = [...countryPerformance]
-        .sort((a, b) => (b.deliveryFailureRate || 0) - (a.deliveryFailureRate || 0))
-        .slice(0, 2);
-        
-      return `Based on my analysis of ${shipmentData.length} shipments, your current disruption probability score is ${shipmentMetrics?.disruptionProbabilityScore?.toFixed(1) || "6.8"}/10. This is derived from historical delivery success rates and current geopolitical factors affecting your key routes. The most vulnerable corridors are ${highRiskCountries[0]?.country || "Ethiopia"} to ${highRiskCountries[1]?.country || "Somalia"}, which shows a ${(Math.random() * 20 + 10).toFixed(1)}% increase in transit time variability in the last quarter. Primary risk factors include customs documentation delays and transportation infrastructure limitations.`;
-    } 
-    
-    if (lowerQuery.includes('forwarder') || lowerQuery.includes('carrier') || lowerQuery.includes('freight')) {
-      const topForwarder = forwarderPerformance[0] || { 
-        name: "DHL Express", 
-        deepScore: 87.5, 
-        reliabilityScore: 0.94, 
-        avgCostPerKg: 5.78,
-        avgTransitDays: 3.2,
-        totalShipments: 145,
-        onTimeRate: 0.92
-      };
-      
-      const secondForwarder = forwarderPerformance[1] || {
-        name: "Kuehne Nagel",
-        deepScore: 82.1,
-        reliabilityScore: 0.89,
-        avgCostPerKg: 5.35,
-        avgTransitDays: 4.5,
-        totalShipments: 118,
-        onTimeRate: 0.87
-      };
-      
-      return `Your highest performing freight forwarder is ${topForwarder?.name} with a DeepScore™ of ${topForwarder?.deepScore?.toFixed(1)}/100. This rating is a composite of reliability (${((topForwarder?.reliabilityScore || 0) * 100).toFixed(1)}%), cost-efficiency (${(topForwarder?.avgCostPerKg || 0).toFixed(2)}/kg), and transit performance (${topForwarder?.avgTransitDays.toFixed(1)} days average). For high-value shipments, I'd recommend maintaining your allocation with ${topForwarder?.name} while testing ${secondForwarder?.name} for non-critical routes to benchmark performance. Your data shows that ${topForwarder?.name} handles ${topForwarder?.totalShipments} shipments with an on-time delivery rate of ${((topForwarder?.onTimeRate || 0) * 100).toFixed(1)}%.`;
-    }
-    
-    if (lowerQuery.includes('warehouse') || lowerQuery.includes('origin') || lowerQuery.includes('facility')) {
-      const bestWarehouse = warehousePerformance.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0] || {
-        location: "Nairobi",
-        reliabilityScore: 92.5,
-        packagingFailureRate: 0.015,
-        missedDispatchRate: 0.02
-      };
-      
-      const worstWarehouse = warehousePerformance.sort((a, b) => a.reliabilityScore - b.reliabilityScore)[0] || {
-        location: "Addis Ababa",
-        reliabilityScore: 78.2,
-        packagingFailureRate: 0.047,
-        missedDispatchRate: 0.09
-      };
-      
-      return `I've analyzed your origin performance metrics and found significant variability. ${bestWarehouse?.location} demonstrates superior reliability (${bestWarehouse?.reliabilityScore.toFixed(1)}/100) with consistently low packaging failures (${((bestWarehouse?.packagingFailureRate || 0) * 100).toFixed(1)}%). In contrast, ${worstWarehouse?.location} shows opportunity for improvement with higher dispatch failures (${((worstWarehouse?.missedDispatchRate || 0) * 100).toFixed(1)}%). Implementing the standardized packaging and scheduling protocols from ${bestWarehouse?.location} across all sites could yield an estimated 12% reduction in transit delays. Consider conducting a process audit at ${worstWarehouse?.location} to identify specific improvement areas.`;
-    }
-    
-    if (lowerQuery.includes('cost') || lowerQuery.includes('expense') || lowerQuery.includes('money')) {
-      const cheapestRoute = countryPerformance.sort((a, b) => a.avgCostPerRoute - b.avgCostPerRoute)[0] || {
-        country: "Uganda",
-        avgCostPerRoute: 3.45
-      };
-      
-      const expensiveRoute = countryPerformance.sort((a, b) => b.avgCostPerRoute - a.avgCostPerRoute)[0] || {
-        country: "Yemen",
-        avgCostPerRoute: 7.82
-      };
-      
-      const avgCostPerKg = kpiData?.avgCostPerKg || 5.67;
-      
-      return `Your average shipping cost is $${avgCostPerKg.toFixed(2)}/kg across all routes. The most cost-efficient corridor is ${cheapestRoute?.country} at $${cheapestRoute?.avgCostPerRoute.toFixed(2)}/kg, while ${expensiveRoute?.country} is the most expensive at $${expensiveRoute?.avgCostPerRoute.toFixed(2)}/kg. By consolidating shipments to ${countryPerformance.sort((a, b) => b.totalShipments - a.totalShipments)[0]?.country || "Kenya"} and negotiating volume rates, you could reduce overall logistics spend by approximately 8-12%. Your mode selection also impacts costs significantly - air freight averages ${(avgCostPerKg * 2.5).toFixed(2)}/kg while road transport averages ${(avgCostPerKg * 0.4).toFixed(2)}/kg. Consider mode shifting for non-time-critical shipments.`;
-    }
-    
-    if (lowerQuery.includes('route') || lowerQuery.includes('corridor') || lowerQuery.includes('lane')) {
-      const topRoutes = (countryPerformance || [])
-        .sort((a, b) => b.totalShipments - a.totalShipments)
-        .slice(0, 3);
-        
-      let response = `Your top shipping routes by volume are: `;
-      
-      if (topRoutes.length > 0) {
-        topRoutes.forEach((country, index) => {
-          response += `${country.country} (${country.totalShipments} shipments)`;
-          if (index < topRoutes.length - 1) response += ", ";
-        });
-        
-        const reliableRoute = countryPerformance.sort((a, b) => a.deliveryFailureRate - b.deliveryFailureRate)[0];
-        if (reliableRoute) {
-          response += `. The most reliable route is to ${reliableRoute?.country} with a ${((reliableRoute?.reliabilityScore || 0) * 100).toFixed(1)}% on-time delivery rate and average transit time of ${reliableRoute?.avgTransitDays.toFixed(1)} days. Consider expanding volume on this corridor given its demonstrated performance.`;
-        }
-      } else {
-        // Default response if no data
-        response += `Kenya to Zimbabwe (12 shipments), Kenya to Ethiopia (8 shipments), and South Africa to Mozambique (6 shipments). The most reliable route is to Uganda with a 94.5% on-time delivery rate and average transit time of 2.8 days. Consider expanding volume on this corridor given its demonstrated performance.`;
+      // If data is not loaded yet, return a helpful message
+      if (!isDataLoaded || !shipmentData || shipmentData.length === 0) {
+        setIsProcessing(false);
+        return getFallbackResponse(query);
       }
       
+      // Process the query with local mock data
+      // In a real implementation, this might call an API
+      const response = await processQuery(query, shipmentData);
+      
+      // Simulate network latency
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setIsProcessing(false);
       return response;
-    }
-    
-    if (lowerQuery.includes('compare') || lowerQuery.includes('versus') || lowerQuery.includes('vs')) {
-      // Check if comparing forwarders
-      if (lowerQuery.includes('forwarder') || lowerQuery.includes('carrier')) {
-        const f1 = forwarderPerformance[0] || {
-          name: "DHL Express",
-          reliabilityScore: 0.94,
-          avgTransitDays: 3.2,
-          avgCostPerKg: 5.78,
-          totalShipments: 145,
-          deepScore: 87.5
-        };
-        
-        const f2 = forwarderPerformance[1] || {
-          name: "Kenya Airways",
-          reliabilityScore: 0.89,
-          avgTransitDays: 2.8,
-          avgCostPerKg: 6.25,
-          totalShipments: 120,
-          deepScore: 82.8
-        };
-        
-        return `Comparing ${f1?.name} vs ${f2?.name}: ${f1?.name} has a reliability score of ${((f1?.reliabilityScore || 0) * 100).toFixed(1)}% vs ${((f2?.reliabilityScore || 0) * 100).toFixed(1)}% for ${f2?.name}. Transit times are ${f1?.avgTransitDays.toFixed(1)} days vs ${f2?.avgTransitDays.toFixed(1)} days, and cost per kg is $${(f1?.avgCostPerKg || 0).toFixed(2)} vs $${(f2?.avgCostPerKg || 0).toFixed(2)}. ${f1?.name} has handled ${f1?.totalShipments} shipments compared to ${f2?.totalShipments} for ${f2?.name}. Based on your priority metrics, ${f1?.deepScore > f2?.deepScore ? f1?.name : f2?.name} demonstrates better overall performance.`;
+    } catch (error) {
+      console.error("Error processing DeepTalk query:", error);
+      
+      let errorMessage = "I encountered an issue while processing your request. Please try again.";
+      
+      // More specific error handling for Supabase
+      if (error instanceof Error) {
+        if (error.message.includes("network")) {
+          errorMessage = "I'm having trouble connecting to the database. Please check your network connection.";
+        } else if (error.message.includes("permission")) {
+          errorMessage = "I don't have permission to access that data. Please contact your administrator.";
+        } else if (error.message.includes("timeout")) {
+          errorMessage = "The request timed out. The database might be under heavy load.";
+        }
       }
       
-      // Check if comparing countries/routes
-      if (lowerQuery.includes('country') || lowerQuery.includes('route')) {
-        const c1 = countryPerformance[0] || {
-          country: "Zimbabwe",
-          totalShipments: 12,
-          reliabilityScore: 0.85,
-          avgTransitDays: 4.5,
-          avgCostPerRoute: 5.75
-        };
-        
-        const c2 = countryPerformance[1] || {
-          country: "Ethiopia",
-          totalShipments: 8,
-          reliabilityScore: 0.78,
-          avgTransitDays: 3.8,
-          avgCostPerRoute: 6.20
-        };
-        
-        return `Comparing ${c1?.country} vs ${c2?.country} routes: ${c1?.country} has ${c1?.totalShipments} shipments with a ${((c1?.reliabilityScore || 0) * 100).toFixed(1)}% reliability rate vs ${c2?.totalShipments} shipments with ${((c2?.reliabilityScore || 0) * 100).toFixed(1)}% for ${c2?.country}. Average transit times are ${c1?.avgTransitDays.toFixed(1)} days vs ${c2?.avgTransitDays.toFixed(1)} days, and average costs are $${c1?.avgCostPerRoute.toFixed(2)}/kg vs $${c2?.avgCostPerRoute.toFixed(2)}/kg. Based on this analysis, ${c1?.reliabilityScore > c2?.reliabilityScore ? c1?.country : c2?.country} provides better overall value for standard shipments.`;
-      }
+      toast({
+        title: "DeepTalk Error",
+        description: errorMessage,
+        variant: "destructive"
+      });
       
-      return `To provide a detailed comparison, please specify what you'd like to compare (e.g., "compare DHL vs Kenya Airways" or "compare Kenya route vs Tanzania route").`;
+      setIsProcessing(false);
+      return errorMessage;
     }
-    
-    // Enhanced default response with more detailed options
-    return `I've analyzed your ${shipmentData?.length || "logistics"} shipments across ${countryPerformance?.length || "multiple"} countries and ${forwarderPerformance?.length || "various"} freight forwarders. What specific aspect of your logistics performance would you like insights on? You can ask about:
-1. Disruption risk and predictive analytics
-2. Forwarder performance and carrier optimization
-3. Warehouse operations and origin efficiency
-4. Cost optimization and budget planning
-5. Route performance and corridor analysis
-6. Comparative analysis between carriers or routes
-7. Trend analysis and historical patterns
-8. Specific improvement recommendations`;
-  };
-
-  return handleDeepTalkQuery;
-};
-
-// Create a hook to connect the DeepTalk handler with the base data store
-export const useConnectedDeepTalkHandler = () => {
-  const { 
-    shipmentData,
-    shipmentMetrics,
-    forwarderPerformance,
-    countryPerformance,
-    warehousePerformance,
-    kpiData
-  } = useBaseDataStore();
+  }, [isDataLoaded, shipmentData]);
   
-  // Connect the DeepTalk handler with all available data from the store
-  return useDeepTalkHandler({
-    shipmentData,
-    shipmentMetrics: shipmentMetrics || {
-      totalShipments: shipmentData.length,
-      shipmentStatusCounts: { completed: 0, inTransit: 0, pending: 0 },
-      shipmentsByMode: {},
-      avgTransitTime: 0,
-      disruptionProbabilityScore: 6.8
-    },
-    forwarderPerformance: forwarderPerformance || [],
-    countryPerformance: countryPerformance || [],
-    warehousePerformance: warehousePerformance || [],
-    kpiData: kpiData || {
-      totalShipments: shipmentData.length,
-      avgCostPerKg: 5.67,
-      avgTransitDays: 3.8
-    }
-  });
+  return {
+    handleQuery,
+    isProcessing
+  };
 };
 
-export default useConnectedDeepTalkHandler;
+// Mock function to process queries based on available data
+const processQuery = async (query: string, shipmentData: any[]): Promise<string> => {
+  // For demonstration purposes, this is a simplified mock response generator
+  // In a real implementation, this would call an NLP service or LLM API
+  
+  // Check for specific question types and generate appropriate responses
+  if (containsKeywords(query, ['most disrupted route', 'worst route', 'problematic route'])) {
+    return "Based on our logistics data, the most disrupted route is Shanghai to Nairobi, with 32% of shipments experiencing delays. The primary causes are customs clearance issues (45%) and transportation bottlenecks (30%).";
+  }
+  
+  if (containsKeywords(query, ['compare'])) {
+    const forwarder = extractForwarderName(query);
+    if (forwarder === 'DHL' && query.toLowerCase().includes('kenya airways')) {
+      return "Comparing DHL and Kenya Airways:\n\n• On-time delivery: DHL (94%) vs Kenya Airways (86%)\n• Average transit time: DHL (5.3 days) vs Kenya Airways (6.7 days)\n• Cost efficiency: DHL ($3.21/kg) vs Kenya Airways ($2.95/kg)\n• Documentation accuracy: DHL (98%) vs Kenya Airways (92%)\n\nDHL performs better in reliability metrics, while Kenya Airways offers slight cost advantages.";
+    }
+  }
+  
+  if (containsKeywords(query, ['warehouse', 'reliability'])) {
+    return "The most reliable warehouse based on our data is Dubai Hub with a 98.5% perfect order rate. It handles an average of 356 shipments per month with minimal discrepancies and maintains the highest inventory accuracy at 99.7%.";
+  }
+  
+  if (containsKeywords(query, ['optimize', 'shipping cost', 'reduce cost'])) {
+    return "To optimize shipping costs, I recommend:\n\n1. Consolidate shipments to the EU region - potential 12% savings\n2. Shift 30% of air freight to sea-air combined transport - 15% cost reduction\n3. Renegotiate rates with our top 3 forwarders based on volume commitments - estimated 8-10% savings\n4. Implement packaging optimization for lightweight items - 7% reduction in dimensional weight charges";
+  }
+  
+  if (containsKeywords(query, ['trend', 'performance', 'over time'])) {
+    return "Key logistics performance trends over the past 12 months:\n\n• Transit times improved by 8% globally\n• On-time delivery increased from 87% to 91%\n• Air freight costs increased by 12% while ocean freight decreased by 5%\n• Documentation errors decreased by 23%\n• Warehouse efficiency improved by 15% across all locations";
+  }
+  
+  // Default response if no specific pattern is matched
+  // In a real implementation, this would be handled by an LLM
+  return "I've analyzed the available shipment data. To provide more specific insights, could you clarify whether you're interested in routes, forwarders, timing, costs, or some other aspect of our logistics operations?";
+};
+
+// Main component for handling DeepTalk in the analytics section
+const DeepTalkHandler = () => {
+  const { handleQuery, isProcessing } = useDeepTalkHandler();
+  
+  return { handleQuery, isProcessing };
+};
+
+export default DeepTalkHandler;

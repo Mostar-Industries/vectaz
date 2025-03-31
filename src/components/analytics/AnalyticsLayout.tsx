@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { BarChartIcon, Brain } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
 import DeepTalk from '@/components/DeepTalk';
 import { Button } from '@/components/ui/button';
+
 interface AnalyticsLayoutProps {
   title: string;
   kpis: any;
@@ -11,6 +13,7 @@ interface AnalyticsLayoutProps {
   onToggleDeepTalk: () => void;
   onDeepTalkQuery: (query: string) => Promise<string>;
 }
+
 const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
   title,
   kpis,
@@ -19,7 +22,8 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
   onToggleDeepTalk,
   onDeepTalkQuery
 }) => {
-  return <div className="container p-4 md:p-6 animate-fade-in px-0 mx-0">
+  return (
+    <div className="container mx-auto p-4 md:p-6 animate-fade-in">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gradient-primary flex items-center">
           <BarChartIcon className="mr-2 h-8 w-8" />
@@ -34,15 +38,19 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       
       <KPIPanel kpis={kpis} className="mb-6" />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-0 my-0 py-0 px-[12px]">
-        <div className="">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           {children}
         </div>
         
-        {showDeepTalk && <div className="lg:col-span-1">
+        {showDeepTalk && (
+          <div className="lg:col-span-1">
             <DeepTalk className="h-[calc(100vh-300px)] min-h-[500px]" initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?" onQueryData={onDeepTalkQuery} />
-          </div>}
+          </div>
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default AnalyticsLayout;

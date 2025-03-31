@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShipmentMetrics } from '@/types/deeptrack';
@@ -20,7 +21,7 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
   };
   
   const currentExplanation = currentMetricKey ? 
-    explainShipmentMetrics(currentMetricKey, metrics) : undefined;
+    explainShipmentMetrics(currentMetricKey) : undefined;
 
   return (
     <>

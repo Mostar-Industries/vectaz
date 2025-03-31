@@ -12,7 +12,8 @@ import { computeNeutrosophicWeights, getDefaultWeights } from './ahpModule';
 import { applyTOPSIS, buildDecisionMatrix } from './topsisEngine';
 import { logAuditTrail } from './auditLogger';
 import { explainDecision, summarizeRankings } from './deepExplain';
-import { loadBaseData, validateDataset, deriveForwarderPerformance } from './dataIntake';
+import { loadBaseData, validateDataset } from './dataIntake';
+import { executePrimeOriginProtocol } from '@/protocols/PrimeOriginProtocol';
 
 // This simulates loading data from the canonical CSV
 const shipmentData: Shipment[] = [];
@@ -246,68 +247,10 @@ export const getForwarderPerformance = (): ForwarderPerformance[] => {
 // Decision Engine: AHP-TOPSIS with Neutrosophic logic
 export const getRankedAlternatives = async (version: string = "latest") => {
   try {
-    // Load and validate the dataset
-    const { dataset, hash, metadata } = await loadBaseData(version);
-    
-    if (!validateDataset(dataset)) {
-      throw new Error('Invalid or incomplete data — cannot compute.');
-    }
-    
-    // Derive forwarder performance data from shipments
-    const forwarderPerformance = deriveForwarderPerformance(dataset);
-    
-    // Build the decision matrix from forwarder performance
-    const decisionMatrix = forwarders.map(forwarder => {
-      // Lower cost is better, so invert it for scoring
-      const costScore = forwarder.avgCostPerKg > 0 
-        ? 1 / forwarder.avgCostPerKg 
-        : 1;
-      
-      // Lower transit time is better, so invert it for scoring
-      const timeScore = forwarder.avgTransitDays > 0 
-        ? 1 / forwarder.avgTransitDays 
-        : 1;
-      
-      // Higher reliability is better
-      const reliabilityScore = forwarder.reliabilityScore;
-      
-      return {
-        forwarder: forwarder.name, // Use name instead of id
-        criteria: {
-          cost: costScore,
-          time: timeScore,
-          reliability: reliabilityScore
-        }
-      };
-    });
-    
-    // Compute weights using neutrosophic AHP (or use defaults if not available)
-    const weights = computeNeutrosophicWeights();
-    
-    // Apply TOPSIS to rank the alternatives
-    const rankings = applyTOPSIS(decisionMatrix, weights);
-    
-    // Add explanation to each ranking
-    const rankedAlternatives = rankings.map(entry => ({
-      forwarder: entry.forwarder,
-      closenessCoefficient: entry.Ci,
-      sourceRows: entry.sourceRows,
-      explanation: explainDecision(entry),
-      dataVersion: version,
-      datasetHash: hash
-    }));
-    
-    // Log the operation in the audit trail
-    logAuditTrail(
-      'rankAlternatives',
-      { version, forwarderCount: forwarderPerformance.length },
-      { rankingsCount: rankedAlternatives.length },
-      { weights },
-      version,
-      hash
-    );
-    
-    return rankedAlternatives;
+    // Use the formal PRIME ORIGIN PROTOCOL implementation
+    const { results, metadata } = await executePrimeOriginProtocol(version);
+    console.log("PRIME ORIGIN PROTOCOL execution successful:", metadata);
+    return results;
   } catch (error) {
     console.error("Error in getRankedAlternatives:", error);
     throw error;
@@ -322,7 +265,7 @@ export const getForwarderRankings = (
     throw new Error("Base algorithmic data not loaded – system locked.");
   }
   
-  const forwarders = getForwarderPerformance();
+  const forwarderData = getForwarderPerformance();
   
   // Normalize weights
   const totalWeight = criteria.cost + criteria.time + criteria.reliability;
@@ -333,12 +276,12 @@ export const getForwarderRankings = (
   };
   
   // Build the decision matrix
-  const decisionMatrix = forwarders.map(fp => ({
+  const decisionMatrix = forwarderData.map(fp => ({
     forwarder: fp.name,
-    cost: 1 - fp.costScore, // Inverse, lower is better for cost
-    time: 1 - fp.timeScore, // Inverse, lower is better for time
+    cost: fp.avgCostPerKg > 0 ? 1 / fp.avgCostPerKg : 0, // Inverse, lower is better for cost
+    time: fp.avgTransitDays > 0 ? 1 / fp.avgTransitDays : 0, // Inverse, lower is better for time
     reliability: fp.reliabilityScore,
-    sourceRows: [fp.id]
+    sourceRows: [fp.name.toLowerCase().replace(/\s+/g, '_')]
   }));
   
   // Apply TOPSIS method

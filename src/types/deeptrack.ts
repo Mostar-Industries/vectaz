@@ -1,4 +1,3 @@
-
 export interface Shipment {
   date_of_collection: string;
   request_reference: string;
@@ -29,9 +28,9 @@ export interface ForwarderPerformance {
   avgTransitDays: number;
   onTimeRate: number;
   reliabilityScore: number;
-  quoteWinRate?: number;
   deepScore?: number;
-  replacementFrequency?: number;
+  costScore?: number;
+  timeScore?: number;
 }
 
 export interface RoutePerformance {

@@ -1,5 +1,6 @@
+
 // DeepCAL Engine - Main service for logistics optimization
-// Implements the PRIME ORIGIN PROTOCOL for decision-making
+// Implements the Neutrosophic AHP-TOPSIS methodology for decision-making
 
 import { Shipment, ForwarderPerformance, RoutePerformance } from "@/types/deeptrack";
 import { 
@@ -13,7 +14,6 @@ import { applyTOPSIS, buildDecisionMatrix } from './topsisEngine';
 import { logAuditTrail } from './auditLogger';
 import { explainDecision, summarizeRankings } from './deepExplain';
 import { loadBaseData, validateDataset } from './dataIntake';
-import { executePrimeOriginProtocol } from '@/protocols/PrimeOriginProtocol';
 
 // This simulates loading data from the canonical CSV
 const shipmentData: Shipment[] = [];
@@ -243,19 +243,129 @@ export const getForwarderPerformance = (): ForwarderPerformance[] => {
   return calculateForwarderPerformance(shipmentData);
 };
 
-// Core PRIME ORIGIN PROTOCOL Implementation
-// Decision Engine: AHP-TOPSIS with Neutrosophic logic
+// Core implementation of the Neutrosophic AHP-TOPSIS methodology
 export const getRankedAlternatives = async (version: string = "latest") => {
   try {
-    // Use the formal PRIME ORIGIN PROTOCOL implementation
-    const { results, metadata } = await executePrimeOriginProtocol(version);
-    console.log("PRIME ORIGIN PROTOCOL execution successful:", metadata);
-    return results;
+    // Load and validate dataset
+    const { dataset, hash, metadata } = await loadBaseData(version);
+    
+    if (!validateDataset(dataset)) {
+      throw new Error('Invalid or incomplete data — cannot compute.');
+    }
+    
+    // Compute weights using Neutrosophic AHP
+    const weights = computeNeutrosophicWeights();
+    
+    // Derive forwarder performance from dataset
+    const forwarderPerformance = deriveForwarderPerformance(dataset);
+    
+    // Build the decision matrix using forwarder performance
+    const decisionMatrix = buildDecisionMatrix(forwarderPerformance);
+    
+    // Apply TOPSIS to generate rankings
+    const rankings = applyTOPSIS(decisionMatrix, weights);
+    
+    // Add explanations and result information
+    const results = rankings.map(entry => ({
+      forwarder: entry.forwarder,
+      closenessCoefficient: entry.Ci,
+      sourceRows: entry.sourceRows || [],
+      explanation: explainDecision(entry),
+      dataVersion: version,
+      datasetHash: hash
+    }));
+    
+    // Generate metadata for traceability
+    const resultMetadata = {
+      engine: "Neutrosophic AHP-TOPSIS",
+      data_version: version,
+      hash: hash,
+      explanation_ready: results.every(r => r.explanation),
+      computation_timestamp: new Date().toISOString()
+    };
+    
+    // Log the operation in audit trail
+    logAuditTrail(
+      'getRankedAlternatives',
+      { version, forwarderCount: forwarderPerformance.length },
+      { rankingsCount: results.length },
+      { weights },
+      version,
+      hash
+    );
+    
+    return { results, metadata: resultMetadata };
   } catch (error) {
     console.error("Error in getRankedAlternatives:", error);
     throw error;
   }
 };
+
+// Helper function to derive forwarder performance from shipment data
+function deriveForwarderPerformance(dataset: any[]): ForwarderPerformance[] {
+  // Group shipments by forwarder
+  const forwarderMap = new Map<string, any[]>();
+  
+  dataset.forEach(shipment => {
+    const forwarder = shipment.final_quote_awarded_freight_forwader_Carrier;
+    if (!forwarderMap.has(forwarder)) {
+      forwarderMap.set(forwarder, []);
+    }
+    forwarderMap.get(forwarder)?.push(shipment);
+  });
+  
+  // Calculate performance metrics for each forwarder
+  return Array.from(forwarderMap.entries())
+    .filter(([name, _]) => name && name !== 'Hand carried' && name !== 'UNHAS')
+    .map(([name, shipments]) => {
+      const totalShipments = shipments.length;
+      
+      // Calculate average transit days
+      const completedShipments = shipments.filter(s => 
+        s.delivery_status === 'Delivered' && s.date_of_collection && s.date_of_arrival_destination
+      );
+      
+      const transitTimes = completedShipments.map(s => {
+        const collectionDate = new Date(s.date_of_collection);
+        const arrivalDate = new Date(s.date_of_arrival_destination);
+        return (arrivalDate.getTime() - collectionDate.getTime()) / (1000 * 60 * 60 * 24); // days
+      });
+      
+      const avgTransitDays = transitTimes.length > 0 
+        ? transitTimes.reduce((sum, days) => sum + days, 0) / transitTimes.length 
+        : 0;
+      
+      // Calculate reliability score based on on-time rate
+      const onTimeRate = completedShipments.length / Math.max(totalShipments, 1);
+      const reliabilityScore = Math.min(1, Math.max(0, onTimeRate));
+      
+      // Calculate costs
+      const costPerKgValues = shipments
+        .filter(s => s.weight_kg > 0 && s.forwarder_quotes && s.forwarder_quotes[name.toLowerCase()])
+        .map(s => s.forwarder_quotes[name.toLowerCase()] / s.weight_kg);
+      
+      const avgCostPerKg = costPerKgValues.length > 0
+        ? costPerKgValues.reduce((sum, cost) => sum + cost, 0) / costPerKgValues.length
+        : 0;
+        
+      // Calculate normalized scores for TOPSIS (higher is better)
+      const costScore = avgCostPerKg > 0 ? 1 / avgCostPerKg : 0;
+      const timeScore = avgTransitDays > 0 ? 1 / avgTransitDays : 0;
+      
+      return {
+        name,
+        totalShipments,
+        avgCostPerKg,
+        avgTransitDays,
+        onTimeRate,
+        reliabilityScore,
+        costScore,
+        timeScore,
+        deepScore: (reliabilityScore + costScore + timeScore) / 3 * 100,
+        id: name.toLowerCase().replace(/\s+/g, '_')
+      };
+    });
+}
 
 // Legacy wrapper for the forwarder rankings API
 export const getForwarderRankings = (

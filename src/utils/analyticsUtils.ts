@@ -1,4 +1,3 @@
-
 import { 
   Shipment, 
   ShipmentMetrics, 
@@ -18,8 +17,8 @@ export function calculateShipmentMetrics(shipments: Shipment[]): Omit<ShipmentMe
     shipmentsByMode[mode] = (shipmentsByMode[mode] || 0) + 1;
   });
   
-  // Calculate shipment status counts
-  const shipmentStatusCounts: Record<string, number> = {
+  // Count shipments by status
+  const shipmentStatusCounts = {
     active: 0,
     completed: 0,
     failed: 0
@@ -27,12 +26,12 @@ export function calculateShipmentMetrics(shipments: Shipment[]): Omit<ShipmentMe
   
   shipments.forEach(shipment => {
     const status = shipment.delivery_status.toLowerCase();
-    if (status === 'delivered') {
-      shipmentStatusCounts.completed = (shipmentStatusCounts.completed || 0) + 1;
-    } else if (status === 'failed' || status === 'cancelled') {
-      shipmentStatusCounts.failed = (shipmentStatusCounts.failed || 0) + 1;
+    if (status === 'in transit' || status === 'pending') {
+      shipmentStatusCounts.active += 1;
+    } else if (status === 'delivered') {
+      shipmentStatusCounts.completed += 1;
     } else {
-      shipmentStatusCounts.active = (shipmentStatusCounts.active || 0) + 1;
+      shipmentStatusCounts.failed += 1;
     }
   });
   

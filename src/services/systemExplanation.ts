@@ -1,6 +1,6 @@
 
 /**
- * PRIME ORIGIN PROTOCOL Explanation Service
+ * Neutrosophic AHP-TOPSIS Explanation Service
  * Provides scientific documentation of the DeepCAL decision system
  */
 
@@ -27,21 +27,21 @@ export interface ProtocolExplanation {
 }
 
 /**
- * Provides a detailed scientific explanation of the PRIME ORIGIN PROTOCOL
+ * Provides a detailed scientific explanation of the Neutrosophic AHP-TOPSIS methodology
  * used in DeepCAL for logistics decision-making
  */
 export function getPrimeOriginExplanation(): ProtocolExplanation {
   return {
-    title: "PRIME ORIGIN PROTOCOL",
+    title: "NEUTROSOPHIC AHP-TOPSIS METHODOLOGY",
     description: 
       "DeepCAL's formalized decision procedure for analyzing and optimizing logistics operations. " +
-      "This scientific protocol integrates Neutrosophic logic with AHP-TOPSIS methodology to deliver " +
+      "This scientific methodology integrates Neutrosophic logic with AHP-TOPSIS to deliver " +
       "traceable, validated, and explainable decision support.",
     
     methodology: {
       title: "Methodology: Neutrosophic AHP-TOPSIS",
       description: 
-        "The PRIME ORIGIN PROTOCOL implements a rigorous computational framework that combines two " +
+        "The DeepCAL engine implements a rigorous computational framework that combines two " +
         "powerful decision science methodologies enhanced with uncertainty handling:",
       components: [
         {
@@ -75,7 +75,7 @@ export function getPrimeOriginExplanation(): ProtocolExplanation {
     },
     
     benefits: {
-      title: "Scientific Benefits of the PRIME ORIGIN PROTOCOL",
+      title: "Scientific Benefits of the Neutrosophic AHP-TOPSIS Approach",
       items: [
         {
           title: "Uncertainty Management",
@@ -105,7 +105,7 @@ export function getPrimeOriginExplanation(): ProtocolExplanation {
     },
     
     realWorldImpact: 
-      "The PRIME ORIGIN PROTOCOL has demonstrated 15-25% improvements in decision quality " +
+      "The Neutrosophic AHP-TOPSIS methodology has demonstrated 15-25% improvements in decision quality " +
       "across logistics operations by providing scientifically sound recommendations " +
       "that account for the inherent uncertainty in complex supply chains."
   };

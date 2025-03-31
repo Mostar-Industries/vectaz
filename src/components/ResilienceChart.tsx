@@ -77,21 +77,13 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
     description: 'This analysis tracks key resilience indicators over time to provide early warning of potential supply chain vulnerabilities.',
     calculation: 'composite_score = 0.4*(100-disruption) + 0.2*(100-cost) + 0.4*reliability',
     sampleSize: data.length,
-    dataSource: 'resilience_metrics.json, historical_shipments.csv',
-    filterCriteria: 'time_window = last 90 days',
-    insights: [
-      `Current composite resilience score is ${compositeScore.toFixed(1)}, indicating a ${healthStatus.toLowerCase()} network.`,
-      `Reliability has ${reliabilityTrend >= 0 ? 'improved' : 'declined'} by ${Math.abs(reliabilityTrend).toFixed(1)} points in the last period.`,
-      `Disruption risk is ${latestData.disruption > 40 ? 'elevated' : 'within acceptable parameters'} at ${latestData.disruption.toFixed(1)}.`
-    ],
-    suggestedActions: [
+    methodology: 'Time-series analysis with composite resilience scoring',
+    interpretation: `Current composite resilience score is ${compositeScore.toFixed(1)}, indicating a ${healthStatus.toLowerCase()} network. Reliability has ${reliabilityTrend >= 0 ? 'improved' : 'declined'} by ${Math.abs(reliabilityTrend).toFixed(1)} points in the last period. Disruption risk is ${latestData.disruption > 40 ? 'elevated' : 'within acceptable parameters'} at ${latestData.disruption.toFixed(1)}.`,
+    recommendations: [
       'Monitor high-risk routes for early intervention.',
       'Review carrier performance for consistently delayed routes.',
       latestData.disruption > 40 ? 'Develop contingency routing for high-disruption corridors.' : 'Maintain current routing strategies.'
-    ],
-    confidence: data.length > 10 ? 'high' : 'moderate' as 'high' | 'moderate' | 'low',
-    methodology: 'Time-series analysis with composite resilience scoring',
-    sourceFunction: 'calculateResilienceTrends()'
+    ]
   };
 
   return (
@@ -179,6 +171,7 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
       <DeepExplainModal
         open={explainModalOpen}
         onOpenChange={setExplainModalOpen}
+        metricKey="resilience"
         explanation={resilienceExplanation}
       />
     </Card>

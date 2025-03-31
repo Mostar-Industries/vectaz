@@ -8,8 +8,9 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { CheckCircle, XCircle, AlertCircle, Info, HelpCircle } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Info, HelpCircle, Award } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface RankedForwarder {
   forwarder: string;
@@ -18,6 +19,7 @@ interface RankedForwarder {
   costPerformance: number;
   timePerformance: number;
   reliabilityPerformance: number;
+  explanation?: any;
 }
 
 interface ForwarderRankingProps {
@@ -65,13 +67,24 @@ const ForwarderRanking: React.FC<ForwarderRankingProps> = ({
     return <XCircle className="h-4 w-4 text-red-600" />;
   };
 
+  // Check if every ranking has an explanation
+  const hasExplanations = rankings.every(entry => entry.explanation);
+
   return (
     <div className="bg-card rounded-lg border">
-      <div className="p-4 border-b">
-        <h3 className="text-lg font-medium">Forwarder Rankings (AHP-TOPSIS)</h3>
-        <p className="text-sm text-muted-foreground">
-          Based on cost, transit time, and reliability criteria
-        </p>
+      <div className="p-4 border-b flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-medium">Forwarder Rankings (AHP-TOPSIS)</h3>
+          <p className="text-sm text-muted-foreground">
+            Based on cost, transit time, and reliability criteria
+          </p>
+        </div>
+        {hasExplanations && (
+          <Badge variant="outline" className="bg-primary/10 text-primary text-xs flex items-center">
+            <Award className="h-3 w-3 mr-1" />
+            PRIME ORIGIN PROTOCOL
+          </Badge>
+        )}
       </div>
       <div className="overflow-auto max-h-[500px]">
         <Table>
@@ -125,6 +138,14 @@ const ForwarderRanking: React.FC<ForwarderRankingProps> = ({
           </TableBody>
         </Table>
       </div>
+      {hasExplanations && (
+        <div className="p-3 bg-primary/5 text-xs text-muted-foreground border-t">
+          <div className="flex items-center">
+            <Info className="h-3 w-3 mr-1 text-primary" />
+            Rankings calculated using TOPSIS with Neutrosophic AHP for scientifically sound decision support
+          </div>
+        </div>
+      )}
     </div>
   );
 };

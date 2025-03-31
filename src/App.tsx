@@ -11,7 +11,6 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, boot } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
-import { toast } from "@/hooks/use-toast";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -50,7 +49,7 @@ const App = () => {
         cargo_description: "Agricultural supplies",
         item_category: "Supplies",
         volume_cbm: 2.5 + i * 0.5,
-        initial_quote_awarded: "Kenya Airways", // Changed to string to match the type
+        initial_quote_awarded: true,
         total_price_usd: 2500 + i * 200,
         destination_port: "Harare",
         origin_port: "Nairobi",
@@ -60,12 +59,6 @@ const App = () => {
         mode_of_shipment: "Air",
         forwarder_quotes: { 'Kenya Airways': 2500, 'DHL': 2700, 'Kuehne Nagel': 2600 }
       }));
-      
-      toast({
-        title: "⚠️ Development Environment",
-        description: "Using sample data. In production, real validated data from deeptrack_3.csv is required.",
-        variant: "destructive",
-      });
       
       // Boot with the sample data
       const success = await boot({
@@ -85,11 +78,6 @@ const App = () => {
       
       if (!success) {
         console.error("Boot failed, proceeding with limited functionality");
-        toast({
-          title: "Data Integrity Failure",
-          description: "Base data integrity check failed. Please re-sync or fix dataset.",
-          variant: "destructive",
-        });
         setIsLoading(false);
       }
     };
@@ -100,11 +88,6 @@ const App = () => {
     const fallbackTimer = setTimeout(() => {
       console.log("Fallback timer triggered");
       setIsLoading(false);
-      toast({
-        title: "System Initialization Timeout",
-        description: "Failed to load data within expected timeframe. Limited functionality available.",
-        variant: "destructive",
-      });
     }, 3000); // Show loading screen for max 3 seconds
     
     return () => clearTimeout(fallbackTimer);

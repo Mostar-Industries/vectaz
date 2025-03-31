@@ -1,156 +1,172 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ShipmentMetrics } from '@/types/deeptrack';
-import { 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
-  PolarRadiusAxis, 
-  Radar, 
-  Legend, 
-  ResponsiveContainer,
-  Tooltip
-} from 'recharts';
-import { Shield, Info, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getExplanation } from '@/services/deepSightNarrator';
-import DeepExplainModal from '../DeepExplainModal';
+import { Button } from '@/components/ui/button';
+import { Info, Shield, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
+import { ShipmentMetrics } from '@/types/deeptrack';
+import { ResilienceChart } from '@/components/ResilienceChart';
+import { metricAnalyzers } from '@/core/metricReasoner';
+import { useBaseDataStore } from '@/store/baseState';
+import { calculateShipmentMetrics } from '@/utils/analyticsUtils';
 
 interface ShipmentResilienceChartProps {
   metrics: ShipmentMetrics;
 }
 
 const ShipmentResilienceChart: React.FC<ShipmentResilienceChartProps> = ({ metrics }) => {
-  const [explainModalOpen, setExplainModalOpen] = useState(false);
+  const { shipmentData } = useBaseDataStore();
   
-  // Calculate normalized values (0-100 scale) for radar chart
-  const resilienceScore = metrics.resilienceScore;
-  const onTimeRate = metrics.delayedVsOnTimeRate.onTime / 
-    (metrics.delayedVsOnTimeRate.onTime + metrics.delayedVsOnTimeRate.delayed) * 100 || 0;
-  const disruptionResistance = Math.max(0, 100 - (metrics.disruptionProbabilityScore * 10));
-  const quoteAvailability = (1 - metrics.noQuoteRatio) * 100;
-  const completionRate = metrics.shipmentStatusCounts.completed / 
-    (metrics.totalShipments || 1) * 100;
-
-  // Prepare data for radar chart
-  const radarData = [
-    {
-      subject: 'Resilience',
-      A: resilienceScore,
-      fullMark: 100,
-    },
-    {
-      subject: 'On-Time Rate',
-      A: onTimeRate,
-      fullMark: 100,
-    },
-    {
-      subject: 'Disruption Resistance',
-      A: disruptionResistance,
-      fullMark: 100,
-    },
-    {
-      subject: 'Quote Availability',
-      A: quoteAvailability,
-      fullMark: 100,
-    },
-    {
-      subject: 'Completion Rate',
-      A: completionRate,
-      fullMark: 100,
-    },
-  ];
-
-  // Calculate the overall network health score
-  const networkHealthScore = (
-    resilienceScore * 0.25 + 
-    onTimeRate * 0.25 + 
-    disruptionResistance * 0.2 + 
-    quoteAvailability * 0.15 + 
-    completionRate * 0.15
-  );
+  // Generate resilience data from the metrics and historical data
+  const generateResilienceData = () => {
+    // Get the current month and previous 5 months
+    const months = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const month = new Date(now);
+      month.setMonth(now.getMonth() - i);
+      months.push(month);
+    }
+    
+    // Create data points for each month based on real shipment metrics
+    return months.map((month, index) => {
+      // Filter shipment data for this month to get accurate metrics
+      const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+      const monthEnd = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+      
+      const monthlyShipments = shipmentData.filter(shipment => {
+        if (!shipment.date_of_collection) return false;
+        const date = new Date(shipment.date_of_collection);
+        return date >= monthStart && date <= monthEnd;
+      });
+      
+      // Calculate metrics for this month if we have data, otherwise use trend-based estimates
+      let disruption = 0;
+      let cost = 0;
+      let reliability = 0;
+      
+      if (monthlyShipments.length > 0) {
+        // Calculate real metrics for this month
+        const monthMetrics = calculateShipmentMetrics(monthlyShipments);
+        disruption = monthMetrics.disruptionProbabilityScore * 10; // Scale to 0-100
+        reliability = monthMetrics.resilienceScore;
+        
+        // Calculate average cost for the month
+        const totalCost = monthlyShipments.reduce((sum, s) => {
+          const forwarder = s.final_quote_awarded_freight_forwader_Carrier.toLowerCase();
+          const quotes = s.forwarder_quotes || {};
+          return sum + (quotes[forwarder] || 0);
+        }, 0);
+        
+        const totalWeight = monthlyShipments.reduce((sum, s) => sum + (s.weight_kg || 0), 0);
+        
+        if (totalWeight > 0) {
+          // Normalize cost to 0-100 scale for visualization
+          const avgCost = totalCost / totalWeight;
+          cost = Math.min(avgCost * 2, 100); // Scale for visualization
+        } else {
+          cost = 50; // Default if no weight data
+        }
+      } else {
+        // If no data for this month, use trend-based estimates
+        const baseline = index / 5; // Position in the timeline (0 to 1)
+        
+        // Create slightly varying metrics that trend toward current values
+        disruption = 50 - (metrics.disruptionProbabilityScore * 5 - 25) * baseline;
+        reliability = 50 + (metrics.resilienceScore - 50) * baseline;
+        cost = 60 - 10 * baseline;
+      }
+      
+      // Format month for display
+      const monthName = month.toLocaleString('default', { month: 'short' });
+      const yearShort = month.getFullYear().toString().substr(2);
+      
+      return {
+        date: `${monthName} '${yearShort}`,
+        disruption: Math.max(0, Math.min(100, disruption)),
+        cost: Math.max(0, Math.min(100, cost)),
+        reliability: Math.max(0, Math.min(100, reliability))
+      };
+    });
+  };
   
-  // Determine the health status
-  const healthStatus = 
-    networkHealthScore >= 75 ? 'Robust' :
-    networkHealthScore >= 60 ? 'Stable' :
-    networkHealthScore >= 40 ? 'Vulnerable' : 'Critical';
+  const resilienceData = generateResilienceData();
   
-  // Color based on health status
-  const statusColor = 
-    networkHealthScore >= 75 ? 'text-green-600 bg-green-50 border-green-200' :
-    networkHealthScore >= 60 ? 'text-blue-600 bg-blue-50 border-blue-200' :
-    networkHealthScore >= 40 ? 'text-amber-600 bg-amber-50 border-amber-200' : 
-                              'text-red-600 bg-red-50 border-red-200';
+  // Get detailed metrics analysis
+  const resilienceAnalysis = metricAnalyzers.resilience(metrics, shipmentData);
+  const disruptionAnalysis = metricAnalyzers.disruption(metrics);
   
-  // Get resilience explanation
-  const resilienceExplanation = getExplanation('resilience_score', metrics);
-
+  // Determine trend direction
+  const latestResilience = resilienceData[resilienceData.length - 1].reliability;
+  const previousResilience = resilienceData[resilienceData.length - 2]?.reliability || latestResilience;
+  const resilienceTrend = latestResilience - previousResilience;
+  
+  // Determine network health status
+  const networkHealth = metricAnalyzers.networkHealth(metrics);
+  
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border shadow-sm">
+      <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2">
               <Shield className="h-5 w-5 text-green-500" />
-              Shipment Network Resilience
+              Supply Chain Resilience
             </CardTitle>
-            <CardDescription>Multi-dimensional analysis of supply chain stability</CardDescription>
+            <CardDescription>
+              Network resilience metrics over time
+            </CardDescription>
           </div>
           
-          <Badge className={`${statusColor} px-2 py-1`}>
-            {healthStatus}
+          <Badge 
+            className={
+              networkHealth.value >= 75 ? 'bg-green-50 text-green-700 border-green-200' :
+              networkHealth.value >= 60 ? 'bg-blue-50 text-blue-700 border-blue-200' :
+              networkHealth.value >= 40 ? 'bg-amber-50 text-amber-700 border-amber-200' :
+              'bg-red-50 text-red-700 border-red-200'
+            }
+          >
+            {
+              networkHealth.value >= 75 ? 'Robust' :
+              networkHealth.value >= 60 ? 'Stable' :
+              networkHealth.value >= 40 ? 'Vulnerable' :
+              'Critical'
+            }
           </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-              <PolarGrid />
-              <PolarAngleAxis dataKey="subject" />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} />
-              <Radar
-                name="Resilience Metrics"
-                dataKey="A"
-                stroke="#10b981"
-                fill="#10b981"
-                fillOpacity={0.6}
-              />
-              <Tooltip formatter={(value) => [typeof value === 'number' ? `${value.toFixed(1)}%` : value, 'Value']} />
-              <Legend />
-            </RadarChart>
-          </ResponsiveContainer>
-        </div>
+      
+      <CardContent className="pt-4">
+        <ResilienceChart 
+          data={resilienceData}
+          isLoading={false}
+        />
       </CardContent>
-      <CardFooter className="flex justify-between border-t pt-4 pb-1">
+      
+      <CardFooter className="flex justify-between border-t pt-4">
         <div className="text-sm">
           <span className="font-medium">Network Health: </span>
-          <span className="font-bold">{networkHealthScore.toFixed(1)}</span>
-          {networkHealthScore < 60 && (
-            <div className="flex items-center gap-1 text-amber-600 mt-1 text-xs">
-              <AlertTriangle className="h-3.5 w-3.5" /> 
-              Risk indicators present
-            </div>
-          )}
+          <span className="font-bold">{typeof networkHealth.value === 'number' ? networkHealth.value.toFixed(1) : networkHealth.value}</span>
+          <div className="flex items-center gap-1 mt-1 text-xs">
+            {resilienceTrend > 0 ? (
+              <TrendingUp className="h-3.5 w-3.5 text-green-600" />
+            ) : (
+              <TrendingDown className="h-3.5 w-3.5 text-amber-600" />
+            )}
+            <span className={resilienceTrend > 0 ? 'text-green-600' : 'text-amber-600'}>
+              {Math.abs(resilienceTrend).toFixed(1)}% {resilienceTrend > 0 ? 'improvement' : 'decline'}
+            </span>
+          </div>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => setExplainModalOpen(true)}
-        >
-          <Info className="h-4 w-4 mr-1" /> 
-          Explain This Analysis
-        </Button>
+        
+        {networkHealth.value < 60 && (
+          <div className="flex items-center gap-1 text-amber-600 text-xs">
+            <AlertTriangle className="h-3.5 w-3.5" /> 
+            {networkHealth.insights[0]}
+          </div>
+        )}
       </CardFooter>
-      
-      <DeepExplainModal
-        open={explainModalOpen}
-        onOpenChange={setExplainModalOpen}
-        explanation={resilienceExplanation}
-      />
     </Card>
   );
 };

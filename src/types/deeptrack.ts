@@ -40,3 +40,11 @@ export interface RoutePerformance {
   reliabilityScore: number;
   totalShipments: number;
 }
+
+export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';
+
+export interface TabItem {
+  id: AppSection;
+  label: string;
+  icon: React.ComponentType<any>;
+}

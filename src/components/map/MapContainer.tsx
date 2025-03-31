@@ -23,6 +23,70 @@ const MapContainer: React.FC<MapContainerProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [activeMarkers, setActiveMarkers] = useState<mapboxgl.Marker[]>([]);
+
+  // Jump to location function that can be called externally
+  const jumpToLocation = (lat: number, lng: number, name: string) => {
+    if (!map.current) return;
+    
+    // Fly to the location with animation
+    map.current.flyTo({
+      center: [lng, lat],
+      zoom: 6,
+      pitch: 60,
+      bearing: Math.random() * 60 - 30, // Random bearing for dynamic feel
+      duration: 2000,
+      essential: true
+    });
+    
+    // Highlight the marker by finding it and creating a pulse effect
+    const markers = document.getElementsByClassName('mapboxgl-marker');
+    for (let i = 0; i < markers.length; i++) {
+      const marker = markers[i] as HTMLElement;
+      // Remove any existing highlight classes
+      marker.classList.remove('marker-highlight');
+      
+      // Check if this marker corresponds to the location we jumped to
+      const markerInstance = activeMarkers[i];
+      if (markerInstance && Math.abs(markerInstance.getLngLat().lat - lat) < 0.01 && 
+          Math.abs(markerInstance.getLngLat().lng - lng) < 0.01) {
+        // Add highlight class
+        marker.classList.add('marker-highlight');
+        
+        // Create a temporary popup
+        new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          className: 'destination-popup'
+        })
+          .setLngLat([lng, lat])
+          .setHTML(`
+            <div class="flex flex-col items-center">
+              <span class="text-sm font-bold">${name}</span>
+              <span class="text-xs">Destination Point</span>
+            </div>
+          `)
+          .addTo(map.current!)
+          .addClassName('animate-fade-in');
+          
+        // Remove popup after 4 seconds
+        setTimeout(() => {
+          const popups = document.getElementsByClassName('destination-popup');
+          if (popups.length > 0) {
+            popups[0].remove();
+          }
+        }, 4000);
+      }
+    }
+  };
+
+  // Expose jumpToLocation method to parent components
+  useEffect(() => {
+    if (!map.current) return;
+    
+    // Add jumpToLocation to the map object so it can be accessed by parent components
+    (map.current as any).jumpToLocation = jumpToLocation;
+  }, [routes]);
 
   useEffect(() => {
     if (!mapContainerRef.current || isLoading) return;
@@ -146,6 +210,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
       markers[0].remove();
     }
 
+    // Clear active markers array
+    setActiveMarkers([]);
+    const newMarkers: mapboxgl.Marker[] = [];
+
     // Add each route
     routes.forEach((route, index) => {
       // Remove existing source and layer if they exist
@@ -156,15 +224,23 @@ const MapContainer: React.FC<MapContainerProps> = ({
         map.current.removeSource(`route-${index}`);
       }
       
+      // Create custom origin marker element
+      const originEl = document.createElement('div');
+      originEl.className = 'origin-marker';
+      originEl.innerHTML = `
+        <div class="marker-inner origin">
+          <div class="marker-pulse"></div>
+        </div>
+      `;
+      
       // Add origin marker
-      new mapboxgl.Marker({
-        color: '#1A1F2C',
-        scale: 0.7
+      const originMarker = new mapboxgl.Marker({
+        element: originEl
       })
         .setLngLat([route.origin.lng, route.origin.lat])
         .setPopup(new mapboxgl.Popup({ 
           offset: 25,
-          className: 'bg-background/90 backdrop-blur-sm p-2 border border-border/50 rounded-md shadow-lg'
+          className: 'bg-background/90 backdrop-blur-sm p-2 border border-border/50 rounded-md shadow-lg custom-popup'
         }).setHTML(`
           <div>
             <h3 class="font-bold">${route.origin.name}</h3>
@@ -174,23 +250,33 @@ const MapContainer: React.FC<MapContainerProps> = ({
         `))
         .addTo(map.current!);
       
+      newMarkers.push(originMarker);
+      
       // Get marker color based on delivery status
       const getMarkerColor = () => {
         const status = route.deliveryStatus?.toLowerCase() || '';
-        if (status === 'delivered') return '#10B981'; // Green for delivered
-        if (status === 'in transit' || status === 'pending') return '#F59E0B'; // Yellow for en route/pending
-        return '#EF4444'; // Red for not delivered/failed/other statuses
+        if (status === 'delivered') return 'green'; // Green for delivered
+        if (status === 'in transit' || status === 'pending') return 'yellow'; // Yellow for en route/pending
+        return 'red'; // Red for not delivered/failed/other statuses
       };
       
+      // Create custom destination marker element
+      const destEl = document.createElement('div');
+      destEl.className = 'destination-marker';
+      destEl.innerHTML = `
+        <div class="marker-inner destination ${getMarkerColor()}">
+          <div class="marker-pulse ${getMarkerColor()}"></div>
+        </div>
+      `;
+      
       // Add destination marker with color based on delivery status
-      new mapboxgl.Marker({
-        color: getMarkerColor(),
-        scale: 0.7
+      const destMarker = new mapboxgl.Marker({
+        element: destEl
       })
         .setLngLat([route.destination.lng, route.destination.lat])
         .setPopup(new mapboxgl.Popup({ 
           offset: 25,
-          className: 'bg-background/90 backdrop-blur-sm p-2 border border-border/50 rounded-md shadow-lg'
+          className: 'bg-background/90 backdrop-blur-sm p-2 border border-border/50 rounded-md shadow-lg custom-popup'
         }).setHTML(`
           <div>
             <h3 class="font-bold">${route.destination.name}</h3>
@@ -200,6 +286,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
           </div>
         `))
         .addTo(map.current!);
+      
+      newMarkers.push(destMarker);
 
       // Add a line connecting origin and destination
       try {
@@ -243,7 +331,19 @@ const MapContainer: React.FC<MapContainerProps> = ({
         console.error(`Error adding route ${index} to map:`, error);
       }
     });
+    
+    // Update active markers
+    setActiveMarkers(newMarkers);
   };
+  
+  // Method to expose jumpToLocation to parent component
+  React.useImperativeHandle(
+    React.createRef(),
+    () => ({
+      jumpToLocation
+    }),
+    []
+  );
 
   if (isLoading) {
     return (

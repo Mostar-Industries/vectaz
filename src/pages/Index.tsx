@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import MapVisualizer from '@/components/MapVisualizer';
 import { toast } from '@/hooks/use-toast';
@@ -135,14 +135,12 @@ const Index = () => {
           {renderContent()}
         </AnimatePresence>
         
-        {/* App name in top left (visible on map view) */}
-        {activeTab === 'map' && (
-          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-blue-500/30 tech-glow">
-            <h1 className="text-xl font-bold neon-text">DeepCAL</h1>
-          </div>
-        )}
+        {/* App name in top left (visible on all views) */}
+        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-blue-500/30 tech-glow">
+          <h1 className="text-xl font-bold neon-text">DeepCAL</h1>
+        </div>
         
-        {/* Navigation tabs */}
+        {/* Navigation tabs (now at the top) */}
         <AppTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     </div>

@@ -1,0 +1,123 @@
+
+/* Custom marker styles */
+.origin-marker, .destination-marker {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.marker-inner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.marker-inner.origin {
+  background-color: #1A1F2C;
+  border: 2px solid #9b87f5;
+}
+
+.marker-inner.destination {
+  background-color: rgba(30, 41, 59, 0.8);
+  border: 2px solid currentColor;
+}
+
+.marker-inner.destination.green {
+  color: #10B981;
+}
+
+.marker-inner.destination.yellow {
+  color: #F59E0B;
+}
+
+.marker-inner.destination.red {
+  color: #EF4444;
+}
+
+.marker-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: currentColor;
+  opacity: 0.4;
+  transform-origin: center;
+  animation: pulse 2s ease-out infinite;
+}
+
+.marker-pulse.green {
+  background-color: #10B981;
+}
+
+.marker-pulse.yellow {
+  background-color: #F59E0B;
+}
+
+.marker-pulse.red {
+  background-color: #EF4444;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  70% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.marker-highlight {
+  z-index: 100;
+  transform: scale(1.5);
+  transition: transform 0.3s ease-out;
+}
+
+.marker-highlight .marker-inner {
+  box-shadow: 0 0 15px 5px #9b87f5;
+}
+
+.custom-popup {
+  border: 1px solid rgba(155, 135, 245, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  box-shadow: 0 0 15px rgba(155, 135, 245, 0.2) !important;
+}
+
+.destination-popup {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(155, 135, 245, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 20px rgba(155, 135, 245, 0.3) !important;
+  color: white !important;
+  text-align: center !important;
+  padding: 10px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(155, 135, 245, 0.5);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(155, 135, 245, 0.7);
+}

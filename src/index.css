@@ -37,33 +37,33 @@
   }
  
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 222 47% 11%;
+    --foreground: 213 31% 91%;
  
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222 47% 10%;
+    --card-foreground: 213 31% 91%;
  
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 213 31% 91%;
  
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
  
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
  
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
  
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
  
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
  
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 213 31% 91%;
   }
 }
  
@@ -123,4 +123,93 @@
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Tech-inspired background and styling */
+.tech-bg {
+  background-color: #0a1929;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(23, 107, 135, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(50, 51, 128, 0.15) 0%, transparent 50%),
+    linear-gradient(180deg, #071425 0%, #0c2237 100%);
+  background-attachment: fixed;
+}
+
+.tech-grid {
+  background-size: 50px 50px;
+  background-image: 
+    linear-gradient(rgba(53, 157, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 157, 255, 0.03) 1px, transparent 1px);
+}
+
+.tech-card {
+  @apply bg-black/40 backdrop-blur-sm border border-blue-500/20 shadow-lg shadow-blue-900/5;
+}
+
+.tech-glow {
+  box-shadow: 0 0 15px rgba(0, 191, 255, 0.15);
+}
+
+.data-card {
+  @apply relative rounded-lg bg-black/40 backdrop-blur-sm border border-blue-500/20 p-4 shadow-md transition-all duration-300 hover:border-blue-500/40 hover:shadow-blue-900/10;
+}
+
+.neon-text {
+  color: #5ee7ff;
+  text-shadow: 0 0 5px rgba(94, 231, 255, 0.5);
+}
+
+.neon-pink {
+  color: #ff5edf;
+  text-shadow: 0 0 5px rgba(255, 94, 223, 0.5);
+}
+
+.neon-green {
+  color: #5eff8f;
+  text-shadow: 0 0 5px rgba(94, 255, 143, 0.5);
+}
+
+.neon-purple {
+  color: #c45eff;
+  text-shadow: 0 0 5px rgba(196, 94, 255, 0.5);
+}
+
+.gradient-border {
+  position: relative;
+  border-radius: 0.5rem;
+  background-clip: padding-box;
+}
+
+.gradient-border::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(to right, #20c1dc, #8a2be2);
+  opacity: 0.2;
+}
+
+.gradient-border:hover::after {
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.network-lines {
+  position: relative;
+}
+
+.network-lines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3ClinearGradient id='a' x1='0' y1='0' x2='100%25' y2='100%25'%3E%3Cstop offset='0' stop-color='%230f2e49' stop-opacity='0.2'/%3E%3Cstop offset='1' stop-color='%2301a4ff' stop-opacity='0.1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 0 L100 100' stroke='url(%23a)' stroke-width='0.5'/%3E%3C/svg%3E");
+  opacity: 0.1;
+  z-index: -1;
 }

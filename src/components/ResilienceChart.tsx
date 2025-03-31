@@ -66,10 +66,10 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
   
   // Color based on health status
   const statusColor = 
-    compositeScore >= 75 ? 'text-green-600 bg-green-50 border-green-200' :
-    compositeScore >= 60 ? 'text-blue-600 bg-blue-50 border-blue-200' :
-    compositeScore >= 40 ? 'text-amber-600 bg-amber-50 border-amber-200' : 
-                          'text-red-600 bg-red-50 border-red-200';
+    compositeScore >= 75 ? 'bg-green-900/30 text-green-300 border-green-500/30' :
+    compositeScore >= 60 ? 'bg-blue-900/30 text-blue-300 border-blue-500/30' :
+    compositeScore >= 40 ? 'bg-amber-900/30 text-amber-300 border-amber-500/30' : 
+                          'bg-red-900/30 text-red-300 border-red-500/30';
 
   // Mock explanation for the Resilience Chart
   const resilienceExplanation: MetricExplanation = {
@@ -87,13 +87,13 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
   };
 
   return (
-    <Card className="border rounded-lg h-full">
+    <Card className="border rounded-lg h-full data-card gradient-border">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Shield className="h-5 w-5 text-green-500" />
-              Resilience Metrics Over Time
+              <Shield className="h-5 w-5 text-cyan-400" />
+              <span className="neon-text">Resilience Metrics Over Time</span>
             </CardTitle>
           </div>
           
@@ -102,16 +102,32 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="h-72">
+      <CardContent className="h-72 tech-grid relative">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(53, 157, 255, 0.1)" />
+            <XAxis 
+              dataKey="date" 
+              stroke="rgba(255, 255, 255, 0.6)"
+              tick={{ fill: 'rgba(255, 255, 255, 0.6)' }}
+            />
+            <YAxis 
+              stroke="rgba(255, 255, 255, 0.6)"
+              tick={{ fill: 'rgba(255, 255, 255, 0.6)' }}
+            />
             <Tooltip
+              contentStyle={{ 
+                backgroundColor: 'rgba(10, 25, 41, 0.9)', 
+                borderColor: 'rgba(53, 157, 255, 0.3)',
+                color: 'white',
+                borderRadius: '0.375rem',
+                boxShadow: '0 0 10px rgba(0, 191, 255, 0.15)'
+              }}
+              itemStyle={{ color: 'rgba(255, 255, 255, 0.9)' }}
+              labelStyle={{ color: 'rgba(255, 255, 255, 0.7)' }}
               formatter={(value, name) => {
                 const formattedName = 
                   name === 'disruption' ? 'Disruption Risk' :
@@ -124,35 +140,44 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
                 return value === 'disruption' ? 'Disruption Risk' :
                        value === 'cost' ? 'Cost Index' : 'Reliability Score';
               }}
+              wrapperStyle={{ color: 'rgba(255, 255, 255, 0.7)' }}
             />
             <Line 
               type="monotone" 
               dataKey="disruption" 
-              stroke="#ef4444" 
-              activeDot={{ r: 8 }} 
+              stroke="#ff5edf" 
+              strokeWidth={2}
+              activeDot={{ r: 8, fill: '#ff5edf', stroke: 'rgba(255, 94, 223, 0.3)', strokeWidth: 2 }}
               name="disruption"
+              dot={{ stroke: '#ff5edf', strokeWidth: 1, r: 3, fill: '#0a1929' }}
             />
             <Line 
               type="monotone" 
               dataKey="cost" 
-              stroke="#8b5cf6" 
+              stroke="#c45eff" 
+              strokeWidth={2}
+              activeDot={{ r: 8, fill: '#c45eff', stroke: 'rgba(196, 94, 255, 0.3)', strokeWidth: 2 }}
               name="cost"
+              dot={{ stroke: '#c45eff', strokeWidth: 1, r: 3, fill: '#0a1929' }}
             />
             <Line 
               type="monotone" 
               dataKey="reliability" 
-              stroke="#22c55e" 
+              stroke="#5ee7ff" 
+              strokeWidth={2}
+              activeDot={{ r: 8, fill: '#5ee7ff', stroke: 'rgba(94, 231, 255, 0.3)', strokeWidth: 2 }}
               name="reliability"
+              dot={{ stroke: '#5ee7ff', strokeWidth: 1, r: 3, fill: '#0a1929' }}
             />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
-      <CardFooter className="flex justify-between border-t pt-4">
+      <CardFooter className="flex justify-between border-t border-blue-500/20 pt-4">
         <div className="text-sm">
-          <span className="font-medium">Composite Score: </span>
-          <span className="font-bold">{compositeScore.toFixed(1)}</span>
+          <span className="font-medium text-gray-300">Composite Score: </span>
+          <span className="font-bold neon-text">{compositeScore.toFixed(1)}</span>
           {compositeScore < 60 && (
-            <div className="flex items-center gap-1 text-amber-600 mt-1 text-xs">
+            <div className="flex items-center gap-1 text-amber-400 mt-1 text-xs">
               <AlertTriangle className="h-3.5 w-3.5" /> 
               Intervention recommended
             </div>
@@ -162,6 +187,7 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
           variant="outline" 
           size="sm"
           onClick={() => setExplainModalOpen(true)}
+          className="bg-blue-950/40 border-blue-500/30 text-blue-300 hover:bg-blue-900/30 hover:text-blue-100"
         >
           <Info className="h-4 w-4 mr-1" /> 
           Explain This Analysis

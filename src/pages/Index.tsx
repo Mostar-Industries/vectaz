@@ -125,21 +125,26 @@ const Index = () => {
   }
 
   return (
-    <div className="h-screen w-full overflow-x-hidden relative">
+    <div className="h-screen w-full overflow-x-hidden relative tech-bg">
+      <div className="tech-grid absolute inset-0 z-0"></div>
+      <div className="network-lines absolute inset-0 z-0"></div>
+      
       {/* Application content */}
-      <AnimatePresence mode="wait">
-        {renderContent()}
-      </AnimatePresence>
-      
-      {/* App name in top left (visible on map view) */}
-      {activeTab === 'map' && (
-        <div className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm py-2 px-4 rounded-lg shadow-md z-10 border border-border">
-          <h1 className="text-xl font-bold">DeepCAL</h1>
-        </div>
-      )}
-      
-      {/* Navigation tabs */}
-      <AppTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="relative z-10">
+        <AnimatePresence mode="wait">
+          {renderContent()}
+        </AnimatePresence>
+        
+        {/* App name in top left (visible on map view) */}
+        {activeTab === 'map' && (
+          <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-blue-500/30 tech-glow">
+            <h1 className="text-xl font-bold neon-text">DeepCAL</h1>
+          </div>
+        )}
+        
+        {/* Navigation tabs */}
+        <AppTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
     </div>
   );
 };

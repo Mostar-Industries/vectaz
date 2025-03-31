@@ -11,6 +11,7 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, boot } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
+import { ThemeProvider } from "./ThemeProvider";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -91,26 +92,28 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {isLoading ? (
-          <LoadingScreen />
-        ) : (
-          <>
-            {/* Router for navigation */}
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-        
-            {/* UI Components for notifications */}
-            <Toaster />
-            <Sonner />
-          </>
-        )}
-      </TooltipProvider>
+      <ThemeProvider defaultTheme="dark">
+        <TooltipProvider>
+          {isLoading ? (
+            <LoadingScreen />
+          ) : (
+            <>
+              {/* Router for navigation */}
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+          
+              {/* UI Components for notifications */}
+              <Toaster />
+              <Sonner />
+            </>
+          )}
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

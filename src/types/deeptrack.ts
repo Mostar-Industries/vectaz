@@ -29,6 +29,9 @@ export interface ForwarderPerformance {
   avgTransitDays: number;
   onTimeRate: number;
   reliabilityScore: number;
+  quoteWinRate?: number;
+  deepScore?: number;
+  replacementFrequency?: number;
 }
 
 export interface RoutePerformance {
@@ -39,6 +42,43 @@ export interface RoutePerformance {
   disruptionScore: number;
   reliabilityScore: number;
   totalShipments: number;
+}
+
+export interface CountryPerformance {
+  country: string;
+  totalShipments: number;
+  avgCostPerRoute: number;
+  avgCustomsClearanceTime: number;
+  deliveryFailureRate: number;
+  borderDelayIncidents: number;
+  resilienceIndex: number;
+  preferredMode: string;
+  topForwarders: string[];
+}
+
+export interface WarehousePerformance {
+  name: string;
+  location: string;
+  totalShipments: number;
+  avgPickPackTime: number;
+  packagingFailureRate: number;
+  missedDispatchRate: number;
+  rescheduledShipmentsRatio: number;
+  reliabilityScore: number;
+  preferredForwarders: string[];
+  costDiscrepancy: number;
+}
+
+export interface ShipmentMetrics {
+  totalShipments: number;
+  shipmentsByMode: Record<string, number>;
+  monthlyTrend: Array<{month: string, count: number}>;
+  delayedVsOnTimeRate: {onTime: number, delayed: number};
+  avgTransitTime: number;
+  disruptionProbabilityScore: number;
+  shipmentStatusCounts: {active: number, completed: number, failed: number};
+  resilienceScore: number;
+  noQuoteRatio: number;
 }
 
 export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';

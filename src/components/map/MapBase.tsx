@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState, ReactNode } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { jumpToLocation } from './utils/mapAnimations';
 
 // Define a proper type for function children and export it
 export type MapBaseFunctionChild = (map: mapboxgl.Map | null, mapLoaded: boolean) => React.ReactElement | null;
@@ -22,6 +23,18 @@ const MapBase: React.FC<MapBaseProps> = ({
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Method to expose the jumpToLocation function
+  const flyToLocation = (coordinates: [number, number], zoom?: number, bearing?: number, pitch?: number) => {
+    if (map.current) {
+      jumpToLocation(map.current, coordinates, zoom, bearing, pitch);
+    }
+  };
+
+  // Expose the method to the window for debugging/demo purposes
+  if (typeof window !== 'undefined') {
+    (window as any).flyToLocation = flyToLocation;
+  }
 
   useEffect(() => {
     if (!mapContainerRef.current || isLoading) return;

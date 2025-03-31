@@ -1,10 +1,12 @@
 
-import React, { useState } from 'react';
-import { Loader, Map as MapIcon } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { Loader, Map as MapIcon, Navigation } from 'lucide-react';
 import MapBase, { MapBaseFunctionChild } from './map/MapBase';
 import RouteLayer from './map/RouteLayer';
 import MapControls from './map/MapControls';
 import { Route } from './map/types';
+import { Button } from './ui/button';
+import { animateRouteLine } from './map/utils/mapAnimations';
 
 export type { MapPoint } from './map/types';
 export type { Route } from './map/types';
@@ -23,6 +25,40 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
   validated = true
 }) => {
   const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  
+  // Function to handle map loaded event
+  const handleMapLoaded = useCallback((map: mapboxgl.Map) => {
+    mapRef.current = map;
+  }, []);
+  
+  // Function to animate a random route
+  const animateRandomRoute = useCallback(() => {
+    if (!mapRef.current || routes.length === 0) return;
+    
+    const randomRouteIndex = Math.floor(Math.random() * routes.length);
+    const route = routes[randomRouteIndex];
+    
+    // First fly to the route origin
+    (window as any).flyToLocation(
+      [route.origin.lng, route.origin.lat],
+      3.5,  // zoom
+      0,    // bearing
+      60    // pitch
+    );
+    
+    // After a delay, animate the route
+    setTimeout(() => {
+      animateRouteLine(
+        mapRef.current as mapboxgl.Map,
+        [
+          [route.origin.lng, route.origin.lat],
+          [route.destination.lng, route.destination.lat]
+        ],
+        '#9b87f5'
+      );
+    }, 2000);
+  }, [routes]);
 
   if (isLoading) {
     return (
@@ -55,14 +91,33 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
   };
 
   return (
-    <MapBase isLoading={isLoading} onMapLoadedState={setMapLoaded}>
-      {renderRouteLayer}
-      <MapControls 
-        routesCount={routes.length} 
-        dataSource={dataSource}
-        validated={validated}
-      />
-    </MapBase>
+    <div className="relative h-full w-full">
+      <MapBase 
+        isLoading={isLoading} 
+        onMapLoadedState={setMapLoaded}
+        onMapLoaded={handleMapLoaded}
+      >
+        {renderRouteLayer}
+        <MapControls 
+          routesCount={routes.length} 
+          dataSource={dataSource}
+          validated={validated}
+        />
+      </MapBase>
+      
+      {/* Animation control button */}
+      <div className="absolute bottom-4 left-4 z-10">
+        <Button 
+          variant="outline" 
+          className="bg-slate-800 hover:bg-slate-700 border-slate-600"
+          onClick={animateRandomRoute}
+          disabled={!mapLoaded || routes.length === 0}
+        >
+          <Navigation className="mr-2 h-4 w-4" />
+          Animate Random Route
+        </Button>
+      </div>
+    </div>
   );
 };
 

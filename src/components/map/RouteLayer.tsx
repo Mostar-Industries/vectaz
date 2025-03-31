@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { Route } from '../MapVisualizer';
+import { jumpToLocation, animateRouteLine } from './utils/mapAnimations';
 
 interface RouteLayerProps {
   map: mapboxgl.Map | null;
@@ -11,6 +12,42 @@ interface RouteLayerProps {
 
 const RouteLayer: React.FC<RouteLayerProps> = ({ map, routes, mapLoaded }) => {
   const [routesAdded, setRoutesAdded] = useState(false);
+  const [animatedMarkers, setAnimatedMarkers] = useState<mapboxgl.Marker[]>([]);
+
+  // Function to animate a specific route
+  const animateRoute = (routeIndex: number) => {
+    if (!map || routes.length === 0 || routeIndex >= routes.length) return;
+    
+    const route = routes[routeIndex];
+    
+    // Create route coordinates array starting with origin and ending with destination
+    const routeCoords: [number, number][] = [
+      [route.origin.lng, route.origin.lat],
+      [route.destination.lng, route.destination.lat]
+    ];
+    
+    // First, jump to the origin with a smooth fly-to
+    jumpToLocation(
+      map, 
+      routeCoords[0], 
+      3.5, // zoom level
+      0,    // bearing
+      60    // pitch for dramatic effect
+    );
+    
+    // After a short delay, start the animation
+    setTimeout(() => {
+      const marker = animateRouteLine(
+        map,
+        routeCoords,
+        '#9b87f5', // Use the same purple color as the route lines
+        () => console.log(`Route ${routeIndex} animation completed`)
+      );
+      
+      // Add the marker to state so we can clean it up later if needed
+      setAnimatedMarkers(prev => [...prev, marker]);
+    }, 2000); // Start animation 2 seconds after jumping to location
+  };
 
   // Effect to add routes when the map style is loaded and routes change
   useEffect(() => {
@@ -26,6 +63,10 @@ const RouteLayer: React.FC<RouteLayerProps> = ({ map, routes, mapLoaded }) => {
       while (markers.length > 0) {
         markers[0].remove();
       }
+      
+      // Clean up animated markers too
+      animatedMarkers.forEach(marker => marker.remove());
+      setAnimatedMarkers([]);
       
       // Clear existing routes
       routes.forEach((_, index) => {
@@ -118,6 +159,11 @@ const RouteLayer: React.FC<RouteLayerProps> = ({ map, routes, mapLoaded }) => {
           }
         });
         
+        // Animate the first route as a demo (can be triggered by other events)
+        if (routes.length > 0) {
+          setTimeout(() => animateRoute(0), 1000);
+        }
+        
         setRoutesAdded(true);
       } catch (error) {
         console.error('Error adding routes to map:', error);
@@ -125,7 +171,7 @@ const RouteLayer: React.FC<RouteLayerProps> = ({ map, routes, mapLoaded }) => {
     }
     
     return () => clearTimeout(timer);
-  }, [routes, mapLoaded, routesAdded, map]);
+  }, [routes, mapLoaded, routesAdded, map, animatedMarkers]);
 
   return null; // This is a logic-only component
 };

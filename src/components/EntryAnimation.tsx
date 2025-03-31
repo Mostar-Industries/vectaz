@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader, CheckCircle, Database, Zap, Server, Cpu, ShieldCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import Particles from './Particles';
 
 interface EntryAnimationProps {
   onComplete: () => void;
@@ -119,33 +120,6 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
     }, 500);
   };
   
-  // Floating icons that animate around the screen
-  const renderFloatingIcons = () => {
-    const icons = [
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 10, repeat: Infinity, ease: "easeInOut" } }}><Cpu size={20} className="text-blue-400" /></motion.div>, delay: 0 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 12, repeat: Infinity, ease: "easeInOut" } }}><Database size={20} className="text-blue-300" /></motion.div>, delay: 0.5 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 14, repeat: Infinity, ease: "easeInOut" } }}><Zap size={20} className="text-yellow-400" /></motion.div>, delay: 1 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 13, repeat: Infinity, ease: "easeInOut" } }}><Server size={20} className="text-blue-200" /></motion.div>, delay: 1.5 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 15, repeat: Infinity, ease: "easeInOut" } }}><ShieldCheck size={20} className="text-violet-400" /></motion.div>, delay: 2 },
-    ];
-    
-    return icons.map((item, index) => (
-      <motion.div 
-        key={index}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.7 }}
-        transition={{ delay: item.delay }}
-        className="absolute"
-        style={{
-          top: `${20 + Math.random() * 60}%`,
-          left: `${10 + Math.random() * 80}%`,
-        }}
-      >
-        {item.icon}
-      </motion.div>
-    ));
-  };
-  
   // Render verification status logs
   const renderVerificationLogs = () => {
     return verificationStatus.map((status, index) => (
@@ -162,6 +136,17 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
     ));
   };
   
+  // Rainbow colors for particles
+  const particleColors = [
+    "#FF5E8F", // Pink
+    "#5EFF8F", // Green
+    "#5E8FFF", // Blue
+    "#FF5E5E", // Red
+    "#5EFFFF", // Cyan
+    "#FF5EDF", // Magenta
+    "#FFFF5E"  // Yellow
+  ];
+  
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -169,8 +154,20 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-gradient-to-b from-slate-950 to-blue-950 flex flex-col items-center justify-center z-50"
     >
-      {/* Floating elements in background */}
-      {renderFloatingIcons()}
+      {/* Particles background */}
+      <Particles
+        particleColors={particleColors}
+        particleCount={250}
+        particleSpread={12}
+        speed={0.06}
+        particleBaseSize={80}
+        moveParticlesOnHover={true}
+        particleHoverFactor={0.5}
+        alphaParticles={true}
+        sizeRandomness={0.8}
+        cameraDistance={25}
+        disableRotation={false}
+      />
       
       {/* Overlay effect */}
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px]" />
@@ -206,7 +203,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
         </div>
         
         {/* Current loading phase indicator */}
-        <div className="mb-2">
+        <div className="mb-2 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <div className="flex justify-between items-center mb-1">
             <p className="text-sm font-semibold text-blue-200">
               Phase {loadingPhase + 1}/{loadingPhases.length}: {loadingPhases[loadingPhase].name}
@@ -222,7 +219,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
         </div>
         
         {/* Loading message */}
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-4 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <motion.div 
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.5, repeat: Infinity }}
@@ -234,7 +231,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
         </div>
         
         {/* Verification logs panel */}
-        <div className="bg-blue-950/40 border border-blue-900/50 rounded-md p-3 mb-6 h-24 overflow-hidden">
+        <div className="bg-blue-950/40 border border-blue-900/50 rounded-md p-3 mb-6 h-24 overflow-hidden backdrop-blur-sm">
           <p className="text-xs text-blue-300 font-semibold mb-2 font-mono">System Verification Log:</p>
           <div className="h-full overflow-y-auto scrollbar-hide">
             {renderVerificationLogs()}
@@ -242,7 +239,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
         </div>
         
         {/* Loading UI elements */}
-        <div className="space-y-3">
+        <div className="space-y-3 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <motion.div 
             animate={{ opacity: [0.3, 0.5, 0.3] }}
             transition={{ duration: 2, repeat: Infinity }}

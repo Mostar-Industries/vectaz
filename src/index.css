@@ -213,3 +213,50 @@
   opacity: 0.1;
   z-index: -1;
 }
+
+/* Particles container styles */
+.particles-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Rainbow particle colors */
+.particle-pink {
+  color: #FF5E8F;
+  text-shadow: 0 0 5px rgba(255, 94, 143, 0.7);
+}
+
+.particle-green {
+  color: #5EFF8F;
+  text-shadow: 0 0 5px rgba(94, 255, 143, 0.7);
+}
+
+.particle-blue {
+  color: #5E8FFF;
+  text-shadow: 0 0 5px rgba(94, 143, 255, 0.7);
+}
+
+.particle-red {
+  color: #FF5E5E;
+  text-shadow: 0 0 5px rgba(255, 94, 94, 0.7);
+}
+
+.particle-cyan {
+  color: #5EFFFF;
+  text-shadow: 0 0 5px rgba(94, 255, 255, 0.7);
+}
+
+.particle-magenta {
+  color: #FF5EDF;
+  text-shadow: 0 0 5px rgba(255, 94, 223, 0.7);
+}
+
+.particle-yellow {
+  color: #FFFF5E;
+  text-shadow: 0 0 5px rgba(255, 255, 94, 0.7);
+}

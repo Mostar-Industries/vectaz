@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Atom, Database, Zap, Server, Cpu, CheckCircle, Shield, RefreshCw } from 'lucide-react';
 import { boot } from '@/init/boot';
+import Particles from './Particles';
 
 const LoadingScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);
@@ -161,8 +163,34 @@ const LoadingScreen: React.FC = () => {
     ));
   };
   
+  // Rainbow colors for particles
+  const particleColors = [
+    "#FF5E8F", // Pink
+    "#5EFF8F", // Green
+    "#5E8FFF", // Blue
+    "#FF5E5E", // Red
+    "#5EFFFF", // Cyan
+    "#FF5EDF", // Magenta
+    "#FFFF5E"  // Yellow
+  ];
+  
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-slate-950 to-blue-950 flex flex-col items-center justify-center z-50">
+      {/* Particles background */}
+      <Particles
+        particleColors={particleColors}
+        particleCount={250}
+        particleSpread={12}
+        speed={0.06}
+        particleBaseSize={80}
+        moveParticlesOnHover={true}
+        particleHoverFactor={0.5}
+        alphaParticles={true}
+        sizeRandomness={0.8}
+        cameraDistance={25}
+        disableRotation={false}
+      />
+      
       {renderFloatingIcons()}
       
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px]" />
@@ -194,7 +222,7 @@ const LoadingScreen: React.FC = () => {
           </p>
         </div>
         
-        <div className="mb-2">
+        <div className="mb-2 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <div className="flex justify-between items-center mb-1">
             <p className="text-sm font-semibold text-blue-200">
               Phase {loadingPhase + 1}/{loadingPhases.length}: {loadingPhases[loadingPhase].name}
@@ -208,7 +236,7 @@ const LoadingScreen: React.FC = () => {
           />
         </div>
         
-        <div className="flex items-center mb-4">
+        <div className="flex items-center mb-4 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse" 
             style={{ animationDuration: '2s' }}
           />
@@ -217,14 +245,14 @@ const LoadingScreen: React.FC = () => {
           </p>
         </div>
         
-        <div className="bg-blue-950/40 border border-blue-900/50 rounded-md p-3 mb-6 h-24 overflow-hidden">
+        <div className="bg-blue-950/40 border border-blue-900/50 rounded-md p-3 mb-6 h-24 overflow-hidden backdrop-blur-sm">
           <p className="text-xs text-blue-300 font-semibold mb-2 font-mono">System Verification Log:</p>
           <div className="h-full overflow-y-auto scrollbar-hide">
             {renderVerificationLogs()}
           </div>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-3 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <Skeleton className="h-3 w-full bg-blue-900/30" />
           <div className="flex space-x-2">
             <Skeleton className="h-3 w-2/3 bg-blue-900/30" />

@@ -7,6 +7,7 @@ import ShipmentStatusChart from './shipment/ShipmentStatusChart';
 import ShipmentModeChart from './shipment/ShipmentModeChart';
 import OnTimePerformanceChart from './shipment/OnTimePerformanceChart';
 import ShipmentInsights from './shipment/ShipmentInsights';
+import ShipmentResilienceChart from './shipment/ShipmentResilienceChart';
 
 interface ShipmentAnalyticsProps {
   metrics: ShipmentMetrics;
@@ -29,9 +30,12 @@ const ShipmentAnalytics: React.FC<ShipmentAnalyticsProps> = ({ metrics }) => {
         <ShipmentModeChart shipmentsByMode={metrics.shipmentsByMode} />
         <OnTimePerformanceChart delayedVsOnTimeRate={metrics.delayedVsOnTimeRate} />
       </div>
-
-      {/* Insights card */}
-      <ShipmentInsights metrics={metrics} />
+      
+      {/* Charts Row 3 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ShipmentResilienceChart metrics={metrics} />
+        <ShipmentInsights metrics={metrics} />
+      </div>
     </div>
   );
 };

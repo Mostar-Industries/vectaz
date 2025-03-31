@@ -324,3 +324,34 @@ export function calculateWarehousePerformance(shipments: Shipment[]): WarehouseP
   // Sort by reliability score
   return warehousePerformance.sort((a, b) => b.reliabilityScore - a.reliabilityScore);
 }
+
+// Add the missing analyzeShipmentData function
+export const analyzeShipmentData = (shipmentData: any[]) => {
+  // Process analytics data from shipments
+  const deliveryStatusBreakdown = shipmentData.reduce((acc, shipment) => {
+    const status = shipment.delivery_status || 'Unknown';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+  
+  const forwarderBreakdown = shipmentData.reduce((acc, shipment) => {
+    const forwarder = shipment.freight_carrier || 'Unknown';
+    acc[forwarder] = (acc[forwarder] || 0) + 1;
+    return acc;
+  }, {});
+  
+  const countryBreakdown = shipmentData.reduce((acc, shipment) => {
+    const country = shipment.destination_country || 'Unknown';
+    acc[country] = (acc[country] || 0) + 1;
+    return acc;
+  }, {});
+  
+  return {
+    totalShipments: shipmentData.length,
+    deliveryStatusBreakdown,
+    forwarderBreakdown,
+    countryBreakdown,
+    averageWeight: shipmentData.reduce((sum, item) => sum + (item.weight_kg || 0), 0) / shipmentData.length || 0,
+    rawData: shipmentData
+  };
+};

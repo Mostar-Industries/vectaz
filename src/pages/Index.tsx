@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import MapVisualizer from '@/components/MapVisualizer';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { AppSection } from '@/types/deeptrack';
 import AppTabs from '@/components/AppTabs';
 import AnalyticsSection from '@/components/AnalyticsSection';
@@ -11,12 +11,14 @@ import AboutSection from '@/components/AboutSection';
 import SettingsSection from '@/components/SettingsSection';
 import EntryAnimation from '@/components/EntryAnimation';
 import { motion, AnimatePresence } from 'framer-motion';
+import IconNavigation from '@/components/IconNavigation';
 
 const Index = () => {
   const { isDataLoaded, shipmentData } = useBaseDataStore();
   const [routes, setRoutes] = useState([]);
   const [showEntry, setShowEntry] = useState(true);
   const [activeTab, setActiveTab] = useState<AppSection>('map');
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isDataLoaded) {
@@ -47,7 +49,7 @@ const Index = () => {
         description: "System initialized successfully with verified data.",
       });
     }
-  }, [isDataLoaded, shipmentData]);
+  }, [isDataLoaded, shipmentData, toast]);
 
   const handleEntryComplete = () => {
     setShowEntry(false);
@@ -135,12 +137,17 @@ const Index = () => {
           {renderContent()}
         </AnimatePresence>
         
-        {/* App name in top left (visible on all views) */}
-        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-blue-500/30 tech-glow">
+        {/* App name in top right (moved from left to right) */}
+        <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-blue-500/30 tech-glow">
           <h1 className="text-xl font-bold neon-text">DeepCAL</h1>
         </div>
         
-        {/* Navigation tabs (now at the top) */}
+        {/* Bottom navigation */}
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+          <IconNavigation />
+        </div>
+        
+        {/* Navigation tabs (at the top) */}
         <AppTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     </div>

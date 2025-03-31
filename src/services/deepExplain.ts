@@ -1,4 +1,3 @@
-
 // DeepExplain service for explaining decisions made by the DeepCAL engine
 // Provides human-readable explanations for algorithm outputs
 
@@ -104,3 +103,61 @@ export function summarizeRankings(rankings: DecisionEntry[]): string {
 while ${bottomPerformer.forwarder} ranks lowest at ${formatScore(bottomPerformer.Ci)}. 
 The performance spread is ${spreadPercentage.toFixed(1)}%, indicating a ${spreadPercentage > 30 ? 'significant' : spreadPercentage > 15 ? 'moderate' : 'minor'} difference across options.`;
 }
+
+// Add the missing generateInsightFromQuery function
+export const generateInsightFromQuery = async (query: string, analyticsData: any): Promise<string> => {
+  console.log("Generating insight for query:", query);
+  
+  try {
+    // This is a placeholder function that would typically call an API
+    // For now, we'll return some pre-defined responses based on keywords in the query
+    
+    const lowerQuery = query.toLowerCase();
+    
+    if (lowerQuery.includes('shipment') && lowerQuery.includes('status')) {
+      const { deliveryStatusBreakdown, totalShipments } = analyticsData;
+      const delivered = deliveryStatusBreakdown['Delivered'] || 0;
+      const inTransit = deliveryStatusBreakdown['In Transit'] || 0;
+      const pending = deliveryStatusBreakdown['Pending'] || 0;
+      
+      return `Based on your data, out of ${totalShipments} total shipments: 
+        - ${delivered} shipments (${Math.round((delivered/totalShipments)*100)}%) have been delivered
+        - ${inTransit} shipments (${Math.round((inTransit/totalShipments)*100)}%) are in transit
+        - ${pending} shipments (${Math.round((pending/totalShipments)*100)}%) are pending`;
+    }
+    
+    if (lowerQuery.includes('forwarder') || lowerQuery.includes('carrier')) {
+      const { forwarderBreakdown } = analyticsData;
+      let response = "Here's the breakdown of shipments by forwarder:\n";
+      
+      Object.entries(forwarderBreakdown).forEach(([forwarder, count]) => {
+        response += `- ${forwarder}: ${count} shipments\n`;
+      });
+      
+      return response;
+    }
+    
+    if (lowerQuery.includes('country') || lowerQuery.includes('destination')) {
+      const { countryBreakdown } = analyticsData;
+      let response = "Here's the breakdown of shipments by destination country:\n";
+      
+      Object.entries(countryBreakdown).forEach(([country, count]) => {
+        response += `- ${country}: ${count} shipments\n`;
+      });
+      
+      return response;
+    }
+    
+    if (lowerQuery.includes('weight') || lowerQuery.includes('average')) {
+      const { averageWeight } = analyticsData;
+      return `The average weight of all shipments is ${averageWeight.toFixed(2)} kg.`;
+    }
+    
+    // Default response
+    return "I've analyzed your data, but I'm not sure what specific insight you're looking for. You can ask about shipment status, forwarders, destinations, or average weights.";
+    
+  } catch (error) {
+    console.error("Error generating insight:", error);
+    return "I'm sorry, I encountered an error analyzing your data. Please try again with a different query.";
+  }
+};

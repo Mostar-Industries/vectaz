@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom'; // Import this to fix toBeInTheDocument errors
 import MapBase from '../MapBase';
 
@@ -97,11 +97,11 @@ describe('MapBase Component', () => {
   it('handles function children correctly', () => {
     render(
       <MapBase>
-        {(map, mapLoaded) => (
+        {(map, mapLoaded) => mapLoaded ? (
           <div data-testid="function-child">
-            {String(mapLoaded)}
+            Function Child
           </div>
-        )}
+        ) : null}
       </MapBase>
     );
     

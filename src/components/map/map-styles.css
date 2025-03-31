@@ -111,8 +111,33 @@
   border-radius: 8px !important;
   box-shadow: 0 0 20px rgba(0, 149, 255, 0.3) !important;
   color: white !important;
-  text-align: center !important;
-  padding: 10px !important;
+  padding: 0 !important;
+  max-width: 300px !important;
+}
+
+.destination-popup .mapboxgl-popup-content {
+  background-color: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.destination-popup .mapboxgl-popup-close-button {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 16px !important;
+  padding: 4px 8px !important;
+  right: 0 !important;
+  top: 0 !important;
+}
+
+.destination-popup .mapboxgl-popup-close-button:hover {
+  color: white !important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+.destination-popup .route-info {
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, rgba(20, 30, 50, 0.9) 0%, rgba(10, 15, 30, 0.95) 100%) !important;
+  border: 1px solid rgba(0, 149, 255, 0.3) !important;
 }
 
 .tech-glow {

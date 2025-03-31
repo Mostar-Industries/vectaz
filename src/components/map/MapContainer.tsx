@@ -23,6 +23,7 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
   
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -30,20 +31,39 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
     jumpToLocation: (lat: number, lng: number, name: string) => {
       console.log(`Jumping to location: ${name} at [${lat}, ${lng}]`);
       if (mapRef.current) {
+        // Close any existing popup
+        if (popupRef.current) {
+          popupRef.current.remove();
+        }
+        
+        // Fly to the location with a smoother animation and closer zoom
         mapRef.current.flyTo({
           center: [lng, lat],
-          zoom: 5,
+          zoom: 8,
           essential: true,
-          duration: 2000
+          duration: 2500,
+          pitch: 60,
+          bearing: Math.random() * 60 - 30 // Random bearing for visual interest
         });
+      }
+    },
+    
+    // Method to show info at a location
+    showInfoAtLocation: (lat: number, lng: number, content: string) => {
+      if (mapRef.current) {
+        // Close any existing popup
+        if (popupRef.current) {
+          popupRef.current.remove();
+        }
         
-        // Optional: show a popup at the location
-        new mapboxgl.Popup({
-          closeButton: false,
-          className: 'destination-popup'
+        // Create a new popup
+        popupRef.current = new mapboxgl.Popup({
+          closeButton: true,
+          className: 'destination-popup',
+          maxWidth: '300px'
         })
           .setLngLat([lng, lat])
-          .setHTML(`<div><strong>${name}</strong></div>`)
+          .setHTML(content)
           .addTo(mapRef.current);
       }
     }
@@ -156,6 +176,12 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
       // Clear all markers
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
+      
+      // Remove any popups
+      if (popupRef.current) {
+        popupRef.current.remove();
+        popupRef.current = null;
+      }
       
       clearInterval(spinInterval);
     };

@@ -52,7 +52,12 @@ const App = () => {
         initial_quote_awarded: true,
         total_price_usd: 2500 + i * 200,
         destination_port: "Harare",
-        origin_port: "Nairobi"
+        origin_port: "Nairobi",
+        // Add missing properties required by the Shipment type
+        final_quote_awarded_freight_forwader_Carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3],
+        comments: "No issues reported",
+        mode_of_shipment: "Air",
+        forwarder_quotes: { 'Kenya Airways': 2500, 'DHL': 2700, 'Kuehne Nagel': 2600 }
       }));
       
       // Boot with the sample data

@@ -51,9 +51,71 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       'bottom-right'
     );
 
-    // Add atmosphere and fog effects
+    // Function to add routes to the map - will be called after the style is loaded
+    const addRoutesToMap = () => {
+      if (!map.current || !mapLoaded || routes.length === 0) return;
+      
+      routes.forEach((route, index) => {
+        // Add origin marker
+        new mapboxgl.Marker({
+          color: '#1A1F2C',
+          scale: 0.7
+        })
+          .setLngLat([route.origin.lng, route.origin.lat])
+          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.origin.name))
+          .addTo(map.current!);
+        
+        // Add destination marker
+        new mapboxgl.Marker({
+          color: '#D946EF',
+          scale: 0.7
+        })
+          .setLngLat([route.destination.lng, route.destination.lat])
+          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.destination.name))
+          .addTo(map.current!);
+        
+        // Add a line connecting origin and destination
+        if (mapLoaded && !map.current.getSource(`route-${index}`)) {
+          try {
+            map.current.addSource(`route-${index}`, {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [route.origin.lng, route.origin.lat],
+                    [route.destination.lng, route.destination.lat]
+                  ]
+                }
+              }
+            });
+            
+            map.current.addLayer({
+              id: `route-${index}`,
+              type: 'line',
+              source: `route-${index}`,
+              layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              paint: {
+                'line-color': '#9b87f5',
+                'line-width': Math.max(1, route.shipmentCount / 3),
+                'line-opacity': 0.7
+              }
+            });
+          } catch (error) {
+            console.error('Error adding route to map:', error);
+          }
+        }
+      });
+    };
+
+    // Add atmosphere and fog effects when the style is fully loaded
     map.current.on('style.load', () => {
-      setMapLoaded(true);
+      console.log('Map style loaded');
       
       // Add fog effect
       map.current?.setFog({
@@ -62,13 +124,10 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
         'horizon-blend': 0.2,
       });
       
-      // Add routes to map when map style is loaded
-      if (routes.length > 0) {
-        addRoutesToMap();
-      }
+      setMapLoaded(true);
     });
 
-    // Rotation animation
+    // Rotation animation settings
     const secondsPerRevolution = 240;
     const maxSpinZoom = 5;
     const slowSpinZoom = 3;
@@ -118,74 +177,88 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     // Start the globe spinning
     spinGlobe();
 
-    // Function to add routes to the map
-    const addRoutesToMap = () => {
-      if (!map.current || !mapLoaded) return;
-      
-      routes.forEach((route, index) => {
-        // Add origin marker
-        new mapboxgl.Marker({
-          color: '#1A1F2C',
-          scale: 0.7
-        })
-          .setLngLat([route.origin.lng, route.origin.lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.origin.name))
-          .addTo(map.current!);
-        
-        // Add destination marker
-        new mapboxgl.Marker({
-          color: '#D946EF',
-          scale: 0.7
-        })
-          .setLngLat([route.destination.lng, route.destination.lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.destination.name))
-          .addTo(map.current!);
-        
-        // Add a line connecting origin and destination
-        if (!map.current.getSource(`route-${index}`)) {
-          map.current.addSource(`route-${index}`, {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'LineString',
-                coordinates: [
-                  [route.origin.lng, route.origin.lat],
-                  [route.destination.lng, route.destination.lat]
-                ]
-              }
-            }
-          });
-          
-          map.current.addLayer({
-            id: `route-${index}`,
-            type: 'line',
-            source: `route-${index}`,
-            layout: {
-              'line-join': 'round',
-              'line-cap': 'round'
-            },
-            paint: {
-              'line-color': '#9b87f5',
-              'line-width': Math.max(1, route.shipmentCount / 3),
-              'line-opacity': 0.7
-            }
-          });
-        }
-      });
-    };
-
-    // Add routes when they change
-    if (routes.length > 0 && mapLoaded) {
-      addRoutesToMap();
-    }
-
     // Cleanup
     return () => {
       map.current?.remove();
     };
-  }, [routes, isLoading, mapLoaded]);
+  }, [routes, isLoading]);
+
+  // Effect to add routes when the map style is loaded and routes change
+  useEffect(() => {
+    if (!mapLoaded || !map.current || routes.length === 0) return;
+    
+    console.log('Map loaded and routes available, adding routes to map');
+    
+    // Clear existing markers and routes if any
+    const markers = document.getElementsByClassName('mapboxgl-marker');
+    while (markers.length > 0) {
+      markers[0].remove();
+    }
+    
+    // Add routes
+    routes.forEach((route, index) => {
+      // Remove existing source and layer if they exist
+      if (map.current?.getSource(`route-${index}`)) {
+        if (map.current?.getLayer(`route-${index}`)) {
+          map.current.removeLayer(`route-${index}`);
+        }
+        map.current.removeSource(`route-${index}`);
+      }
+      
+      // Add origin marker
+      new mapboxgl.Marker({
+        color: '#1A1F2C',
+        scale: 0.7
+      })
+        .setLngLat([route.origin.lng, route.origin.lat])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.origin.name))
+        .addTo(map.current!);
+      
+      // Add destination marker
+      new mapboxgl.Marker({
+        color: '#D946EF',
+        scale: 0.7
+      })
+        .setLngLat([route.destination.lng, route.destination.lat])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.destination.name))
+        .addTo(map.current!);
+      
+      // Add a line connecting origin and destination
+      try {
+        map.current?.addSource(`route-${index}`, {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [route.origin.lng, route.origin.lat],
+                [route.destination.lng, route.destination.lat]
+              ]
+            }
+          }
+        });
+        
+        map.current?.addLayer({
+          id: `route-${index}`,
+          type: 'line',
+          source: `route-${index}`,
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#9b87f5',
+            'line-width': Math.max(1, route.shipmentCount / 3),
+            'line-opacity': 0.7
+          }
+        });
+      } catch (error) {
+        console.error(`Error adding route ${index} to map:`, error);
+      }
+    });
+  }, [routes, mapLoaded]);
 
   if (isLoading) {
     return (

@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Info, Shield, AlertTriangle } from 'lucide-react';
 import DeepExplainModal from './analytics/DeepExplainModal';
+import { MetricExplanation } from '@/services/deepSightNarrator';
 
 interface DataPoint {
   date: string;
@@ -71,7 +72,7 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
                           'text-red-600 bg-red-50 border-red-200';
 
   // Mock explanation for the Resilience Chart
-  const resilienceExplanation = {
+  const resilienceExplanation: MetricExplanation = {
     title: 'Supply Chain Resilience Trend Analysis',
     description: 'This analysis tracks key resilience indicators over time to provide early warning of potential supply chain vulnerabilities.',
     calculation: 'composite_score = 0.4*(100-disruption) + 0.2*(100-cost) + 0.4*reliability',
@@ -88,7 +89,7 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
       'Review carrier performance for consistently delayed routes.',
       latestData.disruption > 40 ? 'Develop contingency routing for high-disruption corridors.' : 'Maintain current routing strategies.'
     ],
-    confidence: data.length > 10 ? 'high' : 'moderate',
+    confidence: data.length > 10 ? 'high' : 'moderate' as 'high' | 'moderate' | 'low',
     methodology: 'Time-series analysis with composite resilience scoring',
     sourceFunction: 'calculateResilienceTrends()'
   };
@@ -123,7 +124,7 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
                 const formattedName = 
                   name === 'disruption' ? 'Disruption Risk' :
                   name === 'cost' ? 'Cost Index' : 'Reliability Score';
-                return [`${value.toFixed(1)}`, formattedName];
+                return [typeof value === 'number' ? value.toFixed(1) : value, formattedName];
               }}
             />
             <Legend 

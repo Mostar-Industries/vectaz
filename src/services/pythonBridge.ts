@@ -15,6 +15,12 @@ interface CalculationResult {
   details?: any;
 }
 
+// Type for Supabase function response
+interface SupabaseFunctionResponse {
+  data: CalculationResult | null;
+  error: Error | null;
+}
+
 /**
  * Call the Python calculation backend through Supabase Edge Function
  * 
@@ -26,13 +32,14 @@ export const calculateWithPython = async (
 ): Promise<CalculationResult> => {
   try {
     // Call the Supabase Edge Function
-    const { data, error } = await supabase.functions.invoke('process-decision-matrix', {
+    const response: SupabaseFunctionResponse = await supabase.functions.invoke('process-decision-matrix', {
       body: request
     });
     
-    if (error) throw error;
+    if (response.error) throw response.error;
+    if (!response.data) throw new Error("No data returned from calculation");
     
-    return data as CalculationResult;
+    return response.data;
   } catch (error: any) {
     console.error("Error calling Python calculation:", error);
     toast({
@@ -51,6 +58,12 @@ export const calculateWithPython = async (
   }
 };
 
+// Type for Supabase RPC response
+interface SupabaseRpcResponse {
+  data: any;
+  error: Error | null;
+}
+
 /**
  * Store calculation results in Supabase for later retrieval
  * 
@@ -62,14 +75,14 @@ export const storeCalculationResult = async (
 ): Promise<boolean> => {
   try {
     // Using the 'rpc' method to call a stored procedure for storing calculation results
-    const { error } = await supabase.rpc('store_calculation_result', {
+    const response: SupabaseRpcResponse = await supabase.rpc('store_calculation_result', {
       calc_scores: result.scores,
       calc_method: result.method,
       calc_timestamp: result.timestamp,
       calc_details: result.details || {}
     });
     
-    if (error) throw error;
+    if (response.error) throw response.error;
     
     return true;
   } catch (error) {
@@ -86,17 +99,17 @@ export const storeCalculationResult = async (
 export const getLatestCalculationResult = async (): Promise<CalculationResult | null> => {
   try {
     // Using the 'rpc' method to call a stored procedure for retrieving the latest calculation
-    const { data, error } = await supabase.rpc('get_latest_calculation_result');
+    const response: SupabaseRpcResponse = await supabase.rpc('get_latest_calculation_result');
     
-    if (error) throw error;
-    if (!data) return null;
+    if (response.error) throw response.error;
+    if (!response.data) return null;
     
     // Convert the returned data to the expected format
     return {
-      scores: data.scores || [],
-      method: data.method || "unknown",
-      timestamp: data.timestamp || new Date().toISOString(),
-      details: data.details || {}
+      scores: response.data.scores || [],
+      method: response.data.method || "unknown",
+      timestamp: response.data.timestamp || new Date().toISOString(),
+      details: response.data.details || {}
     };
   } catch (error) {
     console.error("Error retrieving calculation result:", error);

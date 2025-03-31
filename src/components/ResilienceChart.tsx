@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   LineChart,
   Line,
@@ -10,6 +10,11 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Info, Shield, AlertTriangle } from 'lucide-react';
+import DeepExplainModal from './analytics/DeepExplainModal';
 
 interface DataPoint {
   date: string;
@@ -24,6 +29,8 @@ interface ResilienceChartProps {
 }
 
 const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = false }) => {
+  const [explainModalOpen, setExplainModalOpen] = useState(false);
+  
   if (isLoading) {
     return (
       <div className="h-80 bg-muted animate-pulse rounded-lg"></div>
@@ -38,41 +45,142 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
     );
   }
 
+  // Calculate the current resilience indicators
+  const latestData = data[data.length - 1];
+  const reliabilityTrend = data.length > 1 ? 
+    latestData.reliability - data[data.length - 2].reliability : 0;
+  
+  // Generate a composite score (for demo purposes)
+  const compositeScore = (
+    (100 - latestData.disruption) * 0.4 + 
+    (100 - latestData.cost) * 0.2 + 
+    latestData.reliability * 0.4
+  );
+  
+  // Determine health status
+  const healthStatus = 
+    compositeScore >= 75 ? 'Robust' :
+    compositeScore >= 60 ? 'Stable' :
+    compositeScore >= 40 ? 'Vulnerable' : 'Critical';
+  
+  // Color based on health status
+  const statusColor = 
+    compositeScore >= 75 ? 'text-green-600 bg-green-50 border-green-200' :
+    compositeScore >= 60 ? 'text-blue-600 bg-blue-50 border-blue-200' :
+    compositeScore >= 40 ? 'text-amber-600 bg-amber-50 border-amber-200' : 
+                          'text-red-600 bg-red-50 border-red-200';
+
+  // Mock explanation for the Resilience Chart
+  const resilienceExplanation = {
+    title: 'Supply Chain Resilience Trend Analysis',
+    description: 'This analysis tracks key resilience indicators over time to provide early warning of potential supply chain vulnerabilities.',
+    calculation: 'composite_score = 0.4*(100-disruption) + 0.2*(100-cost) + 0.4*reliability',
+    sampleSize: data.length,
+    dataSource: 'resilience_metrics.json, historical_shipments.csv',
+    filterCriteria: 'time_window = last 90 days',
+    insights: [
+      `Current composite resilience score is ${compositeScore.toFixed(1)}, indicating a ${healthStatus.toLowerCase()} network.`,
+      `Reliability has ${reliabilityTrend >= 0 ? 'improved' : 'declined'} by ${Math.abs(reliabilityTrend).toFixed(1)} points in the last period.`,
+      `Disruption risk is ${latestData.disruption > 40 ? 'elevated' : 'within acceptable parameters'} at ${latestData.disruption.toFixed(1)}.`
+    ],
+    suggestedActions: [
+      'Monitor high-risk routes for early intervention.',
+      'Review carrier performance for consistently delayed routes.',
+      latestData.disruption > 40 ? 'Develop contingency routing for high-disruption corridors.' : 'Maintain current routing strategies.'
+    ],
+    confidence: data.length > 10 ? 'high' : 'moderate',
+    methodology: 'Time-series analysis with composite resilience scoring',
+    sourceFunction: 'calculateResilienceTrends()'
+  };
+
   return (
-    <div className="bg-card border rounded-lg p-4 h-80">
-      <h3 className="text-lg font-medium mb-4">Resilience Metrics Over Time</h3>
-      <ResponsiveContainer width="100%" height="85%">
-        <LineChart
-          data={data}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+    <Card className="border rounded-lg h-full">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Shield className="h-5 w-5 text-green-500" />
+              Resilience Metrics Over Time
+            </CardTitle>
+          </div>
+          
+          <Badge className={`${statusColor} px-2 py-1`}>
+            {healthStatus}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="h-72">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={data}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip
+              formatter={(value, name) => {
+                const formattedName = 
+                  name === 'disruption' ? 'Disruption Risk' :
+                  name === 'cost' ? 'Cost Index' : 'Reliability Score';
+                return [`${value.toFixed(1)}`, formattedName];
+              }}
+            />
+            <Legend 
+              formatter={(value) => {
+                return value === 'disruption' ? 'Disruption Risk' :
+                       value === 'cost' ? 'Cost Index' : 'Reliability Score';
+              }}
+            />
+            <Line 
+              type="monotone" 
+              dataKey="disruption" 
+              stroke="#ef4444" 
+              activeDot={{ r: 8 }} 
+              name="disruption"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="cost" 
+              stroke="#8b5cf6" 
+              name="cost"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="reliability" 
+              stroke="#22c55e" 
+              name="reliability"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+      <CardFooter className="flex justify-between border-t pt-4">
+        <div className="text-sm">
+          <span className="font-medium">Composite Score: </span>
+          <span className="font-bold">{compositeScore.toFixed(1)}</span>
+          {compositeScore < 60 && (
+            <div className="flex items-center gap-1 text-amber-600 mt-1 text-xs">
+              <AlertTriangle className="h-3.5 w-3.5" /> 
+              Intervention recommended
+            </div>
+          )}
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setExplainModalOpen(true)}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Line 
-            type="monotone" 
-            dataKey="disruption" 
-            stroke="#ef4444" 
-            activeDot={{ r: 8 }} 
-            name="Disruption Risk"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="cost" 
-            stroke="#8b5cf6" 
-            name="Cost Index"
-          />
-          <Line 
-            type="monotone" 
-            dataKey="reliability" 
-            stroke="#22c55e" 
-            name="Reliability Score"
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+          <Info className="h-4 w-4 mr-1" /> 
+          Explain This Analysis
+        </Button>
+      </CardFooter>
+      
+      <DeepExplainModal
+        open={explainModalOpen}
+        onOpenChange={setExplainModalOpen}
+        explanation={resilienceExplanation}
+      />
+    </Card>
   );
 };
 

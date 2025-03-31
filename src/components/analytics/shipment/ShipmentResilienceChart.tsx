@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ShipmentMetrics } from '@/types/deeptrack';
 import { 
   RadarChart, 
@@ -12,13 +12,19 @@ import {
   ResponsiveContainer,
   Tooltip
 } from 'recharts';
-import { Shield } from 'lucide-react';
+import { Shield, Info, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { getExplanation } from '@/services/deepSightNarrator';
+import DeepExplainModal from '../DeepExplainModal';
 
 interface ShipmentResilienceChartProps {
   metrics: ShipmentMetrics;
 }
 
 const ShipmentResilienceChart: React.FC<ShipmentResilienceChartProps> = ({ metrics }) => {
+  const [explainModalOpen, setExplainModalOpen] = useState(false);
+  
   // Calculate normalized values (0-100 scale) for radar chart
   const resilienceScore = metrics.resilienceScore;
   const onTimeRate = metrics.delayedVsOnTimeRate.onTime / 
@@ -57,14 +63,47 @@ const ShipmentResilienceChart: React.FC<ShipmentResilienceChartProps> = ({ metri
     },
   ];
 
+  // Calculate the overall network health score
+  const networkHealthScore = (
+    resilienceScore * 0.25 + 
+    onTimeRate * 0.25 + 
+    disruptionResistance * 0.2 + 
+    quoteAvailability * 0.15 + 
+    completionRate * 0.15
+  );
+  
+  // Determine the health status
+  const healthStatus = 
+    networkHealthScore >= 75 ? 'Robust' :
+    networkHealthScore >= 60 ? 'Stable' :
+    networkHealthScore >= 40 ? 'Vulnerable' : 'Critical';
+  
+  // Color based on health status
+  const statusColor = 
+    networkHealthScore >= 75 ? 'text-green-600 bg-green-50 border-green-200' :
+    networkHealthScore >= 60 ? 'text-blue-600 bg-blue-50 border-blue-200' :
+    networkHealthScore >= 40 ? 'text-amber-600 bg-amber-50 border-amber-200' : 
+                              'text-red-600 bg-red-50 border-red-200';
+  
+  // Get resilience explanation
+  const resilienceExplanation = getExplanation('resilience_score', metrics);
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-green-500" />
-          Shipment Resilience Metrics
-        </CardTitle>
-        <CardDescription>Radar analysis of resilience indicators</CardDescription>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-green-500" />
+              Shipment Network Resilience
+            </CardTitle>
+            <CardDescription>Multi-dimensional analysis of supply chain stability</CardDescription>
+          </div>
+          
+          <Badge className={`${statusColor} px-2 py-1`}>
+            {healthStatus}
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-80">
@@ -80,12 +119,38 @@ const ShipmentResilienceChart: React.FC<ShipmentResilienceChartProps> = ({ metri
                 fill="#10b981"
                 fillOpacity={0.6}
               />
-              <Tooltip />
+              <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Value']} />
               <Legend />
             </RadarChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
+      <CardFooter className="flex justify-between border-t pt-4 pb-1">
+        <div className="text-sm">
+          <span className="font-medium">Network Health: </span>
+          <span className="font-bold">{networkHealthScore.toFixed(1)}</span>
+          {networkHealthScore < 60 && (
+            <div className="flex items-center gap-1 text-amber-600 mt-1 text-xs">
+              <AlertTriangle className="h-3.5 w-3.5" /> 
+              Risk indicators present
+            </div>
+          )}
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setExplainModalOpen(true)}
+        >
+          <Info className="h-4 w-4 mr-1" /> 
+          Explain This Analysis
+        </Button>
+      </CardFooter>
+      
+      <DeepExplainModal
+        open={explainModalOpen}
+        onOpenChange={setExplainModalOpen}
+        explanation={resilienceExplanation}
+      />
     </Card>
   );
 };

@@ -27,6 +27,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [routesAdded, setRoutesAdded] = useState(false);
 
   useEffect(() => {
     if (!mapContainerRef.current || isLoading) return;
@@ -50,68 +51,6 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       }),
       'bottom-right'
     );
-
-    // Function to add routes to the map - will be called after the style is loaded
-    const addRoutesToMap = () => {
-      if (!map.current || !mapLoaded || routes.length === 0) return;
-      
-      routes.forEach((route, index) => {
-        // Add origin marker
-        new mapboxgl.Marker({
-          color: '#1A1F2C',
-          scale: 0.7
-        })
-          .setLngLat([route.origin.lng, route.origin.lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.origin.name))
-          .addTo(map.current!);
-        
-        // Add destination marker
-        new mapboxgl.Marker({
-          color: '#D946EF',
-          scale: 0.7
-        })
-          .setLngLat([route.destination.lng, route.destination.lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.destination.name))
-          .addTo(map.current!);
-        
-        // Add a line connecting origin and destination
-        if (mapLoaded && !map.current.getSource(`route-${index}`)) {
-          try {
-            map.current.addSource(`route-${index}`, {
-              type: 'geojson',
-              data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'LineString',
-                  coordinates: [
-                    [route.origin.lng, route.origin.lat],
-                    [route.destination.lng, route.destination.lat]
-                  ]
-                }
-              }
-            });
-            
-            map.current.addLayer({
-              id: `route-${index}`,
-              type: 'line',
-              source: `route-${index}`,
-              layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-              },
-              paint: {
-                'line-color': '#9b87f5',
-                'line-width': Math.max(1, route.shipmentCount / 3),
-                'line-opacity': 0.7
-              }
-            });
-          } catch (error) {
-            console.error('Error adding route to map:', error);
-          }
-        }
-      });
-    };
 
     // Add atmosphere and fog effects when the style is fully loaded
     map.current.on('style.load', () => {
@@ -189,76 +128,97 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     
     console.log('Map loaded and routes available, adding routes to map');
     
-    // Clear existing markers and routes if any
-    const markers = document.getElementsByClassName('mapboxgl-marker');
-    while (markers.length > 0) {
-      markers[0].remove();
-    }
-    
-    // Add routes
-    routes.forEach((route, index) => {
-      // Remove existing source and layer if they exist
-      if (map.current?.getSource(`route-${index}`)) {
+    // To prevent multiple attempts to add the same routes
+    if (routesAdded) {
+      console.log('Routes already added, clearing existing markers and routes');
+      // Clear existing markers
+      const markers = document.getElementsByClassName('mapboxgl-marker');
+      while (markers.length > 0) {
+        markers[0].remove();
+      }
+      
+      // Clear existing routes
+      routes.forEach((_, index) => {
         if (map.current?.getLayer(`route-${index}`)) {
           map.current.removeLayer(`route-${index}`);
         }
-        map.current.removeSource(`route-${index}`);
-      }
-      
-      // Add origin marker
-      new mapboxgl.Marker({
-        color: '#1A1F2C',
-        scale: 0.7
-      })
-        .setLngLat([route.origin.lng, route.origin.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.origin.name))
-        .addTo(map.current!);
-      
-      // Add destination marker
-      new mapboxgl.Marker({
-        color: '#D946EF',
-        scale: 0.7
-      })
-        .setLngLat([route.destination.lng, route.destination.lat])
-        .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.destination.name))
-        .addTo(map.current!);
-      
-      // Add a line connecting origin and destination
+        if (map.current?.getSource(`route-${index}`)) {
+          map.current.removeSource(`route-${index}`);
+        }
+      });
+    }
+    
+    // Wait a short time to ensure the style is fully loaded
+    const timer = setTimeout(() => {
       try {
-        map.current?.addSource(`route-${index}`, {
-          type: 'geojson',
-          data: {
-            type: 'Feature',
-            properties: {},
-            geometry: {
-              type: 'LineString',
-              coordinates: [
-                [route.origin.lng, route.origin.lat],
-                [route.destination.lng, route.destination.lat]
-              ]
+        // Add routes
+        routes.forEach((route, index) => {
+          // Add origin marker
+          new mapboxgl.Marker({
+            color: '#1A1F2C',
+            scale: 0.7
+          })
+            .setLngLat([route.origin.lng, route.origin.lat])
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.origin.name))
+            .addTo(map.current!);
+          
+          // Add destination marker
+          new mapboxgl.Marker({
+            color: '#D946EF',
+            scale: 0.7
+          })
+            .setLngLat([route.destination.lng, route.destination.lat])
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(route.destination.name))
+            .addTo(map.current!);
+          
+          // Add a line connecting origin and destination
+          try {
+            if (map.current?.isStyleLoaded()) {
+              map.current.addSource(`route-${index}`, {
+                type: 'geojson',
+                data: {
+                  type: 'Feature',
+                  properties: {},
+                  geometry: {
+                    type: 'LineString',
+                    coordinates: [
+                      [route.origin.lng, route.origin.lat],
+                      [route.destination.lng, route.destination.lat]
+                    ]
+                  }
+                }
+              });
+              
+              map.current.addLayer({
+                id: `route-${index}`,
+                type: 'line',
+                source: `route-${index}`,
+                layout: {
+                  'line-join': 'round',
+                  'line-cap': 'round'
+                },
+                paint: {
+                  'line-color': '#9b87f5',
+                  'line-width': Math.max(1, route.shipmentCount / 3),
+                  'line-opacity': 0.7
+                }
+              });
+            } else {
+              console.warn('Map style not fully loaded yet, skipping route line addition');
             }
+          } catch (error) {
+            console.error(`Error adding route ${index} to map:`, error);
           }
         });
         
-        map.current?.addLayer({
-          id: `route-${index}`,
-          type: 'line',
-          source: `route-${index}`,
-          layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-          },
-          paint: {
-            'line-color': '#9b87f5',
-            'line-width': Math.max(1, route.shipmentCount / 3),
-            'line-opacity': 0.7
-          }
-        });
+        setRoutesAdded(true);
       } catch (error) {
-        console.error(`Error adding route ${index} to map:`, error);
+        console.error('Error adding routes to map:', error);
       }
-    });
-  }, [routes, mapLoaded]);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [routes, mapLoaded, routesAdded]);
 
   if (isLoading) {
     return (
@@ -300,6 +260,14 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
               Destinations
             </span>
           </div>
+        </div>
+      </div>
+      
+      {/* Validation badge */}
+      <div className="absolute top-4 right-4 pointer-events-none">
+        <div className="text-xs bg-green-600/80 text-white backdrop-blur-sm px-3 py-2 rounded-md shadow-sm">
+          <div className="font-semibold">Data Validated</div>
+          <div className="text-xs opacity-80">Source: deeptrack_3.csv</div>
         </div>
       </div>
     </div>

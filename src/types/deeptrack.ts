@@ -22,6 +22,14 @@ export interface Shipment {
   forwarder_quotes: Record<string, number>;
 }
 
+export interface ShipmentWithMeta extends Shipment {
+  _meta: {
+    source: string;
+    validated: boolean;
+    lastVerified: string;
+  };
+}
+
 export interface ForwarderPerformance {
   name: string;
   totalShipments: number;
@@ -29,6 +37,11 @@ export interface ForwarderPerformance {
   avgTransitDays: number;
   onTimeRate: number;
   reliabilityScore: number;
+  _meta?: {
+    source: string[];
+    validated: boolean;
+    lastVerified: string;
+  };
 }
 
 export interface RoutePerformance {
@@ -39,4 +52,28 @@ export interface RoutePerformance {
   disruptionScore: number;
   reliabilityScore: number;
   totalShipments: number;
+  _meta?: {
+    source: string[];
+    validated: boolean;
+    lastVerified: string;
+  };
+}
+
+export interface KPI {
+  value: number | string;
+  label: string;
+  source: string[];
+  validated: boolean;
+  mappedFrom: string;
+  lastVerified: string;
+  change?: number;
+  trend?: 'up' | 'down' | 'stable';
+}
+
+export interface ValidationState {
+  isDataLoaded: boolean;
+  isDataValidated: boolean;
+  dataSource: string;
+  lastValidated: string;
+  validationErrors: string[];
 }

@@ -3,6 +3,7 @@ import React from 'react';
 import { BarChartIcon, Brain } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
 import DeepTalk from '@/components/DeepTalk';
+import { Button } from '@/components/ui/button';
 
 interface AnalyticsLayoutProps {
   title: string;
@@ -29,19 +30,20 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
           {title}
         </h1>
         
-        <button 
-          className="flex items-center gap-2 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors"
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/40"
           onClick={onToggleDeepTalk}
         >
           <Brain className="h-4 w-4" />
           {showDeepTalk ? 'Close DeepTalk' : 'Ask DeepTalk™'}
-        </button>
+        </Button>
       </div>
       
-      <KPIPanel kpis={kpis} className="mb-8" />
+      <KPIPanel kpis={kpis} className="mb-6" />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className={`lg:col-span-${showDeepTalk ? '2' : '3'} space-y-6`}>
+        <div className={`lg:col-span-${showDeepTalk ? '2' : '3'}`}>
           {children}
         </div>
         

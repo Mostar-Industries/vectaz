@@ -16,25 +16,25 @@ const OverviewContent: React.FC<OverviewContentProps> = ({
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Shipment Analytics</CardTitle>
+      <Card className="border border-border/30 shadow-sm hover:border-border/50 transition-all">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-semibold">Shipment Analytics</CardTitle>
           <CardDescription>Performance metrics and trends</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
+          <div className="h-[360px]">
             <ShipmentAnalytics metrics={shipmentMetrics} />
           </div>
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Top Destination Countries</CardTitle>
+      <Card className="border border-border/30 shadow-sm hover:border-border/50 transition-all">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-semibold">Top Destination Countries</CardTitle>
           <CardDescription>Shipment distribution by destination country</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
+          <div className="h-[360px]">
             <CountryAnalytics countries={countryPerformance.slice(0, 5)} />
           </div>
         </CardContent>

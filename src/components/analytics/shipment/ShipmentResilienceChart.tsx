@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader } from 'lucide-react';
-import ResilienceChart from '@/components/ResilienceChart';
+import { ShipmentMetrics } from '@/types/deeptrack';
 
 type ChartDataItem = {
   date: string;
@@ -24,6 +24,7 @@ type ChartDataItem = {
 interface ShipmentResilienceChartProps {
   title?: string;
   className?: string;
+  metrics?: ShipmentMetrics;
 }
 
 const mockData: ChartDataItem[] = [
@@ -104,6 +105,7 @@ const mockData: ChartDataItem[] = [
 const ShipmentResilienceChart: React.FC<ShipmentResilienceChartProps> = ({
   title = 'Route Resilience Metrics',
   className,
+  metrics,
 }) => {
   const isLoading = false;
 
@@ -141,16 +143,90 @@ const ShipmentResilienceChart: React.FC<ShipmentResilienceChartProps> = ({
     );
   }
 
+  // Generate data based on metrics if available
+  const chartData = metrics ? generateDataFromMetrics(metrics) : mockData;
+
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResilienceChart />
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 5,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis 
+                dataKey="date" 
+                stroke="currentColor" 
+                strokeOpacity={0.5}
+                fontSize={12}
+              />
+              <YAxis 
+                stroke="currentColor" 
+                strokeOpacity={0.5}
+                fontSize={12}
+              />
+              <Tooltip content={renderCustomTooltip} />
+              <Legend />
+              <Line
+                type="monotone"
+                dataKey="disruption"
+                stroke="#ef4444"
+                activeDot={{ r: 8 }}
+                strokeWidth={2}
+                name="Disruption"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="cost" 
+                stroke="#f97316" 
+                strokeWidth={2}
+                name="Cost"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="reliability" 
+                stroke="#22c55e" 
+                strokeWidth={2}
+                name="Reliability"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );
+};
+
+// Helper function to generate chart data from metrics
+const generateDataFromMetrics = (metrics: ShipmentMetrics): ChartDataItem[] => {
+  // In a real implementation, we would use metrics data to generate the chart
+  // For now, we'll use mock data but in a real scenario this would transform
+  // the metrics data into the chart format
+  
+  // Example of how we might use real metrics data:
+  if (metrics.monthlyTrend && metrics.monthlyTrend.length > 0) {
+    return metrics.monthlyTrend.map(item => {
+      return {
+        date: item.month,
+        // These would be real values derived from the metrics
+        disruption: Math.round(metrics.disruptionProbabilityScore * 10),
+        reliability: Math.round(metrics.resilienceScore),
+        cost: 70 + Math.floor(Math.random() * 20) // Placeholder random value
+      };
+    });
+  }
+  
+  return mockData;
 };
 
 export default ShipmentResilienceChart;

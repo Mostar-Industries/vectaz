@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Info, Shield, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
 import { ShipmentMetrics } from '@/types/deeptrack';
-import { ResilienceChart } from '@/components/ResilienceChart';
+import ResilienceChart from "@/components/ResilienceChart";
 import { metricAnalyzers } from '@/core/metricReasoner';
 import { useBaseDataStore } from '@/store/baseState';
 import { calculateShipmentMetrics } from '@/utils/analyticsUtils';

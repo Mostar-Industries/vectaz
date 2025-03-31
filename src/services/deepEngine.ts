@@ -1,4 +1,3 @@
-
 // DeepCAL Engine - Main service for logistics optimization
 // Implements the PRIME ORIGIN PROTOCOL for decision-making
 
@@ -258,7 +257,29 @@ export const getRankedAlternatives = async (version: string = "latest") => {
     const forwarderPerformance = deriveForwarderPerformance(dataset);
     
     // Build the decision matrix from forwarder performance
-    const decisionMatrix = buildDecisionMatrix(forwarderPerformance);
+    const decisionMatrix = forwarders.map(forwarder => {
+      // Lower cost is better, so invert it for scoring
+      const costScore = forwarder.avgCostPerKg > 0 
+        ? 1 / forwarder.avgCostPerKg 
+        : 1;
+      
+      // Lower transit time is better, so invert it for scoring
+      const timeScore = forwarder.avgTransitDays > 0 
+        ? 1 / forwarder.avgTransitDays 
+        : 1;
+      
+      // Higher reliability is better
+      const reliabilityScore = forwarder.reliabilityScore;
+      
+      return {
+        forwarder: forwarder.name, // Use name instead of id
+        criteria: {
+          cost: costScore,
+          time: timeScore,
+          reliability: reliabilityScore
+        }
+      };
+    });
     
     // Compute weights using neutrosophic AHP (or use defaults if not available)
     const weights = computeNeutrosophicWeights();

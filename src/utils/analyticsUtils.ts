@@ -1,4 +1,3 @@
-
 import { 
   Shipment, 
   ShipmentMetrics, 
@@ -42,7 +41,7 @@ export const calculateShipmentMetrics = (shipmentData: Shipment[]): ShipmentMetr
     if (!shipment.date_of_collection) return;
     
     try {
-      const date = new Date(shipment.date_of_collection);
+      const date = new Date(shipment.date_of_collection || new Date().toISOString());
       if (date < sixMonthsAgo) return;
       
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -505,7 +504,7 @@ export const calculateWarehousePerformance = (shipmentData: Shipment[]): Warehou
         .filter(s => s.date_of_collection)
         .map(s => {
           // Calculate time between created_at and collection as proxy for warehouse processing time
-          const createdAt = new Date(s.created_at || new Date());
+          const createdAt = new Date(s.created_at || new Date().toISOString());
           const collectionDate = new Date(s.date_of_collection);
           
           if (isNaN(createdAt.getTime()) || isNaN(collectionDate.getTime())) return 0;

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Shipment, 
@@ -116,7 +115,7 @@ export const useDeepTalkHandler = ({
       const topForwarder = forwarderPerformance[0];
       const secondForwarder = forwarderPerformance[1];
       
-      return `Your highest performing freight forwarder is ${topForwarder?.name} with a DeepScore™ of ${topForwarder?.deepScore?.toFixed(1)}/100. This rating is a composite of reliability (${((topForwarder?.reliabilityScore || 0) * 100).toFixed(1)}%), cost-efficiency (${(topForwarder?.avgCostPerKg || 0).toFixed(2)}/kg), and transit performance (${topForwarder?.avgTransitDays.toFixed(1)} days average). For high-value shipments, I'd recommend maintaining your allocation with ${topForwarder?.name} while testing ${secondForwarder?.name} for non-critical routes to benchmark performance. Your data shows that ${topForwarder?.name} handles ${topForwarder?.totalShipments} shipments with an on-time delivery rate of ${((topForwarder?.otdRate || 0) * 100).toFixed(1)}%.`;
+      return `Your highest performing freight forwarder is ${topForwarder?.name} with a DeepScore™ of ${topForwarder?.deepScore?.toFixed(1)}/100. This rating is a composite of reliability (${((topForwarder?.reliabilityScore || 0) * 100).toFixed(1)}%), cost-efficiency (${(topForwarder?.avgCostPerKg || 0).toFixed(2)}/kg), and transit performance (${topForwarder?.avgTransitDays.toFixed(1)} days average). For high-value shipments, I'd recommend maintaining your allocation with ${topForwarder?.name} while testing ${secondForwarder?.name} for non-critical routes to benchmark performance. Your data shows that ${topForwarder?.name} handles ${topForwarder?.totalShipments} shipments with an on-time delivery rate of ${((topForwarder?.onTimeRate || 0) * 100).toFixed(1)}%.`;
     }
     
     if (lowerQuery.includes('warehouse') || lowerQuery.includes('origin') || lowerQuery.includes('facility')) {

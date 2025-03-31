@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Loader, Map as MapIcon } from 'lucide-react';
-import MapBase from './map/MapBase';
+import MapBase, { MapBaseFunctionChild } from './map/MapBase';
 import RouteLayer from './map/RouteLayer';
 import MapControls from './map/MapControls';
 import { Route } from './map/types';
@@ -46,14 +46,17 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
     );
   }
 
+  // Explicitly define the function child to match MapBaseFunctionChild type
+  const renderRouteLayer: MapBaseFunctionChild = (map, isMapLoaded) => {
+    if (isMapLoaded && map) {
+      return <RouteLayer map={map} routes={routes} mapLoaded={isMapLoaded} />;
+    }
+    return null;
+  };
+
   return (
     <MapBase isLoading={isLoading} onMapLoadedState={setMapLoaded}>
-      {(map, isMapLoaded) => {
-        if (isMapLoaded && map) {
-          return <RouteLayer map={map} routes={routes} mapLoaded={isMapLoaded} />;
-        }
-        return null;
-      }}
+      {renderRouteLayer}
       <MapControls 
         routesCount={routes.length} 
         dataSource={dataSource}

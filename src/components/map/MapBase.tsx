@@ -1,9 +1,10 @@
+
 import React, { useEffect, useRef, useState, ReactNode } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Define a proper type for function children
-type MapBaseFunctionChild = (map: mapboxgl.Map | null, mapLoaded: boolean) => React.ReactElement | null;
+// Define a proper type for function children and export it
+export type MapBaseFunctionChild = (map: mapboxgl.Map | null, mapLoaded: boolean) => React.ReactElement | null;
 
 interface MapBaseProps {
   children?: ReactNode | MapBaseFunctionChild;

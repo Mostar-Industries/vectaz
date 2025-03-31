@@ -97,11 +97,13 @@ describe('MapBase Component', () => {
   it('handles function children correctly', () => {
     render(
       <MapBase>
-        {(map, mapLoaded) => mapLoaded ? (
-          <div data-testid="function-child">
-            Function Child
-          </div>
-        ) : null}
+        {(map, mapLoaded) => {
+          return mapLoaded ? (
+            <div data-testid="function-child">
+              Function Child
+            </div>
+          ) : null;
+        }}
       </MapBase>
     );
     

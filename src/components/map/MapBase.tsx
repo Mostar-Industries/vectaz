@@ -1,8 +1,10 @@
+
 import React, { useEffect, useRef, useState, ReactNode } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-type MapBaseFunctionChild = (map: mapboxgl.Map | null, mapLoaded: boolean) => ReactNode;
+// Define a proper type for the function children
+type MapBaseFunctionChild = ((map: mapboxgl.Map | null, mapLoaded: boolean) => ReactNode);
 
 interface MapBaseProps {
   children?: ReactNode | MapBaseFunctionChild;
@@ -116,12 +118,18 @@ const MapBase: React.FC<MapBaseProps> = ({
     };
   }, [isLoading, onMapLoaded, onMapLoadedState]);
 
+  // Render function to handle both regular ReactNode children and function children
+  const renderChildren = () => {
+    if (typeof children === 'function') {
+      return (children as MapBaseFunctionChild)(map.current, mapLoaded);
+    }
+    return children;
+  };
+
   return (
     <div className="relative h-full w-full bg-slate-900">
       <div ref={mapContainerRef} className="absolute inset-0" />
-      {typeof children === 'function' 
-        ? (children as MapBaseFunctionChild)(map.current, mapLoaded)
-        : children}
+      {renderChildren()}
     </div>
   );
 };

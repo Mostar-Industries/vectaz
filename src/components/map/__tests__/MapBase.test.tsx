@@ -99,7 +99,7 @@ describe('MapBase Component', () => {
       <MapBase>
         {(map, mapLoaded) => (
           <div data-testid="function-child">
-            {mapLoaded ? 'Map is loaded' : 'Map is loading'}
+            {String(mapLoaded)}
           </div>
         )}
       </MapBase>

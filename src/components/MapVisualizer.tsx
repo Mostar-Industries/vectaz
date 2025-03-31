@@ -48,7 +48,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
 
   return (
     <MapBase isLoading={isLoading} onMapLoadedState={setMapLoaded}>
-      {(map: mapboxgl.Map, mapLoaded: boolean) => (
+      {mapLoaded && (map) => (
         <RouteLayer map={map} routes={routes} mapLoaded={mapLoaded} />
       )}
       <MapControls 

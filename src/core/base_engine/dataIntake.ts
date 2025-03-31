@@ -1,5 +1,5 @@
 
-import { Shipment } from "@/types/deeptrack";
+import { Shipment } from "@base_data/deeptrack_3.json";
 
 // Metadata for the loaded dataset
 export interface DatasetMetadata {
@@ -76,7 +76,7 @@ export const processRawData = (data: any[]): Shipment[] => {
       destination_country: item.destination_country || item.dest,
       destination_longitude: parseFloat(item.destination_longitude),
       destination_latitude: parseFloat(item.destination_latitude),
-      freight_carrier: item.freight_carrier || item.carrier,
+      carrier: item.freight_carrier || item.carrier,
       weight_kg: parseFloat(item.weight_kg),
       volume_cbm: parseFloat(item.volume_cbm),
       initial_quote_awarded: item.initial_quote_awarded,

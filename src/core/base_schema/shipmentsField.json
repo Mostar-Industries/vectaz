@@ -1,0 +1,33 @@
+[
+    "date_of_greenlight_to_pickup",
+    "date_of_collection",
+    "request_reference",
+    "cargo_description",
+    "item_category",
+    "origin_country",
+    "origin_longitude",
+    "origin_latitude",
+    "destination_country",
+    "destination_longitude",
+    "destination_latitude",
+    "carrier",
+    "carrier+cost",
+    "kuehne_nagel",
+    "scan_global_logistics",
+    "dhl_express",
+    "dhl_global",
+    "bwosi",
+    "agl",
+    "siginon",
+    "frieght_in_time",
+    "weight_kg",
+    "volume_cbm",
+    "initial_quote_awarded",
+    "final_quote_awarded_freight_forwader_Carrier",
+    "comments",
+    "date_of_arrival_destination",
+    "delivery_status",
+    "mode_of_shipment"
+  ]
+  
+  

@@ -48,6 +48,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
 
   return (
     <MapBase isLoading={isLoading} onMapLoadedState={setMapLoaded}>
+      {/* Use explicit JSX instead of implicit return to fix typing issues */}
       {(map, isMapLoaded) => {
         if (isMapLoaded && map) {
           return <RouteLayer map={map} routes={routes} mapLoaded={isMapLoaded} />;

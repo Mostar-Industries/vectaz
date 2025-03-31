@@ -3,11 +3,13 @@ import React, { useEffect, useRef, useState, ReactNode } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Define a proper type for the function children
-type MapBaseFunctionChild = ((map: mapboxgl.Map | null, mapLoaded: boolean) => ReactNode);
+// Define a proper type for the function children using React.FC pattern
+interface FunctionChildren {
+  (map: mapboxgl.Map | null, mapLoaded: boolean): ReactNode;
+}
 
 interface MapBaseProps {
-  children?: ReactNode | MapBaseFunctionChild;
+  children?: ReactNode | FunctionChildren;
   isLoading?: boolean;
   onMapLoaded?: (map: mapboxgl.Map) => void;
   onMapLoadedState?: (loaded: boolean) => void;
@@ -121,7 +123,7 @@ const MapBase: React.FC<MapBaseProps> = ({
   // Render function to handle both regular ReactNode children and function children
   const renderChildren = () => {
     if (typeof children === 'function') {
-      return (children as MapBaseFunctionChild)(map.current, mapLoaded);
+      return (children as FunctionChildren)(map.current, mapLoaded);
     }
     return children;
   };

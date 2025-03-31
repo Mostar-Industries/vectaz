@@ -98,11 +98,15 @@ describe('MapBase Component', () => {
     render(
       <MapBase>
         {(map, mapLoaded) => {
-          return mapLoaded ? (
-            <div data-testid="function-child">
-              Function Child
-            </div>
-          ) : null;
+          // Use curly braces and explicit return for consistency
+          if (mapLoaded) {
+            return (
+              <div data-testid="function-child">
+                Function Child
+              </div>
+            );
+          }
+          return null;
         }}
       </MapBase>
     );

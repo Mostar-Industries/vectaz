@@ -6,8 +6,8 @@ import RouteLayer from './map/RouteLayer';
 import MapControls from './map/MapControls';
 import { Route } from './map/types';
 
-export { Route } from './map/types';
 export type { MapPoint } from './map/types';
+export type { Route } from './map/types';
 
 interface MapVisualizerProps {
   routes: Route[];
@@ -48,7 +48,9 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
 
   return (
     <MapBase isLoading={isLoading} onMapLoadedState={setMapLoaded}>
-      <RouteLayer routes={routes} mapLoaded={mapLoaded} />
+      {(map, mapLoaded) => (
+        <RouteLayer map={map} routes={routes} mapLoaded={mapLoaded} />
+      )}
       <MapControls 
         routesCount={routes.length} 
         dataSource={dataSource}

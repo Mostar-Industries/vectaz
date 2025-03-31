@@ -19,7 +19,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
   onToggleDeepTalk,
   onDeepTalkQuery
 }) => {
-  return <div className="container mx-auto p-4 md:p-6 animate-fade-in">
+  return <div className="container p-4 md:p-6 animate-fade-in px-0 mx-0">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gradient-primary flex items-center">
           <BarChartIcon className="mr-2 h-8 w-8" />
@@ -34,7 +34,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       
       <KPIPanel kpis={kpis} className="mb-6" />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-0 my-0 px-0 py-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-0 my-0 py-0 px-[12px]">
         <div className="py-0 my-0 mx-0 px-0">
           {children}
         </div>

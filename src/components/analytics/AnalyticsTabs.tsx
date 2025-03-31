@@ -19,7 +19,7 @@ const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
   countriesContent,
   warehousesContent
 }) => {
-  return <Tabs defaultValue={activeTab} onValueChange={onTabChange} className="w-full mx-[11px] my-px py-[6px] px-0">
+  return <Tabs defaultValue={activeTab} onValueChange={onTabChange} className="w-full mx-[11px] my-px py-[6px] px-[3px]">
       <TabsList className="grid grid-cols-5 mb-6 bg-muted/80 p-1 rounded-lg">
         <TabsTrigger value="overview" className="flex items-center gap-1 data-[state=active]:bg-background data-[state=active]:shadow">
           <BarChartIcon className="h-4 w-4" />

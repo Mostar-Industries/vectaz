@@ -1,55 +1,54 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CountryPerformance } from '@/types/deeptrack';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { Globe, MapPin, Clock, X, Flag, Package, Brain } from 'lucide-react';
-
 interface CountryAnalyticsProps {
   countries: CountryPerformance[];
 }
-
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A288E3', '#FF6B6B'];
-
-const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
+const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({
+  countries
+}) => {
   // Limit to top countries for charts
   const topCountries = countries.slice(0, 6);
-  
+
   // Prepare data for shipment volume chart
   const volumeData = topCountries.map(c => ({
     name: c.country,
     shipments: c.totalShipments
   }));
-  
+
   // Prepare data for cost comparison chart
   const costData = topCountries.map(c => ({
     name: c.country,
     cost: c.avgCostPerRoute
   }));
-  
+
   // Prepare data for resilience index chart
   const resilienceData = topCountries.map(c => ({
     name: c.country,
     index: c.resilienceIndex
   }));
-  
+
   // Prepare data for bubble chart
   const bubbleData = topCountries.map(c => ({
-    x: c.resilienceIndex,  // x-axis: resilience
-    y: c.avgCostPerRoute,  // y-axis: cost
-    z: c.totalShipments,   // bubble size: shipment volume
+    x: c.resilienceIndex,
+    // x-axis: resilience
+    y: c.avgCostPerRoute,
+    // y-axis: cost
+    z: c.totalShipments,
+    // bubble size: shipment volume
     name: c.country
   }));
-  
+
   // Prepare data for mode preference
   const allModes = Array.from(new Set(countries.map(c => c.preferredMode)));
   const modeData = allModes.map(mode => ({
     name: mode,
     value: countries.filter(c => c.preferredMode === mode).length
   }));
-  
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6 px-0 mx-0 py-0">
       {/* Top KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -151,20 +150,11 @@ const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie
-                    data={modeData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={true}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {modeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
+                  <Pie data={modeData} cx="50%" cy="50%" labelLine={true} outerRadius={80} fill="#8884d8" dataKey="value" nameKey="name" label={({
+                  name,
+                  percent
+                }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
+                    {modeData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                   </Pie>
                   <Tooltip />
                   <Legend />
@@ -229,57 +219,47 @@ const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
         <CardContent>
           <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <ScatterChart margin={{
+              top: 20,
+              right: 20,
+              bottom: 20,
+              left: 20
+            }}>
                 <CartesianGrid />
-                <XAxis 
-                  type="number" 
-                  dataKey="x" 
-                  name="Resilience" 
-                  domain={[0, 100]}
-                  label={{ value: 'Resilience Index', position: 'bottom' }} 
-                />
-                <YAxis 
-                  type="number" 
-                  dataKey="y" 
-                  name="Cost" 
-                  label={{ value: 'Cost per KG ($)', angle: -90, position: 'left' }} 
-                />
-                <ZAxis 
-                  type="number" 
-                  dataKey="z" 
-                  range={[50, 400]} 
-                  name="Volume" 
-                />
-                <Tooltip 
-                  cursor={{ strokeDasharray: '3 3' }}
-                  formatter={(value, name, props) => {
-                    if (name === 'Resilience') return [`${Number(value).toFixed(1)}`, name];
-                    if (name === 'Cost') return [`$${Number(value).toFixed(2)}`, name];
-                    if (name === 'Volume') return [value, 'Shipments'];
-                    return [value, name];
-                  }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const country = payload[0].payload.name;
-                      return (
-                        <div className="bg-white dark:bg-gray-800 p-2 border shadow-sm rounded">
+                <XAxis type="number" dataKey="x" name="Resilience" domain={[0, 100]} label={{
+                value: 'Resilience Index',
+                position: 'bottom'
+              }} />
+                <YAxis type="number" dataKey="y" name="Cost" label={{
+                value: 'Cost per KG ($)',
+                angle: -90,
+                position: 'left'
+              }} />
+                <ZAxis type="number" dataKey="z" range={[50, 400]} name="Volume" />
+                <Tooltip cursor={{
+                strokeDasharray: '3 3'
+              }} formatter={(value, name, props) => {
+                if (name === 'Resilience') return [`${Number(value).toFixed(1)}`, name];
+                if (name === 'Cost') return [`$${Number(value).toFixed(2)}`, name];
+                if (name === 'Volume') return [value, 'Shipments'];
+                return [value, name];
+              }} content={({
+                active,
+                payload
+              }) => {
+                if (active && payload && payload.length) {
+                  const country = payload[0].payload.name;
+                  return <div className="bg-white dark:bg-gray-800 p-2 border shadow-sm rounded">
                           <p className="font-medium">{country}</p>
                           <p className="text-sm">{`Resilience: ${Number(payload[0].value).toFixed(1)}`}</p>
                           <p className="text-sm">{`Cost per KG: $${Number(payload[1].value).toFixed(2)}`}</p>
                           <p className="text-sm">{`Shipments: ${payload[2].value}`}</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                        </div>;
+                }
+                return null;
+              }} />
                 <Legend />
-                <Scatter 
-                  name="Countries" 
-                  data={bubbleData} 
-                  fill="#8884d8"
-                  shape="circle"
-                />
+                <Scatter name="Countries" data={bubbleData} fill="#8884d8" shape="circle" />
               </ScatterChart>
             </ResponsiveContainer>
           </div>
@@ -316,8 +296,6 @@ const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
 export default CountryAnalytics;

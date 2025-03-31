@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import KPIPanel from '@/components/KPIPanel';
 import MapVisualizer from '@/components/MapVisualizer';
@@ -5,11 +6,14 @@ import ResilienceChart from '@/components/ResilienceChart';
 import ForwarderRanking from '@/components/ForwarderRanking';
 import DeepTalk from '@/components/DeepTalk';
 import RFQBuilder from '@/components/RFQBuilder';
+import DataBootLoader from '@/components/DataBootLoader';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MoveUp, Map, Database, Truck, MessageSquare, FileText, BarChart4, AlertTriangle } from 'lucide-react';
-import { getKPIs, getTopRoutes, getForwarderRankings, isDataLoaded, loadMockData } from '@/services/deepEngine';
+import { useBaseDataStore } from '@/store/baseState';
+import { decisionEngine } from '@/core/engine';
+import { isSystemBooted } from '@/init/boot';
 import { Label } from '@/components/ui/label';
 
 const mockResilienceData = [
@@ -42,11 +46,16 @@ const mockForwarderOptions = [
 
 const DeepCALDashboard = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [isDataReady, setIsDataReady] = useState<boolean>(false);
-  const [isDataLocked, setIsDataLocked] = useState<boolean>(true);
   const [isExplainModalOpen, setIsExplainModalOpen] = useState<boolean>(false);
   const [selectedForwarder, setSelectedForwarder] = useState<string>('');
-  const [rankingCriteria, setRankingCriteria] = useState({ cost: 0.4, time: 0.3, reliability: 0.3 });
+  
+  // Use data from our store
+  const { 
+    isDataLoaded, 
+    criteriaWeights, 
+    setCriteriaWeights,
+    hasMockData
+  } = useBaseDataStore();
   
   const [kpis, setKpis] = useState({
     totalShipments: 0,
@@ -60,40 +69,33 @@ const DeepCALDashboard = () => {
   const [routes, setRoutes] = useState<any[]>([]);
   const [rankings, setRankings] = useState<any[]>([]);
   
+  // Effect to refresh data when system is booted
   useEffect(() => {
-    if (isDataLoaded()) {
-      setIsDataReady(true);
-      setIsDataLocked(false);
+    if (isDataLoaded && isSystemBooted()) {
       refreshData();
     }
-  }, []);
+  }, [isDataLoaded]);
   
-  const loadData = () => {
-    const success = loadMockData();
-    if (success) {
-      setIsDataReady(true);
-      setIsDataLocked(false);
-      refreshData();
-    }
-  };
-  
+  // Function to refresh all data from the engine
   const refreshData = () => {
-    if (!isDataReady) return;
+    if (!isDataLoaded || !isSystemBooted()) return;
     
     try {
-      const kpiData = getKPIs();
+      // Get KPIs from engine
+      const kpiData = decisionEngine.getKPIs();
       setKpis(kpiData);
       
-      const routeData = getTopRoutes(5);
+      // Get route data for map
+      const routeData = decisionEngine.getTopRoutes(5);
       const routesForMap = routeData.map(route => ({
         origin: {
-          lat: 1.2404475,
+          lat: 1.2404475, // Should come from coordinates lookup
           lng: 36.990054,
           name: route.origin,
           isOrigin: true
         },
         destination: {
-          lat: route.destination === 'Zimbabwe' ? -17.80269125 : 15.4136414,
+          lat: route.destination === 'Zimbabwe' ? -17.80269125 : 15.4136414, // Should come from coordinates lookup
           lng: route.destination === 'Zimbabwe' ? 31.08848075 : 28.3174378,
           name: route.destination,
           isOrigin: false
@@ -103,7 +105,8 @@ const DeepCALDashboard = () => {
       }));
       setRoutes(routesForMap);
       
-      const rankingData = getForwarderRankings(rankingCriteria);
+      // Get forwarder rankings
+      const rankingData = decisionEngine.getRankedAlternatives(criteriaWeights);
       setRankings(rankingData);
     } catch (error) {
       console.error("Error refreshing data:", error);
@@ -134,34 +137,20 @@ const DeepCALDashboard = () => {
                 Intelligent Emergency Logistics Decision-Support System
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button 
-                variant={isDataReady ? "secondary" : "default"}
-                size="sm"
-                onClick={loadData}
-                disabled={isDataReady}
-              >
-                <Database className="h-4 w-4 mr-2" />
-                {isDataReady ? "Data Loaded" : "Load Data"}
-              </Button>
-            </div>
+            {hasMockData() && (
+              <div className="bg-amber-100 px-3 py-1 rounded-md text-sm text-amber-800 flex items-center">
+                <AlertTriangle className="h-4 w-4 mr-1" />
+                Demo Mode
+              </div>
+            )}
           </div>
         </div>
       </header>
       
       <main className="container mx-auto px-4 py-6">
-        {isDataLocked ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center my-6">
-            <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-2" />
-            <h2 className="text-lg font-medium text-amber-800 mb-2">Data Not Loaded</h2>
-            <p className="text-amber-700 mb-4">
-              No validated dataset detected. Following the "No Data, No Feature" doctrine, 
-              all features are locked until canonical data is loaded.
-            </p>
-            <Button onClick={loadData}>
-              <Database className="h-4 w-4 mr-2" />
-              Load Data
-            </Button>
+        {!isDataLoaded ? (
+          <div className="max-w-lg mx-auto my-8">
+            <DataBootLoader />
           </div>
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -185,13 +174,13 @@ const DeepCALDashboard = () => {
             </TabsList>
             
             <TabsContent value="dashboard" className="space-y-6">
-              <KPIPanel kpis={kpis} isLoading={!isDataReady} />
+              <KPIPanel kpis={kpis} isLoading={!isDataLoaded} />
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <div className="bg-card border rounded-lg p-4">
                     <h3 className="text-lg font-medium mb-4">Live Route Map</h3>
-                    <MapVisualizer routes={routes} isLoading={!isDataReady} />
+                    <MapVisualizer routes={routes} isLoading={!isDataLoaded} />
                   </div>
                 </div>
                 
@@ -206,7 +195,7 @@ const DeepCALDashboard = () => {
             
             <TabsContent value="analytics" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ResilienceChart data={mockResilienceData} isLoading={!isDataReady} />
+                <ResilienceChart data={mockResilienceData} isLoading={!isDataLoaded} />
                 
                 <div className="bg-card border rounded-lg p-4">
                   <h3 className="text-lg font-medium mb-4">Shipment Status</h3>
@@ -251,18 +240,18 @@ const DeepCALDashboard = () => {
                     <div className="space-y-2">
                       <Label className="flex justify-between">
                         <span>Cost</span>
-                        <span>{(rankingCriteria.cost * 100).toFixed(0)}%</span>
+                        <span>{(criteriaWeights.cost * 100).toFixed(0)}%</span>
                       </Label>
                       <input 
                         type="range" 
                         min="0" 
                         max="1" 
                         step="0.1" 
-                        value={rankingCriteria.cost} 
+                        value={criteriaWeights.cost} 
                         onChange={(e) => {
                           const newCost = parseFloat(e.target.value);
                           const remaining = 1 - newCost;
-                          setRankingCriteria({
+                          setCriteriaWeights({
                             cost: newCost,
                             time: remaining * 0.5,
                             reliability: remaining * 0.5
@@ -275,21 +264,21 @@ const DeepCALDashboard = () => {
                     <div className="space-y-2">
                       <Label className="flex justify-between">
                         <span>Transit Time</span>
-                        <span>{(rankingCriteria.time * 100).toFixed(0)}%</span>
+                        <span>{(criteriaWeights.time * 100).toFixed(0)}%</span>
                       </Label>
                       <input 
                         type="range" 
                         min="0" 
                         max="1" 
                         step="0.1" 
-                        value={rankingCriteria.time} 
+                        value={criteriaWeights.time} 
                         onChange={(e) => {
                           const newTime = parseFloat(e.target.value);
-                          const remaining = 1 - newTime - rankingCriteria.reliability;
-                          setRankingCriteria({
+                          const remaining = 1 - newTime - criteriaWeights.reliability;
+                          setCriteriaWeights({
                             cost: remaining,
                             time: newTime,
-                            reliability: rankingCriteria.reliability
+                            reliability: criteriaWeights.reliability
                           });
                         }}
                         className="w-full"
@@ -299,20 +288,20 @@ const DeepCALDashboard = () => {
                     <div className="space-y-2">
                       <Label className="flex justify-between">
                         <span>Reliability</span>
-                        <span>{(rankingCriteria.reliability * 100).toFixed(0)}%</span>
+                        <span>{(criteriaWeights.reliability * 100).toFixed(0)}%</span>
                       </Label>
                       <input 
                         type="range" 
                         min="0" 
                         max="1" 
                         step="0.1" 
-                        value={rankingCriteria.reliability} 
+                        value={criteriaWeights.reliability} 
                         onChange={(e) => {
                           const newReliability = parseFloat(e.target.value);
-                          const remaining = 1 - newReliability - rankingCriteria.time;
-                          setRankingCriteria({
+                          const remaining = 1 - newReliability - criteriaWeights.time;
+                          setCriteriaWeights({
                             cost: remaining,
-                            time: rankingCriteria.time,
+                            time: criteriaWeights.time,
                             reliability: newReliability
                           });
                         }}
@@ -333,7 +322,7 @@ const DeepCALDashboard = () => {
                   <ForwarderRanking 
                     rankings={rankings} 
                     onExplain={handleExplainForwarder}
-                    isLoading={!isDataReady}
+                    isLoading={!isDataLoaded}
                   />
                 </div>
               </div>

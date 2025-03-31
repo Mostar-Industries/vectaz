@@ -10,10 +10,12 @@ import NotFound from "./pages/NotFound";
 // Create a client
 const queryClient = new QueryClient();
 
+// Setup App with React Query for data fetching and caching
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        {/* Router for navigation */}
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -21,6 +23,8 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        
+        {/* UI Components for notifications */}
         <Toaster />
         <Sonner />
       </TooltipProvider>

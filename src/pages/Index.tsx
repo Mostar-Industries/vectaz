@@ -1,41 +1,57 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
-import { Button } from '@/components/ui/button';
-import { ShieldCheck } from 'lucide-react';
+import MapVisualizer from '@/components/MapVisualizer';
+import IconNavigation from '@/components/IconNavigation';
+import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
-  const { isDataLoaded } = useBaseDataStore();
+  const { isDataLoaded, shipmentData } = useBaseDataStore();
+  const [routes, setRoutes] = useState([]);
+
+  useEffect(() => {
+    if (isDataLoaded) {
+      // Process shipment data into routes for the map
+      const mapRoutes = shipmentData.map(shipment => ({
+        origin: {
+          lat: shipment.origin_latitude,
+          lng: shipment.origin_longitude,
+          name: shipment.origin_country,
+          isOrigin: true
+        },
+        destination: {
+          lat: shipment.destination_latitude,
+          lng: shipment.destination_longitude,
+          name: shipment.destination_country,
+          isOrigin: false
+        },
+        weight: shipment.weight_kg,
+        shipmentCount: 1
+      }));
+      
+      setRoutes(mapRoutes);
+      
+      // Notify user that system is ready
+      toast({
+        title: "DeepCAL Ready",
+        description: "System initialized successfully with verified data.",
+      });
+    }
+  }, [isDataLoaded, shipmentData]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">DeepCAL</h1>
-        <p className="text-lg text-muted-foreground">Cargo Augmented Logistics</p>
-      </header>
+    <div className="h-screen w-full overflow-hidden relative">
+      {/* Full-screen map */}
+      <div className="absolute inset-0">
+        <MapVisualizer routes={routes} isLoading={!isDataLoaded} />
+      </div>
       
-      <div className="max-w-3xl mx-auto">
-        {isDataLoaded ? (
-          <div className="p-6 border rounded-lg bg-card shadow-sm">
-            <div className="flex items-center mb-4">
-              <ShieldCheck className="h-6 w-6 mr-2 text-green-500" />
-              <h2 className="text-xl font-semibold">System Ready</h2>
-            </div>
-            <p className="mb-4 text-muted-foreground">
-              DeepCAL is fully operational with verified data. All features are now available.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Button variant="default">View Dashboard</Button>
-              <Button variant="outline">Manage Data</Button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-6 border rounded-lg bg-card shadow-sm text-center">
-            <p className="text-muted-foreground">
-              Please wait while the system completes its initialization...
-            </p>
-          </div>
-        )}
+      {/* Icon Navigation */}
+      <IconNavigation />
+      
+      {/* Header with app name */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-background/80 backdrop-blur-sm py-2 px-6 rounded-full shadow-md z-10 border border-border">
+        <h1 className="text-xl font-bold">DeepCAL</h1>
       </div>
     </div>
   );

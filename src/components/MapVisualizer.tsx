@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader } from 'lucide-react';
+import { Loader, Map as MapIcon } from 'lucide-react';
 
 interface MapPoint {
   lat: number;
@@ -26,7 +26,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
   const [mapLoaded, setMapLoaded] = useState(false);
 
   useEffect(() => {
-    if (!mapContainerRef.current || isLoading || !routes.length) return;
+    if (!mapContainerRef.current || isLoading) return;
 
     // This is a placeholder for the actual map implementation
     // In a real application, this would integrate with a mapping library like Mapbox
@@ -34,7 +34,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       // Simulate map loading
       setTimeout(() => {
         setMapLoaded(true);
-      }, 1000);
+      }, 800);
     };
 
     loadMap();
@@ -42,7 +42,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center bg-slate-100 rounded-lg h-96 w-full">
+      <div className="flex items-center justify-center bg-slate-100 h-full w-full">
         <div className="flex flex-col items-center gap-2">
           <Loader className="h-8 w-8 text-primary animate-spin" />
           <p className="text-muted-foreground">Loading map data...</p>
@@ -53,14 +53,17 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
 
   if (!routes.length) {
     return (
-      <div className="flex items-center justify-center bg-slate-100 rounded-lg h-96 w-full">
-        <p className="text-muted-foreground">No route data available</p>
+      <div className="flex items-center justify-center bg-slate-100 h-full w-full">
+        <div className="flex flex-col items-center gap-4">
+          <MapIcon className="h-12 w-12 text-muted-foreground" />
+          <p className="text-muted-foreground">No route data available</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative rounded-lg overflow-hidden h-96 w-full bg-slate-100">
+    <div className="relative h-full w-full bg-slate-100">
       <div ref={mapContainerRef} className="absolute inset-0">
         {!mapLoaded ? (
           <div className="flex items-center justify-center h-full">
@@ -106,10 +109,20 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
               ))}
             </svg>
             
-            {/* Map overlay with country names */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
-                World map visualization (placeholder)
+            {/* Map overlay with route count */}
+            <div className="absolute bottom-4 right-4 pointer-events-none">
+              <div className="text-xs bg-background/80 backdrop-blur-sm px-3 py-2 rounded-md shadow-sm border border-border">
+                <div className="font-semibold">Routes: {routes.length}</div>
+                <div className="mt-1 flex items-center gap-2">
+                  <span className="flex items-center">
+                    <span className="inline-block w-3 h-3 rounded-full bg-[#1A1F2C] mr-1"></span>
+                    Origins
+                  </span>
+                  <span className="flex items-center">
+                    <span className="inline-block w-3 h-3 rounded-full bg-[#D946EF] mr-1"></span>
+                    Destinations
+                  </span>
+                </div>
               </div>
             </div>
           </div>

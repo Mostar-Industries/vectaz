@@ -174,9 +174,17 @@ const MapContainer: React.FC<MapContainerProps> = ({
         `))
         .addTo(map.current!);
       
-      // Add destination marker
+      // Get marker color based on delivery status
+      const getMarkerColor = () => {
+        const status = route.deliveryStatus?.toLowerCase() || '';
+        if (status === 'delivered') return '#10B981'; // Green for delivered
+        if (status === 'in transit' || status === 'pending') return '#F59E0B'; // Yellow for en route/pending
+        return '#EF4444'; // Red for not delivered/failed/other statuses
+      };
+      
+      // Add destination marker with color based on delivery status
       new mapboxgl.Marker({
-        color: '#D946EF',
+        color: getMarkerColor(),
         scale: 0.7
       })
         .setLngLat([route.destination.lng, route.destination.lat])
@@ -187,6 +195,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
           <div>
             <h3 class="font-bold">${route.destination.name}</h3>
             <p class="text-xs">Destination</p>
+            <p class="text-xs mt-1">Status: ${route.deliveryStatus || 'Unknown'}</p>
             <p class="text-xs mt-1">Shipments: ${route.shipmentCount}</p>
           </div>
         `))

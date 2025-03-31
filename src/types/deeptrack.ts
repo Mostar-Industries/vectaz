@@ -54,6 +54,8 @@ export interface CountryPerformance {
   resilienceIndex: number;
   preferredMode: string;
   topForwarders: string[];
+  reliabilityScore?: number;
+  avgTransitDays?: number;
 }
 
 export interface WarehousePerformance {
@@ -101,4 +103,5 @@ export interface Route {
   destination: MapPoint;
   weight: number;
   shipmentCount: number;
+  deliveryStatus?: string;
 }

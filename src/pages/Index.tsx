@@ -35,7 +35,8 @@ const Index = () => {
           isOrigin: false
         },
         weight: shipment.weight_kg,
-        shipmentCount: 1
+        shipmentCount: 1,
+        deliveryStatus: shipment.delivery_status
       }));
       
       setRoutes(mapRoutes);

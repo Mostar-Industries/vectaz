@@ -1,3 +1,4 @@
+
 export interface Shipment {
   date_of_collection: string;
   request_reference: string;
@@ -31,6 +32,7 @@ export interface ForwarderPerformance {
   deepScore?: number;
   costScore?: number;
   timeScore?: number;
+  quoteWinRate?: number;
 }
 
 export interface RoutePerformance {
@@ -55,6 +57,7 @@ export interface CountryPerformance {
   topForwarders: string[];
   reliabilityScore?: number;
   avgTransitDays?: number;
+  deliverySuccessRate?: number;
 }
 
 export interface WarehousePerformance {
@@ -68,6 +71,8 @@ export interface WarehousePerformance {
   reliabilityScore: number;
   preferredForwarders: string[];
   costDiscrepancy: number;
+  dispatchSuccessRate?: number;
+  avgTransitDays?: number;
 }
 
 export interface ShipmentMetrics {

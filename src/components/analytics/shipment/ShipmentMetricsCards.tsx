@@ -5,7 +5,7 @@ import { ShipmentMetrics } from '@/types/deeptrack';
 import { Package, Clock, AlertTriangle, Shield, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeepExplainModal from '../DeepExplainModal';
-import { explainShipmentMetrics } from '@/services/deepSightNarrator';
+import { explainShipmentMetrics, MetricExplanation } from '@/services/deepSightNarrator';
 
 interface ShipmentMetricsCardsProps {
   metrics: ShipmentMetrics;

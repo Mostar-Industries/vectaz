@@ -1,150 +1,101 @@
 
 import React from 'react';
 import { 
-  Dialog,
-  DialogContent,
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
   DialogDescription,
-  DialogHeader,
-  DialogTitle
+  DialogFooter
 } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info, AlertTriangle, Check, Clock } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-
-interface MetricExplanation {
-  title: string;
-  description: string;
-  calculation: string;
-  sampleSize: number;
-  dataSource: string;
-  filterCriteria?: string;
-  insights: string[];
-  suggestedActions?: string[];
-  confidence: 'high' | 'moderate' | 'low';
-  methodology?: string;
-  sourceFunction?: string;
-}
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { MetricExplanation } from '@/services/deepSightNarrator';
+import { FlaskConical, Calculator, Scale, Lightbulb } from 'lucide-react';
 
 interface DeepExplainModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  metricKey?: string;
+  metricKey: string;
   explanation?: MetricExplanation;
 }
 
-const defaultExplanation: MetricExplanation = {
-  title: 'Loading explanation...',
-  description: 'Please wait while we analyze this metric.',
-  calculation: '',
-  sampleSize: 0,
-  dataSource: '',
-  insights: [],
-  confidence: 'moderate'
-};
-
-const DeepExplainModal: React.FC<DeepExplainModalProps> = ({ 
-  open, 
+const DeepExplainModal: React.FC<DeepExplainModalProps> = ({
+  open,
   onOpenChange,
   metricKey,
-  explanation = defaultExplanation 
+  explanation
 }) => {
+  if (!explanation) {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Info className="h-5 w-5 text-primary" />
+          <DialogTitle className="text-lg flex items-center">
+            <FlaskConical className="h-5 w-5 mr-2 text-primary" />
             {explanation.title}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             {explanation.description}
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-4 py-2">
-          {/* Calculation Methodology */}
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-sm font-semibold mb-2">Calculation Methodology</h3>
-              <div className="bg-muted p-3 rounded-md text-sm font-mono">
-                {explanation.calculation}
-              </div>
-              <div className="mt-2 text-sm text-muted-foreground">
-                <p>Sample size: <span className="font-medium">{explanation.sampleSize} shipments</span></p>
-                {explanation.filterCriteria && (
-                  <p>Filter criteria: <span className="font-medium">{explanation.filterCriteria}</span></p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
 
-          {/* Insights */}
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-sm font-semibold mb-2">Key Insights</h3>
-              <ul className="space-y-2">
-                {explanation.insights.map((insight, idx) => (
-                  <li key={idx} className="flex gap-2 items-start">
-                    <Info className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{insight}</span>
-                  </li>
+        <div className="space-y-4 my-2">
+          <div>
+            <h4 className="text-sm font-medium flex items-center mb-1">
+              <Calculator className="h-4 w-4 mr-2 text-muted-foreground" />
+              Calculation Method
+            </h4>
+            <p className="text-sm text-muted-foreground">{explanation.calculation}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Based on a sample size of {explanation.sampleSize} shipments
+            </p>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h4 className="text-sm font-medium flex items-center mb-1">
+              <Scale className="h-4 w-4 mr-2 text-muted-foreground" />
+              Methodology
+            </h4>
+            <p className="text-sm text-muted-foreground">{explanation.methodology}</p>
+            <div className="bg-primary/5 p-2 rounded text-xs mt-2 border border-primary/10">
+              <p className="font-medium text-primary">Neutrosophic AHP-TOPSIS Approach:</p>
+              <p className="mt-1">
+                This metric is calculated using our Neutrosophic AHP-TOPSIS methodology, which handles 
+                uncertainty and incomplete information common in logistics data. This approach produces 
+                more reliable and accurate predictions than traditional methods.
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h4 className="text-sm font-medium flex items-center mb-1">
+              <Lightbulb className="h-4 w-4 mr-2 text-muted-foreground" />
+              Interpretation & Recommendations
+            </h4>
+            <p className="text-sm text-muted-foreground">{explanation.interpretation}</p>
+            
+            <div className="mt-3">
+              <p className="text-sm font-medium">Recommended Actions:</p>
+              <ul className="text-sm text-muted-foreground list-disc pl-5 mt-1 space-y-1">
+                {explanation.recommendations.map((rec, index) => (
+                  <li key={index}>{rec}</li>
                 ))}
               </ul>
-            </CardContent>
-          </Card>
-
-          {/* Suggested Actions */}
-          {explanation.suggestedActions && explanation.suggestedActions.length > 0 && (
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="text-sm font-semibold mb-2">Suggested Actions</h3>
-                <ul className="space-y-2">
-                  {explanation.suggestedActions.map((action, idx) => (
-                    <li key={idx} className="flex gap-2 items-start">
-                      <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{action}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Data Provenance */}
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="text-sm font-semibold mb-2">Data Provenance</h3>
-              <div className="space-y-1 text-sm">
-                <p>Source: <span className="font-medium">{explanation.dataSource}</span></p>
-                {explanation.sourceFunction && (
-                  <p>Function: <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{explanation.sourceFunction}</span></p>
-                )}
-                {explanation.methodology && (
-                  <p>Methodology: <span className="font-medium">{explanation.methodology}</span></p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Confidence Level */}
-          <Alert variant={explanation.confidence === 'high' ? 'default' : 'destructive'}>
-            <div className="flex items-center gap-2">
-              {explanation.confidence === 'high' ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <AlertTriangle className="h-4 w-4" />
-              )}
-              <span className="font-medium capitalize">
-                {explanation.confidence} Confidence
-              </span>
             </div>
-            <AlertDescription>
-              {explanation.confidence === 'high' 
-                ? 'This analysis is based on robust data and validated methodology.'
-                : 'This analysis may be affected by data limitations or assumptions.'}
-            </AlertDescription>
-          </Alert>
+          </div>
         </div>
+
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -145,7 +145,7 @@ const AboutSection: React.FC = () => {
         <h2 className="text-2xl font-semibold mb-4 text-center">Real-World Results</h2>
         <p className="text-center text-lg">
           DeepCAL has helped our clients reduce shipping delays by an average of 15% and save up to 10% on freight costs through 
-          optimized route selection and carrier choice, powered by our PRIME ORIGIN PROTOCOL.
+          optimized route selection and carrier choice, powered by our Neutrosophic AHP-TOPSIS methodology.
         </p>
       </div>
       

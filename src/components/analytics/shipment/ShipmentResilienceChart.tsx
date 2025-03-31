@@ -119,7 +119,7 @@ const ShipmentResilienceChart: React.FC<ShipmentResilienceChartProps> = ({ metri
                 fill="#10b981"
                 fillOpacity={0.6}
               />
-              <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Value']} />
+              <Tooltip formatter={(value) => [typeof value === 'number' ? `${value.toFixed(1)}%` : value, 'Value']} />
               <Legend />
             </RadarChart>
           </ResponsiveContainer>

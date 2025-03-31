@@ -21,10 +21,10 @@ const AppTabs: React.FC<AppTabsProps> = ({ activeTab, onTabChange, className }) 
 
   return (
     <div className={cn(
-      "fixed top-8 left-1/2 transform -translate-x-1/2 z-20 bg-background/80 backdrop-blur-md rounded-full shadow-lg px-3 py-1.5 border border-border/50 tech-glow",
+      "fixed top-8 left-1/2 transform -translate-x-1/2 z-20 bg-black/60 backdrop-blur-md rounded-full shadow-[0_0_30px_rgba(0,149,255,0.25)] overflow-hidden border border-cyan-500/30 tech-glow",
       className
     )}>
-      <div className="flex items-center space-x-1">
+      <div className="flex items-center space-x-1 px-1">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -32,12 +32,15 @@ const AppTabs: React.FC<AppTabsProps> = ({ activeTab, onTabChange, className }) 
             className={cn(
               "relative flex items-center justify-center px-3 py-2 rounded-full transition-all duration-300",
               activeTab === tab.id
-                ? "text-foreground bg-accent"
-                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                ? "text-white bg-gradient-to-r from-cyan-500/30 to-blue-500/30 shadow-inner shadow-white/10"
+                : "text-cyan-300/60 hover:text-cyan-300/90 hover:bg-white/5"
             )}
           >
-            <tab.icon className="w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">{tab.label}</span>
+            <tab.icon className="w-4 h-4 mr-2" />
+            <span className="text-xs font-medium">{tab.label}</span>
+            {activeTab === tab.id && (
+              <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-cyan-400/20"></span>
+            )}
           </button>
         ))}
       </div>

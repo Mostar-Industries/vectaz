@@ -4,11 +4,13 @@ import { Bot, BrainCircuit, X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import DeepTalk from './DeepTalk';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useConnectedDeepTalkHandler } from './analytics/DeepTalkHandler';
 
 const FloatingDeepTalk: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [pulseCount, setPulseCount] = useState(0);
+  const handleDeepTalkQuery = useConnectedDeepTalkHandler();
 
   // Pulse animation every few seconds when closed
   useEffect(() => {
@@ -28,11 +30,11 @@ const FloatingDeepTalk: React.FC = () => {
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className={`bg-black/60 backdrop-blur-lg border border-mostar-light-blue/30 rounded-lg shadow-[0_0_30px_rgba(0,149,255,0.25)] overflow-hidden ${
+            className={`bg-black/60 backdrop-blur-lg border border-cyan-500/30 rounded-lg shadow-[0_0_30px_rgba(0,149,255,0.25)] overflow-hidden ${
               isExpanded ? 'fixed inset-10 h-auto' : 'w-80 md:w-96 h-[480px]'
             }`}
           >
-            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-900/60 to-indigo-900/60 border-b border-mostar-light-blue/20">
+            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-900/60 to-indigo-900/60 border-b border-cyan-500/20">
               <div className="flex items-center space-x-2">
                 <BrainCircuit className="h-5 w-5 text-cyan-400" />
                 <h3 className="text-sm font-medium text-white/90">DeepTalk Assistant</h3>
@@ -64,6 +66,7 @@ const FloatingDeepTalk: React.FC = () => {
               <DeepTalk 
                 className="h-full border-none" 
                 initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?"
+                onQueryData={handleDeepTalkQuery}
               />
             </div>
           </motion.div>
@@ -89,7 +92,7 @@ const FloatingDeepTalk: React.FC = () => {
                   '0 0 0 0 rgba(14, 165, 233, 0)' 
               }}
               transition={{ duration: 1.5, ease: "easeInOut" }}
-              className="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-full border-2 border-blue-400/30 shadow-lg"
+              className="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-800 rounded-full border-2 border-cyan-400/30 shadow-lg"
             >
               <div className="absolute inset-1 bg-gradient-to-br from-blue-500 to-indigo-700 rounded-full blur-sm"></div>
               <Bot className="relative h-6 w-6 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />

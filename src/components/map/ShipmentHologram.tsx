@@ -1,147 +1,107 @@
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Box, Maximize2, Package } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Shipment } from '@/types/deeptrack';
+import { Package, ArrowUpRight, Info, AlertTriangle } from 'lucide-react';
 import { useBaseDataStore } from '@/store/baseState';
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 interface ShipmentHologramProps {
   onJumpToLocation: (lat: number, lng: number, name: string) => void;
-  className?: string;
 }
 
-const ShipmentHologram: React.FC<ShipmentHologramProps> = ({ onJumpToLocation, className }) => {
+const ShipmentHologram: React.FC<ShipmentHologramProps> = ({ onJumpToLocation }) => {
+  // Use the base data store to access shipment data
   const { shipmentData } = useBaseDataStore();
-  const [isExpanded, setIsExpanded] = useState(true);
-  
-  const toggleExpand = () => setIsExpanded(!isExpanded);
+  const [selectedShipment, setSelectedShipment] = useState<number | null>(null);
 
-  const handleJumpToShipment = (shipment: Shipment) => {
-    onJumpToLocation(
-      shipment.destination_latitude,
-      shipment.destination_longitude,
-      shipment.destination_country
-    );
+  // Filter shipments for active/critical ones
+  const activeShipments = shipmentData.filter(s => 
+    s.delivery_status === 'In Transit' || s.delivery_status === 'Pending'
+  );
+
+  const handleJumpTo = (shipment: any) => {
+    if (shipment.destination_latitude && shipment.destination_longitude) {
+      onJumpToLocation(
+        shipment.destination_latitude,
+        shipment.destination_longitude,
+        shipment.destination_country
+      );
+      setSelectedShipment(shipment.id);
+    }
   };
 
   return (
-    <motion.div 
-      className={cn(
-        "fixed left-4 top-1/4 z-20 w-64 rounded-lg bg-background/40 backdrop-blur-xl border border-blue-500/30 tech-glow overflow-hidden",
-        isExpanded ? "max-h-96" : "max-h-12",
-        className
-      )}
-      initial={{ opacity: 0, x: -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="flex items-center justify-between p-3 cursor-pointer" onClick={toggleExpand}>
+    <div className="absolute top-24 right-4 w-72 max-h-[500px] overflow-hidden rounded-lg backdrop-blur-md bg-black/60 border border-cyan-500/30 shadow-[0_0_30px_rgba(0,149,255,0.15)] tech-glow z-10">
+      <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-950/80 to-indigo-900/80 border-b border-cyan-500/20">
         <div className="flex items-center">
-          <div className="relative mr-2">
-            <Box className="w-5 h-5 text-cyber-blue animate-pulse" />
-            <div className="absolute inset-0 w-5 h-5 bg-cyber-blue/20 rounded-sm animate-ping" />
-          </div>
-          <h3 className="text-sm font-bold text-cyber-blue">Shipment Network</h3>
+          <Package className="h-4 w-4 text-cyan-400 mr-2" />
+          <h3 className="text-xs font-semibold text-white">Active Shipments</h3>
         </div>
-        <Maximize2 className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+        <span className="px-1.5 py-0.5 text-[10px] bg-cyan-500/30 text-cyan-300 rounded-sm">
+          {activeShipments.length} Active
+        </span>
       </div>
       
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-3 pb-3"
-          >
-            <div className="grid grid-cols-1 gap-2 max-h-72 overflow-y-auto pr-1 pb-1 custom-scrollbar">
-              {shipmentData.map((shipment, index) => (
-                <HoverCard key={shipment.request_reference}>
-                  <HoverCardTrigger asChild>
-                    <motion.div
-                      className="p-2 rounded bg-background/60 border border-blue-500/20 hover:border-cyber-blue/50 cursor-pointer group flex items-center"
-                      onClick={() => handleJumpToShipment(shipment)}
-                      whileHover={{ scale: 1.02, backgroundColor: "rgba(30, 41, 59, 0.8)" }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Package className="w-4 h-4 mr-2 text-muted-foreground group-hover:text-cyber-blue" />
-                      <div className="flex-1">
-                        <p className="text-xs font-medium truncate">{shipment.request_reference}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">
-                          {shipment.origin_country} → {shipment.destination_country}
-                        </p>
-                      </div>
-                      <div className={`w-2 h-2 rounded-full ml-1 ${
-                        shipment.delivery_status === 'Delivered' 
-                          ? 'bg-green-500' 
-                          : shipment.delivery_status === 'Pending' 
-                            ? 'bg-yellow-500' 
-                            : 'bg-red-500'
-                      }`} />
-                    </motion.div>
-                  </HoverCardTrigger>
-                  <HoverCardContent side="right" className="w-72 p-3">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <h4 className="font-medium">{shipment.request_reference}</h4>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          shipment.delivery_status === 'Delivered' 
-                            ? 'bg-green-500/20 text-green-400' 
-                            : shipment.delivery_status === 'Pending' 
-                              ? 'bg-yellow-500/20 text-yellow-400' 
-                              : 'bg-red-500/20 text-red-400'
-                        }`}>
-                          {shipment.delivery_status}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Origin</p>
-                          <p>{shipment.origin_country}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Destination</p>
-                          <p>{shipment.destination_country}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Weight</p>
-                          <p>{shipment.weight_kg} kg</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Carrier</p>
-                          <p>{shipment.freight_carrier}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Date</p>
-                          <p>{shipment.date_of_collection}</p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">Mode</p>
-                          <p>{shipment.mode_of_shipment}</p>
-                        </div>
-                      </div>
-                      <div className="pt-1">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleJumpToShipment(shipment);
-                          }}
-                          className="w-full text-xs bg-background/60 border border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-500/50 py-1 rounded-sm transition-colors"
-                        >
-                          Jump to Location
-                        </button>
-                      </div>
+      <div className="custom-scrollbar overflow-y-auto max-h-[400px] p-2">
+        {activeShipments.length > 0 ? (
+          <div className="space-y-2">
+            {activeShipments.map((shipment) => (
+              <div 
+                key={shipment.request_reference}
+                className={cn(
+                  "group relative p-2.5 rounded-md transition-all duration-300",
+                  selectedShipment === shipment.id ? 
+                    "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30" : 
+                    "bg-black/40 hover:bg-black/60 border border-white/5 hover:border-cyan-500/30"
+                )}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="text-xs font-medium text-white/90 mb-1">
+                      {shipment.request_reference}
+                    </h4>
+                    <div className="flex items-center text-[10px] text-cyan-300/80 mb-1">
+                      <span>{shipment.origin_country}</span>
+                      <ArrowUpRight className="h-3 w-3 mx-1 text-white/50" />
+                      <span>{shipment.destination_country}</span>
                     </div>
-                  </HoverCardContent>
-                </HoverCard>
-              ))}
-            </div>
-          </motion.div>
+                    <div className="flex items-center text-[10px] text-white/60">
+                      <span className="mr-2">{shipment.freight_carrier}</span>
+                      <span className="flex items-center">
+                        {shipment.delivery_status === 'Pending' ? (
+                          <AlertTriangle className="h-3 w-3 mr-1 text-amber-400" />
+                        ) : (
+                          <Info className="h-3 w-3 mr-1 text-cyan-400" />
+                        )}
+                        {shipment.delivery_status}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleJumpTo(shipment)}
+                    className="px-2 py-1 text-[10px] rounded bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30 transition-colors"
+                  >
+                    Jump To
+                  </button>
+                </div>
+                
+                {/* Holographic effect overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/5 to-transparent animate-scan"></div>
+                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"></div>
+                  <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-32 text-white/40">
+            <Package className="h-8 w-8 mb-2 opacity-50" />
+            <p className="text-xs text-center">No active shipments found</p>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 

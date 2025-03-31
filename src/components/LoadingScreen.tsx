@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Atom, Database, Zap, Circuit, Server } from 'lucide-react';
+import { Atom, Database, Zap, Server, Cpu } from 'lucide-react';
 
 const LoadingScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);
@@ -58,7 +58,7 @@ const LoadingScreen: React.FC = () => {
       { icon: <Atom size={20} className="text-blue-400" />, delay: "0s" },
       { icon: <Database size={20} className="text-blue-300" />, delay: "1.5s" },
       { icon: <Zap size={20} className="text-yellow-400" />, delay: "1s" },
-      { icon: <Circuit size={20} className="text-blue-500" />, delay: "0.5s" },
+      { icon: <Cpu size={20} className="text-blue-500" />, delay: "0.5s" },
       { icon: <Server size={20} className="text-blue-200" />, delay: "2s" }
     ];
     

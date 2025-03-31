@@ -1,5 +1,5 @@
 
-import { Shipment } from "@base_data/deeptrack_3.json";
+import { Shipment } from "@/types/deeptrack";
 
 // Metadata for the loaded dataset
 export interface DatasetMetadata {

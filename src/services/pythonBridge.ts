@@ -61,14 +61,14 @@ export const storeCalculationResult = async (
   result: CalculationResult
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('calculation_results')
-      .insert({
-        scores: result.scores,
-        method: result.method,
-        timestamp: result.timestamp,
-        details: result.details || {}
-      });
+    // Using the 'rpc' method to call a stored procedure for storing calculation results
+    // This avoids the need to directly access a table that might not exist yet
+    const { error } = await supabase.rpc('store_calculation_result', {
+      calc_scores: result.scores,
+      calc_method: result.method,
+      calc_timestamp: result.timestamp,
+      calc_details: result.details || {}
+    });
     
     if (error) throw error;
     
@@ -86,16 +86,19 @@ export const storeCalculationResult = async (
  */
 export const getLatestCalculationResult = async (): Promise<CalculationResult | null> => {
   try {
-    const { data, error } = await supabase
-      .from('calculation_results')
-      .select('*')
-      .order('timestamp', { ascending: false })
-      .limit(1)
-      .single();
+    // Using the 'rpc' method to call a stored procedure for retrieving the latest calculation
+    const { data, error } = await supabase.rpc('get_latest_calculation_result');
     
     if (error) throw error;
+    if (!data) return null;
     
-    return data as CalculationResult;
+    // Convert the returned data to the expected format
+    return {
+      scores: data.scores || [],
+      method: data.method || "unknown",
+      timestamp: data.timestamp || new Date().toISOString(),
+      details: data.details || {}
+    };
   } catch (error) {
     console.error("Error retrieving calculation result:", error);
     return null;

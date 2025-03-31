@@ -56,7 +56,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
     // Show logo with a slight delay for dramatic effect
     const logoTimer = setTimeout(() => {
       setShowLogo(true);
-    }, 400);
+    }, 600); // Increased from 400ms to 600ms
     
     // Progress animation
     const timer = setInterval(() => {
@@ -65,7 +65,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
           clearInterval(timer);
           setTimeout(() => {
             onComplete();
-          }, 500);
+          }, 800); // Increased from 500ms to 800ms
           return 100;
         }
         
@@ -95,9 +95,9 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
           simulateNetworkSync();
         }
         
-        return prevProgress + 1;
+        return prevProgress + 0.5; // Reduced from +1 to +0.5 for slower progress
       });
-    }, 50);
+    }, 100); // Increased from 50ms to 100ms
     
     // Clean up
     return () => {
@@ -122,11 +122,11 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
   // Floating icons that animate around the screen
   const renderFloatingIcons = () => {
     const icons = [
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 5, repeat: Infinity, ease: "easeInOut" } }}><Cpu size={20} className="text-blue-400" /></motion.div>, delay: 0 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 4, repeat: Infinity, ease: "easeInOut" } }}><Database size={20} className="text-blue-300" /></motion.div>, delay: 0.5 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}><Zap size={20} className="text-yellow-400" /></motion.div>, delay: 1 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 5.5, repeat: Infinity, ease: "easeInOut" } }}><Server size={20} className="text-blue-200" /></motion.div>, delay: 1.5 },
-      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 7, repeat: Infinity, ease: "easeInOut" } }}><ShieldCheck size={20} className="text-violet-400" /></motion.div>, delay: 2 },
+      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 10, repeat: Infinity, ease: "easeInOut" } }}><Cpu size={20} className="text-blue-400" /></motion.div>, delay: 0 },
+      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 12, repeat: Infinity, ease: "easeInOut" } }}><Database size={20} className="text-blue-300" /></motion.div>, delay: 0.5 },
+      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 14, repeat: Infinity, ease: "easeInOut" } }}><Zap size={20} className="text-yellow-400" /></motion.div>, delay: 1 },
+      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 13, repeat: Infinity, ease: "easeInOut" } }}><Server size={20} className="text-blue-200" /></motion.div>, delay: 1.5 },
+      { icon: <motion.div animate={{ y: [0, -10, 0], transition: { duration: 15, repeat: Infinity, ease: "easeInOut" } }}><ShieldCheck size={20} className="text-violet-400" /></motion.div>, delay: 2 },
     ];
     
     return icons.map((item, index) => (
@@ -153,7 +153,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
         key={index} 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.3 }}
+        transition={{ delay: index * 0.4, duration: 0.6 }} // Increased delay and duration
         className="flex items-center text-xs font-mono mb-1 text-blue-200/80"
       >
         <CheckCircle size={12} className="mr-2 text-emerald-400" />

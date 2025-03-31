@@ -91,7 +91,7 @@
 
 .animate-float {
   animation-name: float;
-  animation-duration: 6s;
+  animation-duration: 12s; /* Increased from 6s to 12s for slower, more subtle floating */
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
 }
@@ -109,7 +109,7 @@
 
 .animate-fade-in {
   animation-name: fade-in;
-  animation-duration: 0.5s;
+  animation-duration: 0.8s; /* Increased from 0.5s to 0.8s */
   animation-timing-function: ease-out;
   animation-fill-mode: forwards;
 }

@@ -46,12 +46,14 @@ const Index = () => {
         <MapVisualizer routes={routes} isLoading={!isDataLoaded} />
       </div>
       
-      {/* Icon Navigation */}
-      <IconNavigation />
-      
-      {/* Header with app name */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-background/80 backdrop-blur-sm py-2 px-6 rounded-full shadow-md z-10 border border-border">
+      {/* App name in top left */}
+      <div className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm py-2 px-4 rounded-lg shadow-md z-10 border border-border">
         <h1 className="text-xl font-bold">DeepCAL</h1>
+      </div>
+      
+      {/* Icon Navigation in center top */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+        <IconNavigation />
       </div>
     </div>
   );

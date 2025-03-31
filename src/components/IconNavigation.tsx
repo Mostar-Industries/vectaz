@@ -18,8 +18,8 @@ const IconNavigation = () => {
   ];
 
   return (
-    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm rounded-full shadow-lg p-3 border border-border">
-      <div className="flex flex-col gap-5">
+    <div className="bg-background/90 backdrop-blur-sm rounded-full shadow-lg px-3 py-2 border border-border">
+      <div className="flex flex-row items-center gap-2">
         {navItems.map((item) => (
           <Button
             key={item.path}
@@ -41,7 +41,7 @@ const IconNavigation = () => {
         <Button
           variant="default"
           size="icon"
-          className="rounded-full h-10 w-10 bg-primary hover:bg-primary/90 text-primary-foreground mt-2"
+          className="rounded-full h-10 w-10 bg-primary hover:bg-primary/90 text-primary-foreground ml-1"
           title="Add New"
         >
           <Plus className="h-5 w-5" />

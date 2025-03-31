@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, boot } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
+import { Shipment } from "./types/deeptrack";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -31,8 +32,8 @@ const App = () => {
         return;
       }
 
-      // Sample data for faster boot
-      const sampleData = Array(10).fill(0).map((_, i) => ({
+      // Sample data for faster boot with all required Shipment type fields
+      const sampleData: Shipment[] = Array(10).fill(0).map((_, i) => ({
         request_reference: `SR_24-00${i}_NBO`,
         origin_country: 'Kenya',
         origin_latitude: 1.2404475,
@@ -44,7 +45,14 @@ const App = () => {
         delivery_status: i % 2 === 0 ? 'Delivered' : 'Pending',
         freight_carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3],
         date_of_collection: "2024-01-11",
-        date_of_arrival_destination: "2024-01-17"
+        date_of_arrival_destination: "2024-01-17",
+        cargo_description: "Agricultural supplies",
+        item_category: "Supplies",
+        volume_cbm: 2.5 + i * 0.5,
+        initial_quote_awarded: true,
+        total_price_usd: 2500 + i * 200,
+        destination_port: "Harare",
+        origin_port: "Nairobi"
       }));
       
       // Boot with the sample data

@@ -1,14 +1,13 @@
-
 import React, { useEffect, useRef, useState, ReactNode } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { jumpToLocation } from './utils/mapAnimations';
 
-// Define a proper type for function children and export it
+// Define a proper type for function children
 export type MapBaseFunctionChild = (map: mapboxgl.Map | null, mapLoaded: boolean) => React.ReactElement | null;
 
 interface MapBaseProps {
-  children?: ReactNode | MapBaseFunctionChild;
+  children?: ReactNode | MapBaseFunctionChild | Array<ReactNode | MapBaseFunctionChild>;
   isLoading?: boolean;
   onMapLoaded?: (map: mapboxgl.Map) => void;
   onMapLoadedState?: (loaded: boolean) => void;
@@ -133,9 +132,24 @@ const MapBase: React.FC<MapBaseProps> = ({
 
   // Render function to handle both regular ReactNode children and function children
   const renderChildren = () => {
+    if (!children) return null;
+    
+    // Handle array of children
+    if (Array.isArray(children)) {
+      return children.map((child, index) => {
+        if (typeof child === 'function') {
+          return (child as MapBaseFunctionChild)(map.current, mapLoaded);
+        }
+        return child;
+      });
+    }
+    
+    // Handle single function child
     if (typeof children === 'function') {
       return (children as MapBaseFunctionChild)(map.current, mapLoaded);
     }
+    
+    // Handle regular ReactNode children
     return children;
   };
 

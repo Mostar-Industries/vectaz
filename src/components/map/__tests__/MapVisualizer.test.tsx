@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom'; // Import this to fix toBeInTheDocument errors
@@ -10,11 +9,21 @@ vi.mock('../MapBase', () => ({
   default: ({ children, onMapLoadedState, isLoading }: any) => {
     // Call the onMapLoadedState callback
     if (onMapLoadedState) onMapLoadedState(true);
+    
+    // Handle function children
+    const renderedChildren = typeof children === 'function' 
+      ? children({ testProp: 'test' }, true)
+      : Array.isArray(children)
+        ? children.map((child: any, index: number) => 
+            typeof child === 'function' 
+              ? child({ testProp: 'test' }, true) 
+              : child
+          )
+        : children;
+        
     return (
       <div data-testid="map-base">
-        {typeof children === 'function' 
-          ? children({ testProp: 'test' }, true)
-          : children}
+        {renderedChildren}
       </div>
     );
   }

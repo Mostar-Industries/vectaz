@@ -49,11 +49,7 @@ const App = () => {
         cargo_description: "Agricultural supplies",
         item_category: "Supplies",
         volume_cbm: 2.5 + i * 0.5,
-        initial_quote_awarded: true,
-        total_price_usd: 2500 + i * 200,
-        destination_port: "Harare",
-        origin_port: "Nairobi",
-        // Add missing properties required by the Shipment type
+        initial_quote_awarded: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3], // Changed from boolean to string
         final_quote_awarded_freight_forwader_Carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3],
         comments: "No issues reported",
         mode_of_shipment: "Air",

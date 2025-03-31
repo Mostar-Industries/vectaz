@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Motion, Shield, Zap, MapPin, Package } from 'lucide-react';
+import { Activity, Shield, Zap, MapPin, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Route } from '@/types/deeptrack';
 import { GlassContainer, GlassIconContainer } from '@/components/ui/glass-effects';
@@ -43,7 +43,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
       {/* Holographic header */}
       <div className="system-status-header flex justify-between items-center">
         <div className="flex items-center">
-          <Motion className="mr-2 h-5 w-5 text-blue-400" />
+          <Activity className="mr-2 h-5 w-5 text-blue-400" />
           <span>Active Shipments</span>
         </div>
         <div className="text-xs text-blue-400/80">

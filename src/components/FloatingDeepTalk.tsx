@@ -1,18 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bot, BrainCircuit, X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import DeepTalk from './DeepTalk';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useConnectedDeepTalkHandler } from './analytics/DeepTalkHandler';
+import { useDeepTalkHandler } from './analytics/DeepTalkHandler';
 
 const FloatingDeepTalk: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [pulseCount, setPulseCount] = useState(0);
-  const handleDeepTalkQuery = useConnectedDeepTalkHandler();
+  const handleDeepTalkQuery = useDeepTalkHandler();
 
-  // Pulse animation every few seconds when closed
   useEffect(() => {
     if (!isOpen) {
       const interval = setInterval(() => {
@@ -30,7 +28,7 @@ const FloatingDeepTalk: React.FC = () => {
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className={`bg-black/60 backdrop-blur-lg border border-cyan-500/30 rounded-lg shadow-[0_0_30px_rgba(0,149,255,0.25)] overflow-hidden ${
+            className={`bg-black/60 backdrop-blur-lg border border-cyan-500/30 rounded-lg shadow-[0_0_15px_rgba(0,149,255,0.15)] overflow-hidden ${
               isExpanded ? 'fixed inset-10 h-auto' : 'w-80 md:w-96 h-[480px]'
             }`}
           >
@@ -97,7 +95,6 @@ const FloatingDeepTalk: React.FC = () => {
               <div className="absolute inset-1 bg-gradient-to-br from-blue-500 to-indigo-700 rounded-full blur-sm"></div>
               <Bot className="relative h-6 w-6 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
               
-              {/* Futuristic rotating ring */}
               <div className="absolute inset-0 border-2 border-transparent rounded-full border-t-cyan-400 animate-spin-slow opacity-70"></div>
             </motion.div>
           </motion.button>

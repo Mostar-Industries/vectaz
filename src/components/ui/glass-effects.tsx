@@ -1,113 +1,76 @@
 
-import { cn } from "@/lib/utils";
-import React from "react";
+import React from 'react';
+import { cn } from '@/lib/utils';
+
+type GlassVariant = 'default' | 'blue' | 'green' | 'cyan' | 'purple' | 'amber' | 'pink';
 
 interface GlassContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'blue' | 'cyan' | 'magenta' | 'green';
+  variant?: GlassVariant;
+  className?: string;
   children: React.ReactNode;
 }
 
-export const GlassContainer = React.forwardRef<
-  HTMLDivElement,
-  GlassContainerProps
->(({ className, variant = 'default', children, ...props }, ref) => {
+export const GlassContainer: React.FC<GlassContainerProps> = ({ 
+  variant = 'default', 
+  className, 
+  children,
+  ...props 
+}) => {
   const variantClasses = {
-    default: 'glass-card',
-    blue: 'glass-card-blue',
-    cyan: 'glass-card-cyan',
-    magenta: 'glass-card-magenta',
-    green: 'glass-card-green',
+    default: 'bg-black/60 border-white/10',
+    blue: 'bg-blue-950/40 border-blue-500/20',
+    green: 'bg-green-950/40 border-green-500/20',
+    cyan: 'bg-cyan-950/40 border-cyan-500/20',
+    purple: 'bg-purple-950/40 border-purple-500/20',
+    amber: 'bg-amber-950/40 border-amber-500/20',
+    pink: 'bg-pink-950/40 border-pink-500/20'
   };
 
   return (
     <div
-      ref={ref}
-      className={cn(variantClasses[variant], className)}
+      className={cn(
+        "relative rounded-lg backdrop-blur-md border shadow-sm transition-all duration-200",
+        variantClasses[variant],
+        // Glass reflection style
+        "before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:pointer-events-none",
+        className
+      )}
       {...props}
     >
       {children}
     </div>
   );
-});
-GlassContainer.displayName = "GlassContainer";
-
-interface GlassPanelProps extends React.HTMLAttributes<HTMLDivElement> {
-  title?: string;
-  children: React.ReactNode;
-}
-
-export const GlassPanel = React.forwardRef<
-  HTMLDivElement,
-  GlassPanelProps
->(({ className, title, children, ...props }, ref) => {
-  return (
-    <div
-      ref={ref}
-      className={cn("system-status-card", className)}
-      {...props}
-    >
-      {title && <h2 className="system-status-header">{title}</h2>}
-      <div className="p-4">
-        {children}
-      </div>
-    </div>
-  );
-});
-GlassPanel.displayName = "GlassPanel";
-
-interface GlassStatusDotProps extends React.HTMLAttributes<HTMLDivElement> {
-  status: 'online' | 'warning' | 'error' | 'neutral';
-}
-
-export const GlassStatusDot = React.forwardRef<
-  HTMLDivElement,
-  GlassStatusDotProps
->(({ className, status, ...props }, ref) => {
-  const statusClasses = {
-    online: 'bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.6)]',
-    warning: 'bg-yellow-500 shadow-[0_0_8px_rgba(250,204,21,0.6)]',
-    error: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]',
-    neutral: 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]',
-  };
-
-  return (
-    <div
-      ref={ref}
-      className={cn(
-        "w-2 h-2 rounded-full animate-pulse",
-        statusClasses[status],
-        className
-      )}
-      {...props}
-    />
-  );
-});
-GlassStatusDot.displayName = "GlassStatusDot";
+};
 
 interface GlassIconContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  color: 'blue' | 'cyan' | 'magenta' | 'green' | 'yellow' | 'red';
+  variant?: GlassVariant;
+  className?: string;
   children: React.ReactNode;
 }
 
-export const GlassIconContainer = React.forwardRef<
-  HTMLDivElement,
-  GlassIconContainerProps
->(({ className, color, children, ...props }, ref) => {
-  const colorClasses = {
-    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    magenta: 'bg-pink-500/10 text-pink-500 border-pink-500/20',
-    green: 'bg-green-500/10 text-green-400 border-green-500/20',
-    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-    red: 'bg-red-500/10 text-red-400 border-red-500/20',
+export const GlassIconContainer: React.FC<GlassIconContainerProps> = ({
+  variant = 'default',
+  className,
+  children,
+  ...props
+}) => {
+  const variantClasses = {
+    default: 'bg-black/60 border-white/10 text-white',
+    blue: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
+    green: 'bg-green-500/10 border-green-500/20 text-green-400',
+    cyan: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
+    purple: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
+    amber: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    pink: 'bg-pink-500/10 border-pink-500/20 text-pink-400'
   };
 
   return (
     <div
-      ref={ref}
       className={cn(
-        "flex items-center justify-center rounded-lg p-2 border",
-        colorClasses[color],
+        "relative flex items-center justify-center rounded-lg backdrop-blur-sm border p-3 shadow-sm",
+        variantClasses[variant],
+        // Glass reflection style
+        "before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/10 before:to-transparent before:pointer-events-none",
         className
       )}
       {...props}
@@ -115,5 +78,6 @@ export const GlassIconContainer = React.forwardRef<
       {children}
     </div>
   );
-});
-GlassIconContainer.displayName = "GlassIconContainer";
+};
+
+export default { GlassContainer, GlassIconContainer };

@@ -34,6 +34,17 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     }
   };
 
+  const handleShipmentSelect = (shipment: Route, index: number) => {
+    // When a shipment is selected, we can use the coordinates to jump to location
+    handleJumpToLocation(
+      shipment.destination.lat,
+      shipment.destination.lng,
+      shipment.destination.name
+    );
+    // Also set the active route
+    setActiveRoute(index);
+  };
+
   return (
     <div className={cn("relative h-full w-full", className)}>
       <MapContainer 
@@ -56,7 +67,9 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
           
           {/* Holographic shipment list */}
           <ShipmentHologram 
-            onJumpToLocation={handleJumpToLocation}
+            shipments={routes}
+            onSelect={handleShipmentSelect}
+            className="absolute top-4 right-4 w-80"
           />
           
           {/* Stats overlay */}

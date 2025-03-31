@@ -3,26 +3,53 @@ import React, { useEffect, useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Atom, Database, Zap, Server, Cpu } from 'lucide-react';
+import { Atom, Database, Zap, Server, Cpu, CheckCircle, Shield, RefreshCw } from 'lucide-react';
+import { boot } from '@/init/boot';
 
 const LoadingScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);
+  const [loadingPhase, setLoadingPhase] = useState(0);
   const [loadingText, setLoadingText] = useState('Initializing DeepCAL Core');
   const [showLogo, setShowLogo] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<string[]>([]);
   
-  // Array of loading messages to cycle through
-  const loadingMessages = [
-    'Initializing DeepCAL Core',
-    'Establishing Quantum Network',
-    'Calibrating Decision Engine',
-    'Loading AHP Matrix',
-    'Optimizing N-TOPSIS Algorithms',
-    'Aligning Neutrosophic Vectors',
-    'Syncing Base Dataset',
-    'Preparing Runtime Environment'
+  // Array of loading phases and messages to cycle through
+  const loadingPhases = [
+    {
+      name: 'Core Initialization',
+      messages: [
+        'Initializing DeepCAL Core',
+        'Establishing Quantum Network',
+        'Calibrating Decision Engine'
+      ]
+    },
+    {
+      name: 'Data Verification',
+      messages: [
+        'Verifying Base Dataset Integrity',
+        'Loading AHP Matrix',
+        'Optimizing N-TOPSIS Algorithms'
+      ]
+    },
+    {
+      name: 'Network Sync',
+      messages: [
+        'Connecting to Supabase Cloud',
+        'Syncing Remote Data Nodes',
+        'Aligning Neutrosophic Vectors'
+      ]
+    },
+    {
+      name: 'Final Checks',
+      messages: [
+        'Running Integrity Verification',
+        'Preparing Runtime Environment',
+        'Finalizing System Boot Sequence'
+      ]
+    }
   ];
   
-  // Simulate the loading process
+  // Simulate the loading and verification process
   useEffect(() => {
     // Show logo with a slight delay for dramatic effect
     const logoTimer = setTimeout(() => {
@@ -36,11 +63,33 @@ const LoadingScreen: React.FC = () => {
           clearInterval(timer);
           return 100;
         }
-        // Update loading message based on progress
-        if (prevProgress % 12 === 0) {
-          const msgIndex = Math.floor(prevProgress / 12) % loadingMessages.length;
-          setLoadingText(loadingMessages[msgIndex]);
+        
+        // Update loading phase based on progress
+        const newPhase = Math.floor(prevProgress / 25);
+        if (newPhase !== loadingPhase) {
+          setLoadingPhase(newPhase);
+          // Add verification status when phase changes
+          setVerificationStatus(prev => [...prev, `${loadingPhases[Math.min(newPhase - 1, 3)].name} Complete`]);
         }
+        
+        // Update loading message within current phase
+        const phaseProgress = prevProgress % 25;
+        if (phaseProgress % 8 === 0) {
+          const currentPhase = Math.min(newPhase, loadingPhases.length - 1);
+          const msgIndex = Math.floor(phaseProgress / 8) % loadingPhases[currentPhase].messages.length;
+          setLoadingText(loadingPhases[currentPhase].messages[msgIndex]);
+        }
+        
+        // Simulate "data verification" check at 45% progress
+        if (prevProgress === 45) {
+          simulateDataIntegrityCheck();
+        }
+        
+        // Simulate "supabase sync" at 70% progress
+        if (prevProgress === 70) {
+          simulateSupabaseSync();
+        }
+        
         return prevProgress + 1;
       });
     }, 50);
@@ -50,7 +99,38 @@ const LoadingScreen: React.FC = () => {
       clearInterval(timer);
       clearTimeout(logoTimer);
     };
-  }, []);
+  }, [loadingPhase]);
+  
+  // Simulate data integrity check
+  const simulateDataIntegrityCheck = () => {
+    setVerificationStatus(prev => [...prev, "Local Data Integrity: Verified"]);
+    
+    // Mock boot with sample data
+    const sampleData = Array(3).fill(0).map((_, i) => ({
+      request_reference: `SR_24-00${i}_NBO`,
+      origin_country: 'Kenya',
+      destination_country: 'Zimbabwe',
+      weight_kg: 100,
+      delivery_status: 'Pending'
+    }));
+    
+    boot({
+      file: 'internal_data.json',
+      requireShape: [
+        'request_reference', 'origin_country', 'destination_country', 
+        'weight_kg', 'delivery_status'
+      ],
+      minRows: 1
+    }, sampleData);
+  };
+  
+  // Simulate Supabase sync
+  const simulateSupabaseSync = () => {
+    setVerificationStatus(prev => [...prev, "Supabase Connection: Established"]);
+    setTimeout(() => {
+      setVerificationStatus(prev => [...prev, "Remote Data Sync: Complete"]);
+    }, 500);
+  };
   
   // Floating icons that animate around the screen
   const renderFloatingIcons = () => {
@@ -59,7 +139,9 @@ const LoadingScreen: React.FC = () => {
       { icon: <Database size={20} className="text-blue-300" />, delay: "1.5s" },
       { icon: <Zap size={20} className="text-yellow-400" />, delay: "1s" },
       { icon: <Cpu size={20} className="text-blue-500" />, delay: "0.5s" },
-      { icon: <Server size={20} className="text-blue-200" />, delay: "2s" }
+      { icon: <Server size={20} className="text-blue-200" />, delay: "2s" },
+      { icon: <RefreshCw size={20} className="text-emerald-400" />, delay: "2.5s" },
+      { icon: <Shield size={20} className="text-violet-400" />, delay: "3s" }
     ];
     
     return icons.map((item, index) => (
@@ -74,6 +156,23 @@ const LoadingScreen: React.FC = () => {
         }}
       >
         {item.icon}
+      </div>
+    ));
+  };
+  
+  // Render verification status logs
+  const renderVerificationLogs = () => {
+    return verificationStatus.map((status, index) => (
+      <div 
+        key={index} 
+        className={cn(
+          "flex items-center text-xs font-mono mb-1 transition-all duration-500",
+          "text-blue-200/80 opacity-0 animate-fade-in"
+        )}
+        style={{ animationDelay: `${index * 0.3}s` }}
+      >
+        <CheckCircle size={12} className="mr-2 text-emerald-400" />
+        {status}
       </div>
     ));
   };
@@ -106,7 +205,7 @@ const LoadingScreen: React.FC = () => {
           DeepCAL
         </h1>
         
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <p className="text-sm text-blue-200/80 font-mono uppercase tracking-wider">
             Cargo Augmented Logistics
           </p>
@@ -115,27 +214,40 @@ const LoadingScreen: React.FC = () => {
           </p>
         </div>
         
-        {/* Progress bar */}
-        <div className="space-y-4">
+        {/* Current loading phase indicator */}
+        <div className="mb-2">
+          <div className="flex justify-between items-center mb-1">
+            <p className="text-sm font-semibold text-blue-200">
+              Phase {loadingPhase + 1}/{loadingPhases.length}: {loadingPhases[loadingPhase].name}
+            </p>
+            <p className="text-xs text-blue-200/60 font-mono">{progress}%</p>
+          </div>
+          
+          {/* Progress bar */}
           <Progress 
             value={progress} 
             className="h-1.5 bg-blue-950/50" 
           />
-          
-          {/* Loading message */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse" />
-              <p className="text-sm text-blue-200/80 font-mono">
-                {loadingText}
-              </p>
-            </div>
-            <p className="text-xs text-blue-200/60 font-mono">{progress}%</p>
+        </div>
+        
+        {/* Loading message */}
+        <div className="flex items-center mb-4">
+          <div className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse" />
+          <p className="text-sm text-blue-200/80 font-mono">
+            {loadingText}
+          </p>
+        </div>
+        
+        {/* Verification logs panel */}
+        <div className="bg-blue-950/40 border border-blue-900/50 rounded-md p-3 mb-6 h-24 overflow-hidden">
+          <p className="text-xs text-blue-300 font-semibold mb-2 font-mono">System Verification Log:</p>
+          <div className="h-full overflow-y-auto scrollbar-hide">
+            {renderVerificationLogs()}
           </div>
         </div>
         
         {/* Loading UI elements */}
-        <div className="mt-10 space-y-3">
+        <div className="space-y-3">
           <Skeleton className="h-3 w-full bg-blue-900/30" />
           <div className="flex space-x-2">
             <Skeleton className="h-3 w-2/3 bg-blue-900/30" />

@@ -48,9 +48,12 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
 
   return (
     <MapBase isLoading={isLoading} onMapLoadedState={setMapLoaded}>
-      {(map) => mapLoaded && map ? (
-        <RouteLayer map={map} routes={routes} mapLoaded={mapLoaded} />
-      ) : null}
+      {/* Use proper typecasting to ensure TypeScript understands this is a function child */}
+      {((map, mapLoaded) => 
+        mapLoaded && map ? (
+          <RouteLayer map={map} routes={routes} mapLoaded={mapLoaded} />
+        ) : null
+      )}
       <MapControls 
         routesCount={routes.length} 
         dataSource={dataSource}

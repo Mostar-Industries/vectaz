@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import KPIPanel from '@/components/KPIPanel';
 import MapVisualizer from '@/components/MapVisualizer';
@@ -11,8 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MoveUp, Map, Database, Truck, MessageSquare, FileText, BarChart4, AlertTriangle } from 'lucide-react';
 import { getKPIs, getTopRoutes, getForwarderRankings, isDataLoaded, loadMockData } from '@/services/deepEngine';
+import { Label } from '@/components/ui/label';
 
-// Mock data for demonstration
 const mockResilienceData = [
   { date: 'Jan', disruption: 0.3, cost: 0.4, reliability: 0.8 },
   { date: 'Feb', disruption: 0.5, cost: 0.45, reliability: 0.75 },
@@ -49,7 +48,6 @@ const DeepCALDashboard = () => {
   const [selectedForwarder, setSelectedForwarder] = useState<string>('');
   const [rankingCriteria, setRankingCriteria] = useState({ cost: 0.4, time: 0.3, reliability: 0.3 });
   
-  // Initialize data state
   const [kpis, setKpis] = useState({
     totalShipments: 0,
     totalWeight: 0,
@@ -63,7 +61,6 @@ const DeepCALDashboard = () => {
   const [rankings, setRankings] = useState<any[]>([]);
   
   useEffect(() => {
-    // Check if data is already loaded
     if (isDataLoaded()) {
       setIsDataReady(true);
       setIsDataLocked(false);
@@ -72,7 +69,6 @@ const DeepCALDashboard = () => {
   }, []);
   
   const loadData = () => {
-    // In a real application, this would load actual CSV data
     const success = loadMockData();
     if (success) {
       setIsDataReady(true);
@@ -85,21 +81,19 @@ const DeepCALDashboard = () => {
     if (!isDataReady) return;
     
     try {
-      // Get KPIs from engine
       const kpiData = getKPIs();
       setKpis(kpiData);
       
-      // Get top routes
       const routeData = getTopRoutes(5);
       const routesForMap = routeData.map(route => ({
         origin: {
-          lat: 1.2404475, // These would come from actual data
+          lat: 1.2404475,
           lng: 36.990054,
           name: route.origin,
           isOrigin: true
         },
         destination: {
-          lat: route.destination === 'Zimbabwe' ? -17.80269125 : 15.4136414, // Mock coordinates
+          lat: route.destination === 'Zimbabwe' ? -17.80269125 : 15.4136414,
           lng: route.destination === 'Zimbabwe' ? 31.08848075 : 28.3174378,
           name: route.destination,
           isOrigin: false
@@ -109,7 +103,6 @@ const DeepCALDashboard = () => {
       }));
       setRoutes(routesForMap);
       
-      // Get forwarder rankings
       const rankingData = getForwarderRankings(rankingCriteria);
       setRankings(rankingData);
     } catch (error) {
@@ -123,14 +116,12 @@ const DeepCALDashboard = () => {
   };
   
   const handleRFQSubmit = async (data: any) => {
-    // In a real app, this would send the RFQ to selected forwarders
     console.log("RFQ Data:", data);
     return new Promise<void>(resolve => setTimeout(resolve, 1500));
   };
   
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="bg-card border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -158,7 +149,6 @@ const DeepCALDashboard = () => {
         </div>
       </header>
       
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         {isDataLocked ? (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center my-6">
@@ -194,7 +184,6 @@ const DeepCALDashboard = () => {
               </TabsTrigger>
             </TabsList>
             
-            {/* Dashboard Tab */}
             <TabsContent value="dashboard" className="space-y-6">
               <KPIPanel kpis={kpis} isLoading={!isDataReady} />
               
@@ -215,7 +204,6 @@ const DeepCALDashboard = () => {
               </div>
             </TabsContent>
             
-            {/* Analytics Tab */}
             <TabsContent value="analytics" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <ResilienceChart data={mockResilienceData} isLoading={!isDataReady} />
@@ -255,7 +243,6 @@ const DeepCALDashboard = () => {
               </div>
             </TabsContent>
             
-            {/* Ranking Tab */}
             <TabsContent value="ranking" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-card border rounded-lg p-4">
@@ -368,7 +355,6 @@ const DeepCALDashboard = () => {
               </div>
             </TabsContent>
             
-            {/* RFQ Tab */}
             <TabsContent value="rfq" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
@@ -389,7 +375,6 @@ const DeepCALDashboard = () => {
         )}
       </main>
       
-      {/* Explanation Modal */}
       <Dialog open={isExplainModalOpen} onOpenChange={setIsExplainModalOpen}>
         <DialogContent>
           <DialogHeader>

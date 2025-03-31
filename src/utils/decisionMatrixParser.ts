@@ -9,6 +9,12 @@ export interface DecisionMatrix {
   matrix: number[][];
 }
 
+// Define a MatrixData interface that matches what the component expects
+export interface MatrixData {
+  rows: number[][];
+  columnCount: number;
+}
+
 /**
  * Parse CSV data into a decision matrix structure
  * 
@@ -70,11 +76,10 @@ export const parseDecisionMatrix = (csvData: string): DecisionMatrix | null => {
 export const saveDecisionMatrix = async (matrix: DecisionMatrix): Promise<boolean> => {
   try {
     // Call the RPC function to store the matrix data
-    // This allows us to work with a procedure instead of direct table access
     const { error } = await supabase.rpc('store_decision_matrix', {
       alternatives_data: matrix.alternatives,
       criteria_data: matrix.criteria,
-      matrix_data: JSON.stringify(matrix.matrix)
+      matrix_data: matrix.matrix
     });
     
     if (error) throw error;
@@ -99,16 +104,53 @@ export const loadDecisionMatrix = async (): Promise<DecisionMatrix | null> => {
     if (error) throw error;
     if (!data) return null;
     
-    // Parse the returned data
-    const matrixData = JSON.parse(data.matrix_data || "[]");
-    
     return {
       alternatives: data.alternatives || [],
       criteria: data.criteria || [],
-      matrix: matrixData
+      matrix: data.matrix || []
     };
   } catch (error) {
     console.error("Error loading decision matrix:", error);
     return null;
+  }
+};
+
+/**
+ * Retrieve a decision matrix from Supabase
+ * Similar to loadDecisionMatrix but returns in MatrixData format
+ */
+export const retrieveDecisionMatrix = async (): Promise<MatrixData | null> => {
+  try {
+    const decisionMatrix = await loadDecisionMatrix();
+    
+    if (!decisionMatrix) return null;
+    
+    return {
+      rows: decisionMatrix.matrix,
+      columnCount: decisionMatrix.criteria.length
+    };
+  } catch (error) {
+    console.error("Error retrieving decision matrix:", error);
+    return null;
+  }
+};
+
+/**
+ * Store a decision matrix to Supabase
+ * Similar to saveDecisionMatrix but takes MatrixData format
+ */
+export const storeDecisionMatrix = async (matrixData: MatrixData): Promise<boolean> => {
+  try {
+    // Create a minimal DecisionMatrix from MatrixData
+    const decisionMatrix: DecisionMatrix = {
+      alternatives: matrixData.rows.map((_, idx) => `Alt ${idx + 1}`),
+      criteria: Array.from({ length: matrixData.columnCount }, (_, idx) => `Criterion ${idx + 1}`),
+      matrix: matrixData.rows
+    };
+    
+    return await saveDecisionMatrix(decisionMatrix);
+  } catch (error) {
+    console.error("Error storing decision matrix:", error);
+    return false;
   }
 };

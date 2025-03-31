@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { loadDecisionMatrix, MatrixData, storeDecisionMatrix, retrieveDecisionMatrix } from '@/utils/decisionMatrixParser';
+import { loadDecisionMatrix, retrieveDecisionMatrix, storeDecisionMatrix, MatrixData } from '@/utils/decisionMatrixParser';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,11 +27,17 @@ const DecisionMatrix: React.FC = () => {
       } else {
         // If not in database, load from CSV file
         const csvMatrix = await loadDecisionMatrix();
-        setMatrixData(csvMatrix);
-        
-        // Store in Supabase for future use
-        if (csvMatrix.rows.length > 0) {
-          await storeDecisionMatrix(csvMatrix);
+        if (csvMatrix) {
+          const formattedMatrix: MatrixData = {
+            rows: csvMatrix.matrix,
+            columnCount: csvMatrix.criteria.length
+          };
+          setMatrixData(formattedMatrix);
+          
+          // Store in Supabase for future use
+          if (formattedMatrix.rows.length > 0) {
+            await storeDecisionMatrix(formattedMatrix);
+          }
         }
       }
       
@@ -188,7 +194,7 @@ const DecisionMatrix: React.FC = () => {
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={() => loadDecisionMatrix()}>
+        <Button variant="outline" onClick={() => loadData()}>
           Reload Matrix
         </Button>
         <Button onClick={runCalculation} disabled={isProcessing}>

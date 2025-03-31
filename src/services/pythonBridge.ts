@@ -33,7 +33,7 @@ export const calculateWithPython = async (
     if (error) throw error;
     
     return data as CalculationResult;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error calling Python calculation:", error);
     toast({
       title: "Calculation Error",
@@ -62,7 +62,6 @@ export const storeCalculationResult = async (
 ): Promise<boolean> => {
   try {
     // Using the 'rpc' method to call a stored procedure for storing calculation results
-    // This avoids the need to directly access a table that might not exist yet
     const { error } = await supabase.rpc('store_calculation_result', {
       calc_scores: result.scores,
       calc_method: result.method,

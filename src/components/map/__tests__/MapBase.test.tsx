@@ -1,4 +1,3 @@
-
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom'; // Import this to fix toBeInTheDocument errors
@@ -98,7 +97,6 @@ describe('MapBase Component', () => {
     render(
       <MapBase>
         {(map, mapLoaded) => {
-          // Use curly braces and explicit return for consistency
           if (mapLoaded) {
             return (
               <div data-testid="function-child">

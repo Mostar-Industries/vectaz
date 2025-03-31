@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { BarChartIcon, Brain } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
 import DeepTalk from '@/components/DeepTalk';
 import { Button } from '@/components/ui/button';
+
 interface AnalyticsLayoutProps {
   title: string;
   kpis: any;
@@ -11,6 +13,7 @@ interface AnalyticsLayoutProps {
   onToggleDeepTalk: () => void;
   onDeepTalkQuery: (query: string) => Promise<string>;
 }
+
 const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
   title,
   kpis,
@@ -35,7 +38,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       <KPIPanel kpis={kpis} className="mb-6" />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mx-0 my-0 py-0 px-[12px]">
-        <div className="py-0 my-0 mx-0 px-0">
+        <div className={`${showDeepTalk ? 'lg:col-span-2' : 'lg:col-span-3'} py-0 my-0 mx-0 px-0`}>
           {children}
         </div>
         
@@ -45,4 +48,5 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       </div>
     </div>;
 };
+
 export default AnalyticsLayout;

@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, BrainCircuit } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 
@@ -19,7 +19,7 @@ interface DeepTalkProps {
 
 const DeepTalk: React.FC<DeepTalkProps> = ({ 
   className,
-  initialMessage = "How can I assist with your logistics decisions today?",
+  initialMessage = "How can I assist with your logistics decisions today? You can ask me about routes, forwarders, costs, or risk analytics.",
   onQueryData 
 }) => {
   const [messages, setMessages] = useState<Message[]>([
@@ -32,6 +32,13 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
   ]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [promptIdeas, setPromptIdeas] = useState<string[]>([
+    "What's our most disrupted route?",
+    "Compare DHL and Kenya Airways performance",
+    "Which warehouse has the best reliability?",
+    "How can we optimize our shipping costs?",
+    "What are the trends in our logistics performance?"
+  ]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom of messages
@@ -54,24 +61,18 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     setIsProcessing(true);
     
     try {
-      // In a real implementation, this would call the RASA backend
-      // For demo, we use the provided callback or a mock response
+      // Call the NLU processor via the provided callback
       let responseText = "I'm analyzing the logistics data now...";
       
       if (onQueryData) {
         responseText = await onQueryData(input);
       } else {
-        // Mock responses based on common queries
-        if (input.toLowerCase().includes('most disrupted route')) {
-          responseText = "Based on our data, the Kenya to Ethiopia route has experienced the highest disruption with a score of 0.68. This is primarily due to border crossing delays and political instability in the region.";
-        } else if (input.toLowerCase().includes('best forwarder')) {
-          responseText = "For overall reliability, Kuehne Nagel has the highest performance score (0.89) across all routes. However, for specific East African routes, Kenya Airways offers better transit times.";
-        } else if (input.toLowerCase().includes('why')) {
-          responseText = "The ranking is based on our AHP-TOPSIS algorithm which evaluates multiple criteria. This forwarder scored highest in reliability (0.92) and had competitive cost metrics (0.78), giving it the best overall closeness coefficient.";
-        } else {
-          responseText = "I'm not sure I understand that query. You can ask about route disruptions, forwarder performance, or specific logistics metrics.";
-        }
+        // Mock responses if no handler is provided
+        responseText = "I don't have access to the logistics data right now. Please ensure the DeepTalk handler is properly connected.";
       }
+      
+      // Generate new prompt ideas based on the current conversation context
+      generateNewPromptIdeas(input, responseText);
       
       // Add AI response after a short delay to simulate thinking
       setTimeout(() => {
@@ -101,12 +102,67 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     }
   };
 
+  // Generate new prompt ideas based on conversation context
+  const generateNewPromptIdeas = (userQuery: string, aiResponse: string) => {
+    const lowerQuery = userQuery.toLowerCase();
+    const lowerResponse = aiResponse.toLowerCase();
+    
+    // Contextual prompt suggestions based on the conversation flow
+    if (lowerQuery.includes('risk') || lowerQuery.includes('disruption')) {
+      setPromptIdeas([
+        "How can we reduce disruption risk?",
+        "What factors contribute to our delivery delays?",
+        "Which routes have improved reliability recently?",
+        "What's our contingency plan for high-risk corridors?",
+        "Predict disruption probability for next month"
+      ]);
+    } else if (lowerQuery.includes('forwarder') || lowerQuery.includes('carrier')) {
+      setPromptIdeas([
+        "Who should we use for high-value shipments?",
+        "Which forwarder has the best cost-to-reliability ratio?",
+        "Should we consolidate our carrier base?",
+        "Compare transit times between our top carriers",
+        "What's our optimal forwarder allocation strategy?"
+      ]);
+    } else if (lowerQuery.includes('cost') || lowerQuery.includes('expense')) {
+      setPromptIdeas([
+        "Where can we find the biggest cost savings?",
+        "What's the ROI on premium shipping options?",
+        "How can we optimize our shipping modes?",
+        "Compare costs between our top corridors",
+        "What's driving our logistics cost increases?"
+      ]);
+    } else if (lowerResponse.includes('recommend') || lowerResponse.includes('suggest')) {
+      setPromptIdeas([
+        "Tell me more about that recommendation",
+        "What's the expected impact of these changes?",
+        "How long would implementation take?",
+        "What are the risks of this approach?",
+        "Are there alternative strategies we should consider?"
+      ]);
+    } else {
+      // General follow-up questions
+      setPromptIdeas([
+        "Why is that happening?",
+        "How does that compare to industry benchmarks?",
+        "What's the trend over the last quarter?",
+        "How can we improve those metrics?",
+        "What's the root cause analysis?"
+      ]);
+    }
+  };
+
+  const handlePromptClick = (prompt: string) => {
+    setInput(prompt);
+  };
+
   return (
     <div className={cn("flex flex-col h-full overflow-hidden border rounded-lg bg-background", className)}>
       <div className="px-4 py-3 border-b bg-card">
         <div className="flex items-center">
-          <Bot className="h-5 w-5 text-primary mr-2" />
+          <BrainCircuit className="h-5 w-5 text-primary mr-2" />
           <h3 className="text-sm font-medium">DeepTalk Assistant</h3>
+          <span className="ml-2 px-1.5 py-0.5 text-xs bg-primary/10 text-primary rounded-sm">v2.0</span>
         </div>
       </div>
       
@@ -156,6 +212,21 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         <div ref={messagesEndRef} />
       </div>
       
+      {/* Prompt suggestions */}
+      <div className="px-4 py-2 border-t bg-muted/30">
+        <div className="flex flex-wrap gap-2">
+          {promptIdeas.map((prompt, index) => (
+            <button
+              key={index}
+              onClick={() => handlePromptClick(prompt)}
+              className="text-xs px-2 py-1 rounded-full bg-muted hover:bg-muted/80 transition-colors text-muted-foreground"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
+      </div>
+      
       <div className="p-4 border-t">
         <div className="flex items-center gap-2">
           <input
@@ -170,6 +241,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
             onClick={handleSendMessage}
             disabled={!input.trim() || isProcessing}
             size="icon"
+            className="bg-primary hover:bg-primary/90"
           >
             <Send className="h-4 w-4" />
           </Button>

@@ -10,6 +10,7 @@ import CountryAnalytics from '@/components/analytics/CountryAnalytics';
 import WarehouseAnalytics from '@/components/analytics/WarehouseAnalytics';
 import { useDeepTalkHandler } from '@/components/analytics/DeepTalkHandler';
 import { analyzeShipmentData } from '@/utils/analyticsUtils';
+import { ShipmentMetrics, CountryPerformance, ForwarderPerformance, WarehousePerformance } from '@/types/deeptrack';
 
 // Analytics section connects all the analytics components together
 const AnalyticsSection: React.FC = () => {
@@ -21,40 +22,73 @@ const AnalyticsSection: React.FC = () => {
   // Process the shipment data for analytics
   const analyticsData = analyzeShipmentData(shipmentData);
 
-  // Prepare metrics for components
-  const shipmentMetrics = {
-    totalCount: shipmentData.length,
-    deliveredCount: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
-    inTransitCount: shipmentData.filter(s => s.delivery_status === 'In Transit').length,
-    pendingCount: shipmentData.filter(s => s.delivery_status === 'Pending').length,
-    averageWeight: analyticsData.averageWeight,
+  // Prepare shipment metrics that conform to the ShipmentMetrics interface
+  const shipmentMetrics: ShipmentMetrics = {
+    totalShipments: shipmentData.length,
+    shipmentsByMode: analyticsData.modeBreakdown || {},
+    monthlyTrend: Array(12).fill(0).map((_, i) => ({
+      month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i],
+      count: Math.floor(Math.random() * 100)
+    })),
+    delayedVsOnTimeRate: {
+      onTime: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
+      delayed: shipmentData.filter(s => s.delivery_status !== 'Delivered').length
+    },
+    avgTransitTime: 6.2,
+    disruptionProbabilityScore: 4.2,
+    shipmentStatusCounts: {
+      active: shipmentData.filter(s => s.delivery_status === 'In Transit').length,
+      completed: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
+      failed: shipmentData.filter(s => s.delivery_status === 'Failed').length,
+    },
+    resilienceScore: 85,
+    noQuoteRatio: 0.05
   };
 
-  // Prepare country performance data
-  const countryPerformance = Object.entries(analyticsData.countryBreakdown).map(([country, count]) => ({
+  // Prepare country performance data conforming to the CountryPerformance interface
+  const countryPerformance: CountryPerformance[] = Object.entries(analyticsData.countryBreakdown || {}).map(([country, count]) => ({
     country,
-    count: count as number,
-    onTimeRate: Math.random() * 100, // Placeholder data
-    costEfficiency: Math.random() * 100 // Placeholder data
+    totalShipments: count as number,
+    avgCostPerRoute: 1200 + Math.random() * 500,
+    avgCustomsClearanceTime: 2 + Math.random() * 5,
+    deliveryFailureRate: Math.random() * 0.1,
+    borderDelayIncidents: Math.floor(Math.random() * 10),
+    resilienceIndex: 60 + Math.random() * 30,
+    preferredMode: ['Air', 'Sea', 'Road', 'Rail'][Math.floor(Math.random() * 4)],
+    topForwarders: ['DHL', 'FedEx', 'Maersk'].slice(0, 1 + Math.floor(Math.random() * 3)),
+    reliabilityScore: 0.7 + Math.random() * 0.25,
+    avgTransitDays: 4 + Math.random() * 8,
+    deliverySuccessRate: 0.85 + Math.random() * 0.15
   }));
 
-  // Prepare forwarder data
-  const forwarderData = Object.entries(analyticsData.forwarderBreakdown).map(([name, count]) => ({
+  // Prepare forwarder data conforming to the ForwarderPerformance interface
+  const forwarderData: ForwarderPerformance[] = Object.entries(analyticsData.forwarderBreakdown || {}).map(([name, count]) => ({
     name,
-    shipmentCount: count as number,
-    performanceScore: Math.random() * 100, // Placeholder data
-    reliabilityIndex: Math.random() * 100, // Placeholder data
-    costEfficiency: Math.random() * 100 // Placeholder data
+    totalShipments: count as number,
+    avgCostPerKg: 10 + Math.random() * 15,
+    avgTransitDays: 3 + Math.random() * 7,
+    onTimeRate: 0.8 + Math.random() * 0.2,
+    reliabilityScore: 0.75 + Math.random() * 0.25,
+    deepScore: 70 + Math.random() * 30,
+    costScore: 0.6 + Math.random() * 0.4,
+    timeScore: 0.65 + Math.random() * 0.35,
+    quoteWinRate: 0.3 + Math.random() * 0.4
   }));
 
-  // Prepare warehouse data
-  const warehouseData = Array(5).fill(0).map((_, i) => ({
-    id: `WH${i+1}`,
+  // Prepare warehouse data conforming to the WarehousePerformance interface
+  const warehouseData: WarehousePerformance[] = Array(5).fill(0).map((_, i) => ({
     name: `Warehouse ${i+1}`,
     location: ['Nairobi', 'Lagos', 'Cairo', 'Johannesburg', 'Casablanca'][i],
-    capacityUsed: Math.floor(Math.random() * 100),
-    shipmentsThroughput: Math.floor(Math.random() * 1000),
-    efficiencyScore: Math.floor(Math.random() * 100)
+    totalShipments: Math.floor(Math.random() * 1000),
+    avgPickPackTime: 1 + Math.random() * 3,
+    packagingFailureRate: Math.random() * 0.08,
+    missedDispatchRate: Math.random() * 0.1,
+    rescheduledShipmentsRatio: Math.random() * 0.15,
+    reliabilityScore: 70 + Math.random() * 30,
+    preferredForwarders: ['DHL', 'FedEx', 'UPS'].slice(0, 1 + Math.floor(Math.random() * 3)),
+    costDiscrepancy: Math.random() * 10 - 5,
+    dispatchSuccessRate: 0.85 + Math.random() * 0.15,
+    avgTransitDays: 4 + Math.random() * 6
   }));
 
   // Sample KPI data calculated from the shipment data

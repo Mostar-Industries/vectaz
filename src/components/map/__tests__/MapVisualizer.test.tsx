@@ -1,6 +1,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom'; // Import this to fix toBeInTheDocument errors
 import MapVisualizer from '../../MapVisualizer';
 import { Route } from '../types';
 

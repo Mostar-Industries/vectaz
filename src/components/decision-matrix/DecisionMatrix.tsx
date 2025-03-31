@@ -1,13 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
+import { MatrixData } from '@/utils/decisionMatrixParser';
+import { retrieveDecisionMatrix, storeDecisionMatrix, runMatrixCalculation } from '@/services/matrixService';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import MatrixTable from "./MatrixTable";
-import CalculationResults from "./CalculationResults";
-import { retrieveDecisionMatrix, storeDecisionMatrix, runMatrixCalculation, MatrixData } from "@/services/matrixService";
+
+// Import our new components
+import MatrixTable from './MatrixTable';
+import CalculationResults from './CalculationResults';
 
 const DecisionMatrix: React.FC = () => {
   const [matrixData, setMatrixData] = useState<MatrixData | null>(null);
@@ -26,10 +29,9 @@ const DecisionMatrix: React.FC = () => {
       if (dbMatrix && dbMatrix.rows.length > 0) {
         setMatrixData(dbMatrix);
       } else {
-        // If not in database, load from local data
-        const { loadDecisionMatrix } = await import("@/utils/decisionMatrixParser");
+        // If not in database, load from alternative source
+        const { loadDecisionMatrix } = await import('@/utils/decisionMatrixParser');
         const csvMatrix = await loadDecisionMatrix();
-        
         if (csvMatrix) {
           const formattedMatrix: MatrixData = {
             rows: csvMatrix.matrix,
@@ -70,41 +72,35 @@ const DecisionMatrix: React.FC = () => {
   }, []);
 
   // Run a calculation on the decision matrix
-  const handleCalculation = async () => {
-    if (!matrixData) return;
+  const runCalculation = async () => {
+    if (!matrixData || matrixData.rows.length === 0) {
+      toast({
+        title: "Error",
+        description: "No matrix data available to process",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsProcessing(true);
     
     try {
       const result = await runMatrixCalculation(matrixData);
-      if (result) {
-        setCalculationResult(result);
-      }
+      setCalculationResult(result);
+      toast({
+        title: "Success",
+        description: "Matrix calculation completed successfully",
+      });
+    } catch (error) {
+      console.error("Error processing matrix:", error);
+      toast({
+        title: "Calculation Error",
+        description: "Failed to process the matrix",
+        variant: "destructive",
+      });
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  // Reload the matrix data
-  const handleReload = async () => {
-    setIsLoading(true);
-    const dbMatrix = await retrieveDecisionMatrix();
-    
-    if (dbMatrix && dbMatrix.rows.length > 0) {
-      setMatrixData(dbMatrix);
-      toast({
-        title: "Success",
-        description: "Matrix data reloaded successfully",
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "No matrix data available",
-        variant: "destructive",
-      });
-    }
-    
-    setIsLoading(false);
   };
 
   if (isLoading) {
@@ -127,18 +123,25 @@ const DecisionMatrix: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <MatrixTable 
-          rows={matrixData?.rows || []} 
-          columnCount={matrixData?.columnCount || 0} 
-        />
-        
+        <MatrixTable rows={matrixData?.rows || []} columnCount={matrixData?.columnCount || 0} />
         <CalculationResults calculationResult={calculationResult} />
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={handleReload}>
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            const loadMatrixData = async () => {
+              setIsLoading(true);
+              const dbMatrix = await retrieveDecisionMatrix();
+              if (dbMatrix) setMatrixData(dbMatrix);
+              setIsLoading(false);
+            };
+            loadMatrixData();
+          }}
+        >
           Reload Matrix
         </Button>
-        <Button onClick={handleCalculation} disabled={isProcessing}>
+        <Button onClick={runCalculation} disabled={isProcessing}>
           {isProcessing ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

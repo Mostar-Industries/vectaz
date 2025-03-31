@@ -1,12 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { loadDecisionMatrix, saveDecisionMatrix } from "@/utils/decisionMatrixParser";
-
-export interface MatrixData {
-  rows: number[][];
-  columnCount: number;
-}
+import { loadDecisionMatrix, MatrixData } from "@/utils/decisionMatrixParser";
 
 // Retrieve matrix data from database
 export const retrieveDecisionMatrix = async (): Promise<MatrixData | null> => {
@@ -36,7 +31,14 @@ export const storeDecisionMatrix = async (matrixData: MatrixData): Promise<boole
       matrix: matrixData.rows
     };
     
-    return await saveDecisionMatrix(decisionMatrix);
+    const { error } = await supabase.rpc('store_decision_matrix', {
+      alternatives_data: decisionMatrix.alternatives,
+      criteria_data: decisionMatrix.criteria,
+      matrix_data: decisionMatrix.matrix
+    });
+    
+    if (error) throw error;
+    return true;
   } catch (error) {
     console.error("Error storing decision matrix:", error);
     return false;

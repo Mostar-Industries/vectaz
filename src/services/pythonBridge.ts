@@ -58,12 +58,6 @@ export const calculateWithPython = async (
   }
 };
 
-// Type for Supabase RPC response
-interface SupabaseRpcResponse {
-  data: any;
-  error: Error | null;
-}
-
 /**
  * Store calculation results in Supabase for later retrieval
  * 
@@ -75,14 +69,14 @@ export const storeCalculationResult = async (
 ): Promise<boolean> => {
   try {
     // Using the 'rpc' method to call a stored procedure for storing calculation results
-    const response: SupabaseRpcResponse = await supabase.rpc('store_calculation_result', {
+    const { error } = await supabase.rpc('store_calculation_result', {
       calc_scores: result.scores,
       calc_method: result.method,
       calc_timestamp: result.timestamp,
       calc_details: result.details || {}
     });
     
-    if (response.error) throw response.error;
+    if (error) throw error;
     
     return true;
   } catch (error) {
@@ -99,17 +93,17 @@ export const storeCalculationResult = async (
 export const getLatestCalculationResult = async (): Promise<CalculationResult | null> => {
   try {
     // Using the 'rpc' method to call a stored procedure for retrieving the latest calculation
-    const response: SupabaseRpcResponse = await supabase.rpc('get_latest_calculation_result');
+    const { data, error } = await supabase.rpc('get_latest_calculation_result');
     
-    if (response.error) throw response.error;
-    if (!response.data) return null;
+    if (error) throw error;
+    if (!data) return null;
     
     // Convert the returned data to the expected format
     return {
-      scores: response.data.scores || [],
-      method: response.data.method || "unknown",
-      timestamp: response.data.timestamp || new Date().toISOString(),
-      details: response.data.details || {}
+      scores: data.scores || [],
+      method: data.method || "unknown",
+      timestamp: data.timestamp || new Date().toISOString(),
+      details: data.details || {}
     };
   } catch (error) {
     console.error("Error retrieving calculation result:", error);

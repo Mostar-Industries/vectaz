@@ -9,10 +9,16 @@ export interface DecisionMatrix {
   matrix: number[][];
 }
 
-// Type for Supabase RPC response
+// Interface for the Supabase RPC response
 interface SupabaseRpcResponse {
   data: any;
   error: Error | null;
+}
+
+// Matrix data interface for component usage
+export interface MatrixData {
+  rows: number[][];
+  columnCount: number;
 }
 
 /**
@@ -76,7 +82,7 @@ export const parseDecisionMatrix = (csvData: string): DecisionMatrix | null => {
 export const saveDecisionMatrix = async (matrix: DecisionMatrix): Promise<boolean> => {
   try {
     // Call the RPC function to store the matrix data
-    const response: SupabaseRpcResponse = await supabase.rpc('store_decision_matrix', {
+    const response = await supabase.rpc('store_decision_matrix', {
       alternatives_data: matrix.alternatives,
       criteria_data: matrix.criteria,
       matrix_data: matrix.matrix
@@ -99,7 +105,7 @@ export const saveDecisionMatrix = async (matrix: DecisionMatrix): Promise<boolea
 export const loadDecisionMatrix = async (): Promise<DecisionMatrix | null> => {
   try {
     // Call the RPC function to get the latest matrix
-    const response: SupabaseRpcResponse = await supabase.rpc('get_latest_decision_matrix');
+    const response = await supabase.rpc('get_latest_decision_matrix');
     
     if (response.error) throw response.error;
     if (!response.data) return null;
@@ -113,4 +119,31 @@ export const loadDecisionMatrix = async (): Promise<DecisionMatrix | null> => {
     console.error("Error loading decision matrix:", error);
     return null;
   }
+};
+
+/**
+ * Retrieve matrix data from database
+ */
+export const retrieveDecisionMatrix = async (): Promise<MatrixData | null> => {
+  const matrix = await loadDecisionMatrix();
+  if (!matrix) return null;
+  
+  return {
+    rows: matrix.matrix,
+    columnCount: matrix.criteria.length
+  };
+};
+
+/**
+ * Store matrix data in database
+ */
+export const storeDecisionMatrix = async (matrixData: MatrixData): Promise<boolean> => {
+  // Create a minimal DecisionMatrix from MatrixData
+  const decisionMatrix = {
+    alternatives: matrixData.rows.map((_, idx) => `Alt ${idx + 1}`),
+    criteria: Array.from({ length: matrixData.columnCount }, (_, idx) => `Criterion ${idx + 1}`),
+    matrix: matrixData.rows
+  };
+  
+  return await saveDecisionMatrix(decisionMatrix);
 };

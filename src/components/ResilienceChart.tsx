@@ -10,12 +10,11 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Info, Shield, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import DeepExplainModal from './analytics/DeepExplainModal';
 import { MetricExplanation } from '@/services/deepSightNarrator';
+import { GlassPanel } from './ui/glass-effects';
 
 interface DataPoint {
   date: string;
@@ -34,14 +33,14 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
   
   if (isLoading) {
     return (
-      <div className="h-80 bg-muted animate-pulse rounded-lg"></div>
+      <div className="h-80 bg-black/40 animate-pulse rounded-lg border border-blue-500/20"></div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-80 flex items-center justify-center border rounded-lg">
-        <p className="text-muted-foreground">No resilience data available</p>
+      <div className="h-80 flex items-center justify-center border rounded-lg border-blue-500/20 bg-black/50 backdrop-blur-md">
+        <p className="text-gray-400">No resilience data available</p>
       </div>
     );
   }
@@ -87,22 +86,21 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
   };
 
   return (
-    <Card className="border rounded-lg h-full data-card gradient-border">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Shield className="h-5 w-5 text-cyan-400" />
-              <span className="neon-text">Resilience Metrics Over Time</span>
-            </CardTitle>
+    <GlassPanel 
+      className="h-full"
+      title={
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-cyan-400" />
+            <span className="text-white">Resilience Metrics Over Time</span>
           </div>
-          
-          <Badge className={`${statusColor} px-2 py-1`}>
+          <div className={`px-2 py-1 text-xs font-medium rounded ${statusColor}`}>
             {healthStatus}
-          </Badge>
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="h-72 tech-grid relative">
+      }
+    >
+      <div className="h-72 relative chart-container">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             data={data}
@@ -171,11 +169,11 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
             />
           </LineChart>
         </ResponsiveContainer>
-      </CardContent>
-      <CardFooter className="flex justify-between border-t border-blue-500/20 pt-4">
+      </div>
+      <div className="flex justify-between border-t border-blue-500/20 pt-4 mt-4">
         <div className="text-sm">
           <span className="font-medium text-gray-300">Composite Score: </span>
-          <span className="font-bold neon-text">{compositeScore.toFixed(1)}</span>
+          <span className="font-bold text-blue-400">{compositeScore.toFixed(1)}</span>
           {compositeScore < 60 && (
             <div className="flex items-center gap-1 text-amber-400 mt-1 text-xs">
               <AlertTriangle className="h-3.5 w-3.5" /> 
@@ -187,12 +185,12 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
           variant="outline" 
           size="sm"
           onClick={() => setExplainModalOpen(true)}
-          className="bg-blue-950/40 border-blue-500/30 text-blue-300 hover:bg-blue-900/30 hover:text-blue-100"
+          className="bg-blue-900/20 border-blue-500/30 text-blue-300 hover:bg-blue-900/30 hover:text-blue-100"
         >
           <Info className="h-4 w-4 mr-1" /> 
           Explain This Analysis
         </Button>
-      </CardFooter>
+      </div>
       
       <DeepExplainModal
         open={explainModalOpen}
@@ -200,7 +198,7 @@ const ResilienceChart: React.FC<ResilienceChartProps> = ({ data, isLoading = fal
         metricKey="resilience"
         explanation={resilienceExplanation}
       />
-    </Card>
+    </GlassPanel>
   );
 };
 

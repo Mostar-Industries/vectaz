@@ -1,8 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Motion, Shield, Zap, MapPin, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Route } from '@/types/deeptrack';
+import { GlassContainer, GlassIconContainer } from '@/components/ui/glass-effects';
 
 interface ShipmentHologramProps {
   shipments: Route[];
@@ -19,11 +20,11 @@ const generateRiskScore = (): number => {
 const getStatusColor = (status: string): string => {
   switch(status) {
     case 'Delivered':
-      return 'text-green-500';
+      return 'text-green-400';
     case 'In Transit':
-      return 'text-amber-500';
+      return 'text-amber-400';
     default:
-      return 'text-red-500';
+      return 'text-red-400';
   }
 };
 
@@ -36,33 +37,34 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
   
   return (
     <div className={cn(
-      "cyber-panel rounded-lg p-4 backdrop-blur-md border border-mostar-light-blue/30 cyber-terminal relative max-h-[500px] overflow-auto",
+      "system-status-card max-h-[500px] overflow-auto custom-scrollbar",
       className
     )}>
       {/* Holographic header */}
-      <div className="flex justify-between items-center mb-4 border-b border-mostar-light-blue/20 pb-2">
-        <h3 className="text-lg font-semibold text-cyber-blue flex items-center">
-          <Motion className="mr-2 h-5 w-5 text-mostar-light-blue" />
-          Active Shipments
-        </h3>
-        <div className="text-xs text-mostar-light-blue/70">
+      <div className="system-status-header flex justify-between items-center">
+        <div className="flex items-center">
+          <Motion className="mr-2 h-5 w-5 text-blue-400" />
+          <span>Active Shipments</span>
+        </div>
+        <div className="text-xs text-blue-400/80">
           {shipments.length} shipments
         </div>
       </div>
       
       {/* Shipment list */}
-      <div className="space-y-2">
+      <div className="p-3 space-y-2">
         {shipments.map((shipment, index) => {
           const isHovered = hoveredIndex === index;
           const riskScore = generateRiskScore();
           const statusColor = getStatusColor(shipment.deliveryStatus);
           
           return (
-            <div 
+            <GlassContainer
               key={index}
+              variant={isHovered ? 'blue' : 'default'}
               className={cn(
-                "glassmorphism-card p-3 rounded-md cursor-pointer transition-all duration-300 border border-mostar-light-blue/10 hover:border-mostar-light-blue/30",
-                isHovered && "shadow-neon-blue border-mostar-light-blue/40"
+                "p-3 rounded-md cursor-pointer",
+                isHovered && "border-blue-500/30"
               )}
               onMouseEnter={() => setHoveredIndex(index)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -71,10 +73,10 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="font-medium text-sm flex items-center">
-                    <Package className="h-3.5 w-3.5 mr-1.5 text-mostar-light-blue" />
+                    <Package className="h-3.5 w-3.5 mr-1.5 text-blue-400" />
                     {`Shipment #${1000 + index}`}
                   </span>
-                  <span className="text-xs text-muted-foreground mt-1 flex items-center">
+                  <span className="text-xs text-gray-400 mt-1 flex items-center">
                     <MapPin className="h-3 w-3 mr-1" />
                     {`${shipment.origin.name} → ${shipment.destination.name}`}
                   </span>
@@ -86,24 +88,24 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
               
               {/* Additional details that appear on hover */}
               <div className={cn(
-                "mt-2 pt-2 border-t border-mostar-light-blue/10 grid grid-cols-2 gap-x-2 gap-y-1 text-xs transition-opacity",
-                isHovered ? "opacity-100" : "opacity-50"
+                "mt-2 pt-2 border-t border-blue-500/10 grid grid-cols-2 gap-x-2 gap-y-1 text-xs",
+                isHovered ? "opacity-100" : "opacity-60"
               )}>
                 <div className="flex items-center">
-                  <Shield className="h-3 w-3 mr-1 text-mostar-green" />
-                  <span className="text-muted-foreground">Resilience:</span>
-                  <span className="ml-1 text-mostar-green">{Math.floor(Math.random() * 30) + 70}%</span>
+                  <Shield className="h-3 w-3 mr-1 text-green-400" />
+                  <span className="text-gray-400">Resilience:</span>
+                  <span className="ml-1 text-green-400">{Math.floor(Math.random() * 30) + 70}%</span>
                 </div>
                 <div className="flex items-center">
-                  <Zap className="h-3 w-3 mr-1 text-mostar-yellow" />
-                  <span className="text-muted-foreground">Risk:</span>
-                  <span className={`ml-1 ${riskScore > 7 ? 'text-red-500' : riskScore > 4 ? 'text-amber-500' : 'text-mostar-green'}`}>
+                  <Zap className="h-3 w-3 mr-1 text-yellow-400" />
+                  <span className="text-gray-400">Risk:</span>
+                  <span className={`ml-1 ${riskScore > 7 ? 'text-red-400' : riskScore > 4 ? 'text-amber-400' : 'text-green-400'}`}>
                     {riskScore}/10
                   </span>
                 </div>
                 <div className="col-span-2 text-right mt-1">
                   <button 
-                    className="text-mostar-light-blue hover:text-mostar-cyan transition-colors text-xs underline-offset-2 hover:underline"
+                    className="text-blue-400 hover:text-blue-300 transition-colors text-xs underline-offset-2 hover:underline"
                     onClick={(e) => {
                       e.stopPropagation();
                       onSelect(shipment, index);
@@ -113,7 +115,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
                   </button>
                 </div>
               </div>
-            </div>
+            </GlassContainer>
           );
         })}
       </div>

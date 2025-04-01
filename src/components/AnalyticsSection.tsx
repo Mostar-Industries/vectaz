@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
-import { DecisionEngine } from '@/core/engine'; 
+import { decisionEngine } from '@/core/engine'; 
 import WarehouseAnalytics from './analytics/WarehouseAnalytics';
 import CountryAnalytics from './analytics/CountryAnalytics';
 import ForwarderAnalytics from './analytics/ForwarderAnalytics';
@@ -9,12 +10,12 @@ import OverviewContent from './analytics/OverviewContent';
 import ShipmentAnalytics from './analytics/ShipmentAnalytics'; 
 import { ShipmentMetrics, ForwarderPerformance, CountryPerformance, WarehousePerformance, CarrierPerformance } from '@/types/deeptrack';
 import { 
-  calculateShipmentMetrics, 
   calculateForwarderPerformance, 
   calculateCountryPerformance,
   calculateWarehousePerformance,
   calculateCarrierPerformance
 } from '@/utils/analyticsUtils';
+import { computeShipmentInsights } from '@/lib/analytics/shipmentTabData';
 
 // Import the DeepCALSpinner from its own file
 import DeepCALSpinner from './DeepCALSpinner';
@@ -54,8 +55,13 @@ const AnalyticsSection: React.FC = () => {
     }
 
     try {
-      // Calculate metrics from the shipment data
-      const metrics = calculateShipmentMetrics(shipmentData);
+      // Initialize the decision engine if not already initialized
+      if (!decisionEngine.isReady()) {
+        decisionEngine.initialize(shipmentData);
+      }
+
+      // Calculate metrics from the shipment data using the new utility function
+      const metrics = computeShipmentInsights(shipmentData);
       setShipmentMetrics(metrics);
 
       // Calculate forwarder, carrier, country, and warehouse performance
@@ -94,7 +100,7 @@ const AnalyticsSection: React.FC = () => {
       console.error("Error calculating metrics:", error);
       setCalculationError(String(error));
     }
-  }, [shipmentData]);
+  }, [shipmentData, activeTab]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -130,31 +136,31 @@ const AnalyticsSection: React.FC = () => {
           />
         )}
         
-        {activeTab === 'shipments' && shipmentMetrics && (
+        {activeTab === 'shipments' && (
           <>
             <ShipmentAnalytics metrics={shipmentMetrics} />
-            <DeepCALExplainer metricType="shipment" data={shipmentMetrics} />
+            {shipmentMetrics && <DeepCALExplainer metricType="shipment" data={shipmentMetrics} />}
           </>
         )}
         
         {activeTab === 'forwarders' && (
           <>
             <ForwarderAnalytics forwarders={forwarders} carriers={carriers} />
-            <DeepCALExplainer metricType="forwarder" data={forwarders[0]} />
+            {forwarders.length > 0 && <DeepCALExplainer metricType="forwarder" data={forwarders[0]} />}
           </>
         )}
         
         {activeTab === 'countries' && (
           <>
             <CountryAnalytics countries={countries} />
-            <DeepCALExplainer metricType="country" data={countries[0]} />
+            {countries.length > 0 && <DeepCALExplainer metricType="country" data={countries[0]} />}
           </>
         )}
         
         {activeTab === 'warehouses' && (
           <>
             <WarehouseAnalytics warehouses={warehouses} />
-            <DeepCALExplainer metricType="warehouse" data={warehouses[0]} />
+            {warehouses.length > 0 && <DeepCALExplainer metricType="warehouse" data={warehouses[0]} />}
           </>
         )}
       </AnalyticsLayout>

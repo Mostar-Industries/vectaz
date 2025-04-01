@@ -1,12 +1,6 @@
 
 import { Shipment } from "@/types/deeptrack";
-
-// Interface for decision engine criteria weights
-export interface CriteriaWeights {
-  cost: number;
-  time: number;
-  reliability: number;
-}
+import { computeForwarderRankings, CriteriaWeights } from "@/lib/algorithm";
 
 // Simple decision engine implementation
 export class DecisionEngine {
@@ -46,6 +40,20 @@ export class DecisionEngine {
    */
   getShipmentData(): Shipment[] {
     return this.shipmentData;
+  }
+  
+  /**
+   * Get forwarder rankings based on criteria weights
+   * @param criteria Weights for different criteria
+   * @returns Array of ranked forwarders with scores
+   */
+  getRankedAlternatives(criteria: CriteriaWeights) {
+    if (!this.isInitialized) {
+      throw new Error("Decision engine not initialized with data");
+    }
+    
+    // Use the algorithm.ts implementation to compute rankings
+    return computeForwarderRankings(this.shipmentData, criteria);
   }
 }
 

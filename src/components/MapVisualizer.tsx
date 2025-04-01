@@ -186,16 +186,16 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       
       {mapLoaded && (
         <>
-          {/* Holographic shipment list - limited to 3 */}
+          {/* Repositioned holographic shipment list to center-right */}
           {limitedRoutes.length > 0 && (
             <ShipmentHologram 
               shipments={limitedRoutes}
               onSelect={handleShipmentSelect}
-              className="absolute top-4 right-4 w-80 max-h-[500px]"
+              className="absolute top-4 left-1/2 transform -translate-x-1/2 w-80 max-h-[500px]"
             />
           )}
           
-          {/* Stats overlay */}
+          {/* Stats overlay - now positioned by StatsOverlay component */}
           <StatsOverlay routesCount={limitedRoutes.length} />
           
           {/* 3D mode toggle */}

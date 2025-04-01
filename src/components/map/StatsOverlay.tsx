@@ -1,3 +1,4 @@
+
 import React from 'react';
 interface StatsOverlayProps {
   routesCount: number;
@@ -7,7 +8,7 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
 }) => {
   return <>
       {/* Map overlay with route count */}
-      <div className="absolute bottom-4 left-4 pointer-events-none z-10">
+      <div className="absolute bottom-4 right-4 pointer-events-none z-10">
         <div className="text-xs glassmorphism-card px-3 py-2 rounded-md shadow-sm border border-mostar-light-blue/30">
           <div className="font-semibold text-cyber-blue">Routes: {routesCount}</div>
           <div className="mt-1 flex items-center gap-2">
@@ -23,8 +24,8 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
         </div>
       </div>
       
-      {/* Floating stat cards */}
-      <div className="absolute top-4 left-4 space-y-3 z-10\n">
+      {/* Repositioned floating stat cards to center */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 space-y-3 z-10 w-80">
         <div className="glassmorphism-card p-3 rounded-md shadow-md border border-mostar-light-blue/30 max-w-xs">
           <h3 className="font-bold mb-2 text-sm text-cyber-blue">Active Shipments</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">

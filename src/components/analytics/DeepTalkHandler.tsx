@@ -40,8 +40,5 @@ export const useDeepTalkHandler = () => {
     }
   };
 
-  return {
-    handleQuery,
-    isProcessing
-  };
+  return handleQuery;
 };

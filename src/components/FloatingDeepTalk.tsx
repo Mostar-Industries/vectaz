@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Bot, BrainCircuit, X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ const FloatingDeepTalk: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [pulseCount, setPulseCount] = useState(0);
-  const handleDeepTalkQuery = useDeepTalkHandler();
+  const handleQuery = useDeepTalkHandler();
 
   useEffect(() => {
     if (!isOpen) {
@@ -64,7 +65,7 @@ const FloatingDeepTalk: React.FC = () => {
               <DeepTalk 
                 className="h-full border-none" 
                 initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?"
-                onQueryData={handleDeepTalkQuery}
+                onQueryData={handleQuery}
               />
             </div>
           </motion.div>

@@ -44,6 +44,9 @@ export interface CarrierPerformance {
   serviceScore?: number;
   punctualityScore?: number;
   handlingScore?: number;
+  // Add missing properties used in ForwarderAnalytics
+  shipments: number;
+  reliability: number;
 }
 
 export interface RoutePerformance {
@@ -93,7 +96,13 @@ export interface ShipmentMetrics {
   delayedVsOnTimeRate: {onTime: number, delayed: number};
   avgTransitTime: number;
   disruptionProbabilityScore: number;
-  shipmentStatusCounts: {active: number, completed: number, failed: number};
+  shipmentStatusCounts: {
+    active: number;
+    completed: number;
+    failed: number;
+    onTime?: number;
+    inTransit?: number;
+  };
   resilienceScore: number;
   noQuoteRatio: number;
   forwarderPerformance?: Record<string, number>;
@@ -101,6 +110,7 @@ export interface ShipmentMetrics {
   topForwarder?: string;
   topCarrier?: string;
   carrierCount?: number;
+  avgCostPerKg?: number;
 }
 
 export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';

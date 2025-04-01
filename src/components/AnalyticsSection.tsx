@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
 import AnalyticsTabs from '@/components/analytics/AnalyticsTabs';
@@ -9,7 +9,14 @@ import ForwarderAnalytics from '@/components/analytics/ForwarderAnalytics';
 import CountryAnalytics from '@/components/analytics/CountryAnalytics';
 import WarehouseAnalytics from '@/components/analytics/WarehouseAnalytics';
 import { getDeepTalkHandler } from '@/components/analytics/DeepTalkHandler';
-import { analyzeShipmentData } from '@/utils/analyticsUtils';
+import { 
+  analyzeShipmentData, 
+  calculateShipmentMetrics, 
+  calculateForwarderPerformance, 
+  calculateCountryPerformance, 
+  calculateWarehousePerformance,
+  calculateCarrierPerformance
+} from '@/utils/analyticsUtils';
 import { ShipmentMetrics, CountryPerformance, ForwarderPerformance, WarehousePerformance, CarrierPerformance } from '@/types/deeptrack';
 
 // Analytics section connects all the analytics components together
@@ -18,116 +25,26 @@ const AnalyticsSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [showDeepTalk, setShowDeepTalk] = useState(false);
   const handleDeepTalkQuery = getDeepTalkHandler();
+  
+  console.log(`Total shipments in data store: ${shipmentData.length}`);
 
   // Process the shipment data for analytics
   const analyticsData = analyzeShipmentData(shipmentData);
-
-  // Extract unique carriers from shipment data
-  const uniqueCarriers = [...new Set(shipmentData.map(s => s.freight_carrier))].filter(Boolean);
   
-  // Extract unique forwarders from shipment data
-  const uniqueForwarders = [...new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_Carrier))].filter(Boolean);
-
-  // Prepare shipment metrics that conform to the ShipmentMetrics interface
-  const shipmentMetrics: ShipmentMetrics = {
-    totalShipments: shipmentData.length,
-    shipmentsByMode: analyticsData.modeBreakdown || {},
-    monthlyTrend: Array(12).fill(0).map((_, i) => ({
-      month: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i],
-      count: Math.floor(Math.random() * 100)
-    })),
-    delayedVsOnTimeRate: {
-      onTime: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
-      delayed: shipmentData.filter(s => s.delivery_status !== 'Delivered').length
-    },
-    avgTransitTime: 6.2,
-    disruptionProbabilityScore: 4.2,
-    shipmentStatusCounts: {
-      active: shipmentData.filter(s => s.delivery_status === 'In Transit').length,
-      completed: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
-      failed: shipmentData.filter(s => s.delivery_status === 'Failed').length,
-      onTime: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
-      inTransit: shipmentData.filter(s => s.delivery_status === 'In Transit').length
-    },
-    resilienceScore: 85,
-    noQuoteRatio: 0.05,
-    carrierCount: uniqueCarriers.length,
-    forwarderPerformance: Object.fromEntries(Object.entries(analyticsData.forwarderBreakdown || {}).map(([name, count]) => [name, count as number])),
-    carrierPerformance: Object.fromEntries(uniqueCarriers.map(carrier => [
-      carrier, 
-      shipmentData.filter(s => s.freight_carrier === carrier).length
-    ])),
-    topForwarder: Object.entries(analyticsData.forwarderBreakdown || {})
-      .sort(([_, a], [__, b]) => (b as number) - (a as number))
-      .map(([name]) => name)[0] || "Unknown",
-    topCarrier: uniqueCarriers.length > 0 ? uniqueCarriers[0] : "Unknown",
-    avgCostPerKg: 12.50 // Add a default value for average cost per kg
-  };
-
-  // Prepare country performance data conforming to the CountryPerformance interface
-  const countryPerformance: CountryPerformance[] = Object.entries(analyticsData.countryBreakdown || {}).map(([country, count]) => ({
-    country,
-    totalShipments: count as number,
-    avgCostPerRoute: 1200 + Math.random() * 500,
-    avgCustomsClearanceTime: 2 + Math.random() * 5,
-    deliveryFailureRate: Math.random() * 0.1,
-    borderDelayIncidents: Math.floor(Math.random() * 10),
-    resilienceIndex: 60 + Math.random() * 30,
-    preferredMode: ['Air', 'Sea', 'Road', 'Rail'][Math.floor(Math.random() * 4)],
-    topForwarders: ['DHL', 'FedEx', 'Maersk'].slice(0, 1 + Math.floor(Math.random() * 3)),
-    reliabilityScore: 0.7 + Math.random() * 0.25,
-    avgTransitDays: 4 + Math.random() * 8,
-    deliverySuccessRate: 0.85 + Math.random() * 0.15
-  }));
-
-  // Prepare forwarder data conforming to the ForwarderPerformance interface
-  const forwarderData: ForwarderPerformance[] = Object.entries(analyticsData.forwarderBreakdown || {}).map(([name, count]) => ({
-    name,
-    totalShipments: count as number,
-    avgCostPerKg: 10 + Math.random() * 15,
-    avgTransitDays: 3 + Math.random() * 7,
-    onTimeRate: 0.8 + Math.random() * 0.2,
-    reliabilityScore: 0.75 + Math.random() * 0.25,
-    deepScore: 70 + Math.random() * 30,
-    costScore: 0.6 + Math.random() * 0.4,
-    timeScore: 0.65 + Math.random() * 0.35,
-    quoteWinRate: 0.3 + Math.random() * 0.4
-  }));
-
-  // Prepare carrier data conforming to the CarrierPerformance interface
-  const carrierData: CarrierPerformance[] = uniqueCarriers.map(name => {
-    const totalShipments = shipmentData.filter(s => s.freight_carrier === name).length;
-    const reliabilityValue = 0.65 + Math.random() * 0.35;
-    return {
-      name,
-      totalShipments,
-      avgTransitDays: 4 + Math.random() * 6,
-      onTimeRate: 0.7 + Math.random() * 0.3,
-      reliabilityScore: reliabilityValue,
-      serviceScore: Math.random() * 100,
-      punctualityScore: Math.random() * 100,
-      handlingScore: Math.random() * 100,
-      // Add the required properties for ForwarderAnalytics
-      shipments: totalShipments,
-      reliability: reliabilityValue * 100
-    };
-  });
-
-  // Prepare warehouse data conforming to the WarehousePerformance interface
-  const warehouseData: WarehousePerformance[] = Array(5).fill(0).map((_, i) => ({
-    name: `Warehouse ${i+1}`,
-    location: ['Nairobi', 'Lagos', 'Cairo', 'Johannesburg', 'Casablanca'][i],
-    totalShipments: Math.floor(Math.random() * 1000),
-    avgPickPackTime: 1 + Math.random() * 3,
-    packagingFailureRate: Math.random() * 0.08,
-    missedDispatchRate: Math.random() * 0.1,
-    rescheduledShipmentsRatio: Math.random() * 0.15,
-    reliabilityScore: 70 + Math.random() * 30,
-    preferredForwarders: ['DHL', 'FedEx', 'UPS'].slice(0, 1 + Math.floor(Math.random() * 3)),
-    costDiscrepancy: Math.random() * 10 - 5,
-    dispatchSuccessRate: 0.85 + Math.random() * 0.15,
-    avgTransitDays: 4 + Math.random() * 6
-  }));
+  // Calculate shipment metrics directly from data
+  const shipmentMetrics = calculateShipmentMetrics(shipmentData);
+  
+  // Calculate country performance
+  const countryPerformance = calculateCountryPerformance(shipmentData);
+  
+  // Calculate forwarder performance
+  const forwarderData = calculateForwarderPerformance(shipmentData);
+  
+  // Calculate carrier performance
+  const carrierData = calculateCarrierPerformance(shipmentData);
+  
+  // Calculate warehouse performance
+  const warehouseData = calculateWarehousePerformance(shipmentData);
 
   // Sample KPI data calculated from the shipment data
   const kpis = [
@@ -141,7 +58,7 @@ const AnalyticsSection: React.FC = () => {
     },
     {
       label: 'On-Time Delivery',
-      value: '89%',
+      value: `${Math.round((shipmentMetrics.delayedVsOnTimeRate.onTime / Math.max(shipmentData.length, 1)) * 100)}%`,
       trend: '+4%',
       trendDirection: 'up',
       iconName: 'clock',
@@ -149,7 +66,7 @@ const AnalyticsSection: React.FC = () => {
     },
     {
       label: 'Average Transit Time',
-      value: '6.2 days',
+      value: `${shipmentMetrics.avgTransitTime.toFixed(1)} days`,
       trend: '-0.5 days',
       trendDirection: 'down',
       iconName: 'truck',
@@ -157,7 +74,7 @@ const AnalyticsSection: React.FC = () => {
     },
     {
       label: 'Route Resilience',
-      value: '85%',
+      value: `${Math.round(shipmentMetrics.resilienceScore)}%`,
       trend: '+2%',
       trendDirection: 'up',
       iconName: 'shield',
@@ -168,6 +85,13 @@ const AnalyticsSection: React.FC = () => {
   const toggleDeepTalk = () => {
     setShowDeepTalk(!showDeepTalk);
   };
+
+  useEffect(() => {
+    console.log(`Analytics processed ${shipmentData.length} shipments`);
+    console.log(`Found ${forwarderData.length} forwarders`);
+    console.log(`Found ${carrierData.length} carriers`);
+    console.log(`Found ${countryPerformance.length} countries`);
+  }, [shipmentData.length, forwarderData.length, carrierData.length, countryPerformance.length]);
 
   return (
     <AnalyticsLayout

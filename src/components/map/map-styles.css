@@ -1,316 +1,143 @@
 
-/* Custom marker styles */
-.origin-marker, .destination-marker {
-  width: 20px;
-  height: 20px;
+/* Base marker styles */
+.marker-container {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  z-index: 1;
 }
 
 .marker-inner {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
-.marker-inner.origin {
-  background-color: #0A1A2F;
-  border: 2px solid #00FFD1;
-  box-shadow: 0 0 15px rgba(0, 255, 209, 0.5);
-}
-
+/* Destination marker */
 .marker-inner.destination {
-  background-color: rgba(10, 26, 47, 0.8);
-  border: 2px solid currentColor;
-  box-shadow: 0 0 10px currentColor;
+  background: #333;
+  border: 2px solid #fff;
 }
 
-.marker-inner.destination.green {
-  color: #10B981;
+/* Country marker */
+.marker-inner.country {
+  width: 12px;
+  height: 12px;
+  background: #1a65b7;
+  border: 2px solid #ffffff;
+  z-index: 1;
 }
 
-.marker-inner.destination.yellow {
-  color: #F59E0B;
+/* Status colors */
+.marker-inner.green, .marker-pulse.green {
+  background-color: #10b981;
 }
 
-.marker-inner.destination.red {
-  color: #EF4444;
+.marker-inner.yellow, .marker-pulse.yellow {
+  background-color: #f59e0b;
 }
 
+.marker-inner.red, .marker-pulse.red {
+  background-color: #ef4444;
+}
+
+.marker-inner.blue, .marker-pulse.blue {
+  background-color: #3b82f6;
+}
+
+/* Pulse effect */
 .marker-pulse {
   position: absolute;
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background-color: currentColor;
-  opacity: 0.4;
-  transform-origin: center;
-  animation: pulse 2s ease-out infinite;
+  animation: pulse 2s infinite;
+  opacity: 0.6;
 }
 
-.marker-pulse.green {
-  background-color: #10B981;
-}
-
-.marker-pulse.yellow {
-  background-color: #F59E0B;
-}
-
-.marker-pulse.red {
-  background-color: #EF4444;
-}
-
-/* Enhanced pulsing animation */
 @keyframes pulse {
   0% {
     transform: scale(1);
-    opacity: 0.4;
-  }
-  50% {
-    transform: scale(2.2);
-    opacity: 0.2;
+    opacity: 0.6;
   }
   70% {
-    transform: scale(2.5);
-    opacity: 0.1;
+    transform: scale(2);
+    opacity: 0;
   }
   100% {
-    transform: scale(3);
+    transform: scale(1);
     opacity: 0;
   }
 }
 
-/* Enhanced scan animation */
-@keyframes scan {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 0.2;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0.8;
-  }
-}
-
-.marker-highlight {
-  z-index: 100;
-  transform: scale(1.5);
-  transition: transform 0.3s ease-out;
-}
-
-.marker-highlight .marker-inner {
-  box-shadow: 0 0 15px 5px #00FFD1;
-}
-
-/* Popup styles with glassmorphism */
-.custom-popup {
-  border: 1px solid rgba(0, 255, 209, 0.3) !important;
-  backdrop-filter: blur(8px) !important;
-  background-color: rgba(10, 26, 47, 0.8) !important;
-  box-shadow: 0 0 15px rgba(0, 255, 209, 0.2) !important;
-}
-
-.destination-popup {
-  background-color: rgba(10, 26, 47, 0.9) !important;
-  border: 1px solid rgba(0, 255, 209, 0.3) !important;
-  backdrop-filter: blur(8px) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 0 20px rgba(0, 255, 209, 0.3) !important;
-  color: white !important;
-  padding: 0 !important;
-  max-width: 300px !important;
-}
-
-.destination-popup .mapboxgl-popup-content {
-  background-color: transparent !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-}
-
-.destination-popup .mapboxgl-popup-close-button {
-  color: rgba(255, 255, 255, 0.7) !important;
-  font-size: 16px !important;
-  padding: 4px 8px !important;
-  right: 0 !important;
-  top: 0 !important;
-}
-
-.destination-popup .mapboxgl-popup-close-button:hover {
-  color: white !important;
-  background-color: rgba(0, 0, 0, 0.2) !important;
-}
-
-.destination-popup .route-info {
-  border-radius: 8px !important;
-  background: linear-gradient(180deg, rgba(10, 26, 47, 0.9) 0%, rgba(8, 20, 35, 0.95) 100%) !important;
-  border: 1px solid rgba(0, 255, 209, 0.3) !important;
-}
-
-/* Enhanced tech glow */
-.tech-glow {
-  box-shadow: 0 0 20px rgba(0, 255, 209, 0.25);
-}
-
-/* Custom scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 209, 0.5);
-  border-radius: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 209, 0.7);
-}
-
-/* Animation for holographic elements */
-@keyframes animate-scan {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    transform: translateX(100%);
-    opacity: 0.3;
-  }
-}
-
-.animate-scan {
-  animation: animate-scan 2s linear infinite;
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 10s linear infinite;
-}
-
-/* Enhanced holographic cards */
-.mostar-card {
-  background: linear-gradient(to bottom right, rgba(10, 26, 47, 0.9), rgba(2, 6, 23, 0.95));
-  border: 1px solid rgba(0, 255, 209, 0.15);
-  border-radius: 12px;
-  overflow: hidden;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 25px rgba(0, 255, 209, 0.1);
-  transition: all 0.3s ease;
-}
-
-.mostar-card:hover {
-  box-shadow: 0 0 30px rgba(0, 255, 209, 0.2);
-  border-color: rgba(0, 255, 209, 0.3);
-}
-
-.mostar-card-header {
-  background: linear-gradient(to right, rgba(10, 26, 47, 0.8), rgba(12, 30, 55, 0.8));
-  border-bottom: 1px solid rgba(0, 255, 209, 0.2);
-  padding: 12px 16px;
-}
-
-.mostar-card-icon {
-  background: rgba(0, 255, 209, 0.1);
-  border-radius: 8px;
-  padding: 8px;
-  color: #00FFD1;
-}
-
-.mostar-number {
-  color: #00FFD1;
-  font-weight: 600;
-  font-size: 1.5rem;
-  text-shadow: 0 0 10px rgba(0, 255, 209, 0.5);
-}
-
-/* New styles for glassmorphic elements */
-.glass-panel {
-  @apply relative overflow-hidden rounded-lg;
-  background: rgba(10, 26, 47, 0.7);
-  border: 1px solid rgba(0, 255, 209, 0.2);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 0 15px rgba(0, 255, 209, 0.1);
-}
-
-.glass-panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -50%;
-  width: 200%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(0, 255, 209, 0.05),
-    transparent
-  );
-  transform: rotate(45deg);
-  transition: transform 0.5s ease-in-out;
-}
-
-.glass-panel:hover::before {
-  left: 100%;
-}
-
-/* Data flow visualization */
-.data-flow {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.data-stream {
-  position: absolute;
-  background: linear-gradient(to bottom, transparent, #00FFD1, transparent);
-  width: 1px;
-  height: 50px;
-  opacity: 0.3;
-  animation: data-stream 3s linear infinite;
-}
-
-@keyframes data-stream {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(500%);
-  }
-}
-
-/* New error animation */
+/* Error blinking for delayed shipments */
 .error-flicker {
-  animation: error-flicker 2s ease-in-out infinite;
+  animation: flicker 1.5s infinite;
 }
 
-@keyframes error-flicker {
+@keyframes flicker {
   0%, 100% {
     opacity: 1;
   }
   50% {
     opacity: 0.3;
   }
+}
+
+/* Glass panel styling */
+.glass-panel {
+  background: rgba(10, 20, 30, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+}
+
+/* Popup styling */
+.mapboxgl-popup-content {
+  background-color: rgba(15, 25, 35, 0.9) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(0, 255, 209, 0.3) !important;
+}
+
+.mapboxgl-popup-close-button {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 18px !important;
+  padding: 4px 8px !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: rgba(15, 25, 35, 0.9) !important;
+  border-bottom-color: rgba(15, 25, 35, 0.9) !important;
+}
+
+/* Route info styling */
+.route-info h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.route-info .grid {
+  display: grid;
+}
+
+/* Country popup styling */
+.country-popup .mapboxgl-popup-content {
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.country-info h3 {
+  font-size: 15px;
+  color: #3b82f6;
 }

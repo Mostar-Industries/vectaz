@@ -5,24 +5,35 @@ import { Loader } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+interface CountryMarker {
+  name: string;
+  coordinates: [number, number];
+  status?: string;
+}
+
 interface MapContainerProps {
   routes: Route[];
+  countries?: CountryMarker[];
   isLoading?: boolean;
   onMapLoaded?: () => void;
   onRouteClick?: (routeIndex: number | null) => void;
+  onCountryClick?: (country: string) => void;
 }
 
 // Using forwardRef to properly handle the ref
 const MapContainer = forwardRef<any, MapContainerProps>(({ 
   routes, 
+  countries = [],
   isLoading = false, 
   onMapLoaded, 
-  onRouteClick 
+  onRouteClick,
+  onCountryClick
 }, ref) => {
   const [mapInitialized, setMapInitialized] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const countryMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   
   // Expose methods to parent component
@@ -113,8 +124,9 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
       setMapInitialized(true);
       if (onMapLoaded) onMapLoaded();
       
-      // Add markers for each route
+      // Add markers for each route and country
       addRouteMarkers();
+      addCountryMarkers();
     });
 
     // Setup automatic rotation (optional)
@@ -177,6 +189,9 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
       
+      countryMarkersRef.current.forEach(marker => marker.remove());
+      countryMarkersRef.current = [];
+      
       // Remove any popups
       if (popupRef.current) {
         popupRef.current.remove();
@@ -193,6 +208,13 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
       addRouteMarkers();
     }
   }, [routes, mapInitialized]);
+
+  // Add country markers when countries change
+  useEffect(() => {
+    if (mapInitialized && mapRef.current) {
+      addCountryMarkers();
+    }
+  }, [countries, mapInitialized]);
 
   // Function to add markers for each route
   const addRouteMarkers = () => {
@@ -235,6 +257,75 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
       
       // Store reference to the marker
       markersRef.current.push(marker);
+    });
+  };
+
+  // Function to add markers for each country
+  const addCountryMarkers = () => {
+    if (!mapRef.current) return;
+    
+    // Clear existing country markers
+    countryMarkersRef.current.forEach(marker => marker.remove());
+    countryMarkersRef.current = [];
+    
+    // Add new markers for each country
+    countries.forEach((country) => {
+      const { name, coordinates, status } = country;
+      
+      // Create marker element
+      const markerEl = document.createElement('div');
+      markerEl.className = 'marker-container country-marker';
+      
+      // Inner marker with status color if available
+      const innerMarker = document.createElement('div');
+      const statusClass = status === 'Delivered' ? 'green' : 
+                          status === 'In Transit' ? 'yellow' : 
+                          status === 'Delayed' ? 'red' : 'blue';
+      
+      innerMarker.className = `marker-inner country ${statusClass}`;
+      
+      // Pulse effect for countries
+      const pulseEffect = document.createElement('div');
+      pulseEffect.className = `marker-pulse ${statusClass}`;
+      innerMarker.appendChild(pulseEffect);
+      
+      markerEl.appendChild(innerMarker);
+      
+      // Create and add the marker to the map
+      const marker = new mapboxgl.Marker(markerEl)
+        .setLngLat([coordinates[1], coordinates[0]])
+        .addTo(mapRef.current);
+      
+      // Click handler for the marker
+      markerEl.addEventListener('click', () => {
+        if (onCountryClick) onCountryClick(name);
+        
+        // Show a simple popup for the country
+        if (mapRef.current) {
+          // Close any existing popup
+          if (popupRef.current) {
+            popupRef.current.remove();
+          }
+          
+          // Create a new popup
+          popupRef.current = new mapboxgl.Popup({
+            closeButton: true,
+            className: 'country-popup',
+            maxWidth: '250px'
+          })
+            .setLngLat([coordinates[1], coordinates[0]])
+            .setHTML(`
+              <div class="country-info p-2">
+                <h3 class="font-bold text-primary">${name}</h3>
+                <p class="text-sm mt-1">Destination country</p>
+              </div>
+            `)
+            .addTo(mapRef.current);
+        }
+      });
+      
+      // Store reference to the marker
+      countryMarkersRef.current.push(marker);
     });
   };
 

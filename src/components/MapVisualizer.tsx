@@ -8,6 +8,7 @@ import ShipmentHologram from './map/ShipmentHologram';
 import { Route } from '@/types/deeptrack';
 import './map/map-styles.css';
 import { useToast } from '@/hooks/use-toast';
+import { getDestinationMarkers, getRandomStatus } from '@/utils/mapUtils';
 
 interface MapVisualizerProps {
   routes: Route[];
@@ -19,9 +20,23 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
   const [mapLoaded, setMapLoaded] = useState(false);
   const [activeRoute, setActiveRoute] = useState<number | null>(null);
   const [is3DMode, setIs3DMode] = useState(false);
+  const [countryMarkers, setCountryMarkers] = useState<Array<{
+    name: string;
+    coordinates: [number, number];
+    status: string;
+  }>>([]);
   const mapContainerRef = useRef<any>(null);
   const { toast } = useToast();
   
+  // Load country markers on component mount
+  useEffect(() => {
+    const markers = getDestinationMarkers().map(country => ({
+      ...country,
+      status: getRandomStatus()
+    }));
+    setCountryMarkers(markers);
+  }, []);
+
   // Limit to only 3 most recent routes
   const limitedRoutes = routes.slice(0, 3);
 
@@ -31,7 +46,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     // Welcome toast with instructions
     toast({
       title: "Map Loaded",
-      description: "Tap to rotate the globe and behold your empire.",
+      description: "Tap to rotate the globe and explore destination countries.",
       duration: 5000,
     });
   };
@@ -43,6 +58,14 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       // Show info on the map for the selected route
       showRouteInfoOnMap(limitedRoutes[routeIndex], routeIndex);
     }
+  };
+  
+  const handleCountryClick = (countryName: string) => {
+    toast({
+      title: `${countryName} Selected`,
+      description: `Viewing destination country: ${countryName}`,
+      duration: 3000,
+    });
   };
   
   const showRouteInfoOnMap = (route: Route, index: number) => {
@@ -153,20 +176,24 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     <div className={cn("relative h-full w-full", className)}>
       <MapContainer 
         routes={limitedRoutes} 
+        countries={countryMarkers}
         isLoading={isLoading} 
         onMapLoaded={handleMapLoaded}
         onRouteClick={handleRouteClick}
+        onCountryClick={handleCountryClick}
         ref={mapContainerRef}
       />
       
-      {mapLoaded && limitedRoutes.length > 0 && (
+      {mapLoaded && (
         <>
           {/* Holographic shipment list - limited to 3 */}
-          <ShipmentHologram 
-            shipments={limitedRoutes}
-            onSelect={handleShipmentSelect}
-            className="absolute top-4 right-4 w-80 max-h-[250px]"
-          />
+          {limitedRoutes.length > 0 && (
+            <ShipmentHologram 
+              shipments={limitedRoutes}
+              onSelect={handleShipmentSelect}
+              className="absolute top-4 right-4 w-80 max-h-[250px]"
+            />
+          )}
           
           {/* Stats overlay */}
           <StatsOverlay routesCount={limitedRoutes.length} />
@@ -191,9 +218,21 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
               <span className="w-3 h-3 rounded-full bg-amber-400"></span>
               <span className="text-gray-200">In Transit</span>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 mb-1">
               <span className="w-3 h-3 rounded-full bg-red-400 error-flicker"></span>
               <span className="text-gray-200">Delayed</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-3 h-3 rounded-full bg-blue-400"></span>
+              <span className="text-gray-200">Destination</span>
+            </div>
+          </div>
+          
+          {/* Country count indicator */}
+          <div className="absolute top-4 left-4 glass-panel p-2 text-xs">
+            <div className="text-[#00FFD1] font-semibold flex items-center">
+              <MapPin size={14} className="mr-1" />
+              {countryMarkers.length} Destination Countries
             </div>
           </div>
         </>

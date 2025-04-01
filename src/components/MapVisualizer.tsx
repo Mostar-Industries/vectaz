@@ -1,12 +1,13 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { Package, MapPin, Shield, Zap } from 'lucide-react';
+import { Package, MapPin, Shield, Zap, Ship, AlertTriangle } from 'lucide-react';
 import MapContainer from './map/MapContainer';
 import StatsOverlay from './map/StatsOverlay';
 import ShipmentHologram from './map/ShipmentHologram';
 import { Route } from '@/types/deeptrack';
 import './map/map-styles.css';
+import { useToast } from '@/hooks/use-toast';
 
 interface MapVisualizerProps {
   routes: Route[];
@@ -17,10 +18,19 @@ interface MapVisualizerProps {
 const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false, className }) => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [activeRoute, setActiveRoute] = useState<number | null>(null);
+  const [is3DMode, setIs3DMode] = useState(false);
   const mapContainerRef = useRef<any>(null);
+  const { toast } = useToast();
 
   const handleMapLoaded = () => {
     setMapLoaded(true);
+    
+    // Welcome toast with instructions
+    toast({
+      title: "Map Loaded",
+      description: "Tap to rotate the globe and behold your empire.",
+      duration: 5000,
+    });
   };
 
   const handleRouteClick = (routeIndex: number | null) => {
@@ -39,34 +49,47 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     const riskScore = Math.floor(Math.random() * 10) + 1;
     const resilienceScore = Math.floor(Math.random() * 30) + 70;
     
-    // Create HTML content for the popup
+    // Add witty commentary based on status
+    let statusComment = '';
+    if (deliveryStatus === 'Delivered') {
+      statusComment = 'Right on schedule. Someone deserves a raise.';
+    } else if (deliveryStatus === 'In Transit') {
+      statusComment = 'Somewhere between here and there. Probably.';
+    } else {
+      statusComment = 'This package has seen more countries than Anthony Bourdain. Status: Lost in transit.';
+    }
+    
+    // Create HTML content for the popup with enhanced styling
     const popupContent = `
-      <div class="route-info p-2">
+      <div class="route-info p-3">
         <div class="flex items-center justify-between mb-2">
-          <h3 class="font-bold text-cyber-blue flex items-center">
+          <h3 class="font-bold text-[#00FFD1] flex items-center">
             <span>Route Details</span>
           </h3>
           <span class="${
             deliveryStatus === 'Delivered' ? 'text-green-400' : 
             deliveryStatus === 'In Transit' ? 'text-amber-400' : 'text-red-400'
-          } text-xs font-medium">${deliveryStatus}</span>
+          } text-xs font-medium flex items-center">
+            <span class="mr-1">${deliveryStatus}</span>
+            ${deliveryStatus !== 'Delivered' ? '<span class="error-flicker">●</span>' : ''}
+          </span>
         </div>
         
-        <div class="space-y-1.5 text-sm">
+        <div class="space-y-2 text-sm">
           <div>
-            <span class="text-muted-foreground">Origin:</span> ${origin.name}
+            <span class="text-gray-400">Origin:</span> ${origin.name}
           </div>
           <div>
-            <span class="text-muted-foreground">Destination:</span> ${destination.name}
+            <span class="text-gray-400">Destination:</span> ${destination.name}
           </div>
           <div>
-            <span class="text-muted-foreground">Shipment:</span> #${1000 + index}
+            <span class="text-gray-400">Shipment:</span> #${1000 + index}
           </div>
           <div>
-            <span class="text-muted-foreground">Total Weight:</span> ${weight} kg
+            <span class="text-gray-400">Total Weight:</span> ${weight} kg
           </div>
           
-          <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-xs pt-2 border-t border-blue-500/10">
+          <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-xs pt-2 border-t border-[#00FFD1]/10">
             <div class="flex items-center">
               <span class="text-green-400 mr-1">⦿</span>
               <span class="text-gray-400">Resilience:</span>
@@ -81,11 +104,8 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
             </div>
           </div>
           
-          <div class="pt-2 flex items-center ${riskScore > 7 ? 'text-red-400' : 'text-amber-500'}">
-            <span class="text-xs mr-1">▲</span>
-            <span class="text-xs">
-              ${riskScore > 7 ? 'High' : riskScore > 4 ? 'Medium' : 'Low'} risk level on this route
-            </span>
+          <div class="pt-2 text-xs italic text-gray-300">
+            "${statusComment}"
           </div>
         </div>
       </div>
@@ -113,6 +133,47 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     setActiveRoute(index);
   };
 
+  const toggle3DMode = () => {
+    setIs3DMode(!is3DMode);
+    if (mapContainerRef.current?.toggleTerrain) {
+      mapContainerRef.current.toggleTerrain(!is3DMode);
+      
+      toast({
+        title: is3DMode ? "2D Mode" : "3D Terrain View",
+        description: is3DMode ? "Switched to flat map view" : "Behold your empire in 3D glory!",
+        duration: 2000,
+      });
+    }
+  };
+
+  // Generate random data flow lines for visual effect
+  useEffect(() => {
+    if (!mapLoaded) return;
+    
+    const container = document.querySelector('.map-container');
+    if (!container) return;
+    
+    const dataFlow = document.createElement('div');
+    dataFlow.className = 'data-flow';
+    container.appendChild(dataFlow);
+    
+    // Create random data streams
+    for (let i = 0; i < 20; i++) {
+      const stream = document.createElement('div');
+      stream.className = 'data-stream';
+      stream.style.left = `${Math.random() * 100}%`;
+      stream.style.animationDelay = `${Math.random() * 3}s`;
+      stream.style.height = `${30 + Math.random() * 70}px`;
+      dataFlow.appendChild(stream);
+    }
+    
+    return () => {
+      if (dataFlow.parentNode) {
+        dataFlow.parentNode.removeChild(dataFlow);
+      }
+    };
+  }, [mapLoaded]);
+
   return (
     <div className={cn("relative h-full w-full", className)}>
       <MapContainer 
@@ -134,6 +195,32 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
           
           {/* Stats overlay */}
           <StatsOverlay routesCount={routes.length} />
+          
+          {/* 3D mode toggle */}
+          <button
+            onClick={toggle3DMode}
+            className="absolute bottom-24 right-4 glass-panel p-2 flex items-center space-x-2 text-xs text-[#00FFD1] hover:bg-[#00FFD1]/10 transition-colors"
+          >
+            <Ship size={16} className="text-[#00FFD1]" />
+            <span>{is3DMode ? "2D View" : "3D View"}</span>
+          </button>
+          
+          {/* Map legend */}
+          <div className="absolute bottom-4 left-4 glass-panel p-3 text-xs">
+            <div className="text-white mb-2 font-semibold">Status Legend</div>
+            <div className="flex items-center space-x-2 mb-1">
+              <span className="w-3 h-3 rounded-full bg-green-400"></span>
+              <span className="text-gray-200">On Time</span>
+            </div>
+            <div className="flex items-center space-x-2 mb-1">
+              <span className="w-3 h-3 rounded-full bg-amber-400"></span>
+              <span className="text-gray-200">In Transit</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="w-3 h-3 rounded-full bg-red-400 error-flicker"></span>
+              <span className="text-gray-200">Delayed</span>
+            </div>
+          </div>
         </>
       )}
     </div>

@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader, CheckCircle, Database, Zap, Server, Cpu, ShieldCheck } from 'lucide-react';
+import { Loader, CheckCircle, Database, Zap, Server, Cpu, ShieldCheck, Ship } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import Particles from './Particles';
 
@@ -15,8 +14,8 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
   const [loadingText, setLoadingText] = useState('Initializing DeepCAL Core');
   const [showLogo, setShowLogo] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<string[]>([]);
+  const [showTagline, setShowTagline] = useState(false);
   
-  // Array of loading phases and messages to cycle through
   const loadingPhases = [
     {
       name: 'Core Initialization',
@@ -52,33 +51,31 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
     }
   ];
   
-  // Simulate the loading and verification process
   useEffect(() => {
-    // Show logo with a slight delay for dramatic effect
     const logoTimer = setTimeout(() => {
       setShowLogo(true);
-    }, 600); // Increased from 400ms to 600ms
+    }, 600);
     
-    // Progress animation
+    const taglineTimer = setTimeout(() => {
+      setShowTagline(true);
+    }, 1500);
+    
     const timer = setInterval(() => {
       setProgress((prevProgress) => {
         if (prevProgress >= 100) {
           clearInterval(timer);
           setTimeout(() => {
             onComplete();
-          }, 800); // Increased from 500ms to 800ms
+          }, 800);
           return 100;
         }
         
-        // Update loading phase based on progress
         const newPhase = Math.floor(prevProgress / 25);
         if (newPhase !== loadingPhase) {
           setLoadingPhase(newPhase);
-          // Add verification status when phase changes
           setVerificationStatus(prev => [...prev, `${loadingPhases[Math.min(newPhase - 1, 3)].name} Complete`]);
         }
         
-        // Update loading message within current phase
         const phaseProgress = prevProgress % 25;
         if (phaseProgress % 8 === 0) {
           const currentPhase = Math.min(newPhase, loadingPhases.length - 1);
@@ -86,33 +83,29 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
           setLoadingText(loadingPhases[currentPhase].messages[msgIndex]);
         }
         
-        // Simulate "data verification" check at 45% progress
         if (prevProgress === 45) {
           simulateDataIntegrityCheck();
         }
         
-        // Simulate "network sync" at 70% progress
         if (prevProgress === 70) {
           simulateNetworkSync();
         }
         
-        return prevProgress + 0.5; // Reduced from +1 to +0.5 for slower progress
+        return prevProgress + 0.5;
       });
-    }, 100); // Increased from 50ms to 100ms
+    }, 100);
     
-    // Clean up
     return () => {
       clearInterval(timer);
       clearTimeout(logoTimer);
+      clearTimeout(taglineTimer);
     };
   }, [loadingPhase, onComplete]);
   
-  // Simulate data integrity check
   const simulateDataIntegrityCheck = () => {
     setVerificationStatus(prev => [...prev, "Local Data Integrity: Verified"]);
   };
   
-  // Simulate network sync
   const simulateNetworkSync = () => {
     setVerificationStatus(prev => [...prev, "Network Connection: Established"]);
     setTimeout(() => {
@@ -120,14 +113,13 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
     }, 500);
   };
   
-  // Render verification status logs
   const renderVerificationLogs = () => {
     return verificationStatus.map((status, index) => (
       <motion.div 
         key={index} 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.4, duration: 0.6 }} // Increased delay and duration
+        transition={{ delay: index * 0.4, duration: 0.6 }}
         className="flex items-center text-xs font-mono mb-1 text-blue-200/80"
       >
         <CheckCircle size={12} className="mr-2 text-emerald-400" />
@@ -136,7 +128,6 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
     ));
   };
   
-  // Rainbow colors for particles
   const particleColors = [
     "#FF5E8F", // Pink
     "#5EFF8F", // Green
@@ -152,9 +143,8 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gradient-to-b from-slate-950 to-blue-950 flex flex-col items-center justify-center z-50"
+      className="fixed inset-0 bg-gradient-to-b from-[#0A1A2F] to-blue-950 flex flex-col items-center justify-center z-50"
     >
-      {/* Particles background */}
       <Particles
         particleColors={particleColors}
         particleCount={250}
@@ -169,12 +159,37 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
         disableRotation={false}
       />
       
-      {/* Overlay effect */}
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px]" />
       
       <div className="max-w-md w-full z-10 px-6">
-        {/* Logo with reveal animation */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ 
+              scale: [0.8, 1.1, 0.9, 1],
+              opacity: [0, 1, 0.8, 1]
+            }}
+            transition={{ 
+              duration: 3,
+              times: [0, 0.4, 0.7, 1],
+              repeat: Infinity,
+              repeatType: "reverse"
+            }}
+            className="relative"
+          >
+            <Ship size={48} className="text-[#00FFD1]" />
+            <motion.div
+              animate={{ 
+                opacity: [0.3, 0.7, 0.3],
+                scale: [1, 1.2, 1]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute inset-0 rounded-full bg-[#00FFD1]/20 blur-md z-[-1]"
+            />
+          </motion.div>
+        </div>
+        
+        <div className="flex justify-center mb-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: showLogo ? 1 : 0, scale: showLogo ? 1 : 0.9 }}
@@ -188,22 +203,26 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
           </motion.div>
         </div>
         
-        {/* System name */}
-        <h1 className="text-3xl md:text-4xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-200">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-[#00FFD1]">
           DeepCAL
         </h1>
         
-        <div className="text-center mb-6">
+        <div className="text-center mb-4">
           <p className="text-sm text-blue-200/80 font-mono uppercase tracking-wider">
             Cargo Augmented Logistics
           </p>
-          <p className="text-xs text-blue-200/60 mt-1 font-mono">
-            PRIME ORIGIN PROTOCOL
-          </p>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: showTagline ? 1 : 0, y: showTagline ? 0 : 10 }}
+            transition={{ duration: 0.8 }}
+            className="italic text-xs text-[#00FFD1] mt-3"
+          >
+            "Analytics so sharp, they could cut through customs delays."
+          </motion.p>
         </div>
         
-        {/* Current loading phase indicator */}
-        <div className="mb-2 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
+        <div className="mb-2 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-[#00FFD1]/20">
           <div className="flex justify-between items-center mb-1">
             <p className="text-sm font-semibold text-blue-200">
               Phase {loadingPhase + 1}/{loadingPhases.length}: {loadingPhases[loadingPhase].name}
@@ -211,14 +230,13 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
             <p className="text-xs text-blue-200/60 font-mono">{progress}%</p>
           </div>
           
-          {/* Progress bar */}
           <Progress 
             value={progress} 
-            className="h-1.5 bg-blue-950/50" 
+            className="h-1.5 bg-blue-950/50"
+            indicatorClassName="bg-gradient-to-r from-blue-400 to-[#00FFD1]" 
           />
         </div>
         
-        {/* Loading message */}
         <div className="flex items-center mb-4 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <motion.div 
             animate={{ opacity: [0.4, 1, 0.4] }}
@@ -230,7 +248,6 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
           </p>
         </div>
         
-        {/* Verification logs panel */}
         <div className="bg-blue-950/40 border border-blue-900/50 rounded-md p-3 mb-6 h-24 overflow-hidden backdrop-blur-sm">
           <p className="text-xs text-blue-300 font-semibold mb-2 font-mono">System Verification Log:</p>
           <div className="h-full overflow-y-auto scrollbar-hide">
@@ -238,7 +255,6 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
           </div>
         </div>
         
-        {/* Loading UI elements */}
         <div className="space-y-3 backdrop-blur-sm bg-blue-950/30 p-3 rounded-lg border border-blue-500/20">
           <motion.div 
             animate={{ opacity: [0.3, 0.5, 0.3] }}
@@ -265,7 +281,6 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
         </div>
       </div>
       
-      {/* Footer text */}
       <div className="absolute bottom-4 text-xs text-center text-blue-200/40 font-mono">
         <p>MOSTAR INDUSTRIES</p>
         <p className="mt-1 text-[10px]">© DEEPCAL ROUTEVERSE {new Date().getFullYear()}</p>

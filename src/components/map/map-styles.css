@@ -17,13 +17,13 @@
 }
 
 .marker-inner.origin {
-  background-color: #1A1F2C;
-  border: 2px solid #9b87f5;
-  box-shadow: 0 0 15px rgba(155, 135, 245, 0.5);
+  background-color: #0A1A2F;
+  border: 2px solid #00FFD1;
+  box-shadow: 0 0 15px rgba(0, 255, 209, 0.5);
 }
 
 .marker-inner.destination {
-  background-color: rgba(13, 18, 30, 0.8);
+  background-color: rgba(10, 26, 47, 0.8);
   border: 2px solid currentColor;
   box-shadow: 0 0 10px currentColor;
 }
@@ -63,27 +63,38 @@
   background-color: #EF4444;
 }
 
+/* Enhanced pulsing animation */
 @keyframes pulse {
   0% {
     transform: scale(1);
     opacity: 0.4;
   }
+  50% {
+    transform: scale(2.2);
+    opacity: 0.2;
+  }
   70% {
     transform: scale(2.5);
-    opacity: 0;
+    opacity: 0.1;
   }
   100% {
-    transform: scale(1);
+    transform: scale(3);
     opacity: 0;
   }
 }
 
+/* Enhanced scan animation */
 @keyframes scan {
   0% {
     transform: translateX(-100%);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.2;
   }
   100% {
     transform: translateX(100%);
+    opacity: 0.8;
   }
 }
 
@@ -94,22 +105,23 @@
 }
 
 .marker-highlight .marker-inner {
-  box-shadow: 0 0 15px 5px #9b87f5;
+  box-shadow: 0 0 15px 5px #00FFD1;
 }
 
+/* Popup styles with glassmorphism */
 .custom-popup {
-  border: 1px solid rgba(155, 135, 245, 0.3) !important;
+  border: 1px solid rgba(0, 255, 209, 0.3) !important;
   backdrop-filter: blur(8px) !important;
-  background-color: rgba(13, 18, 30, 0.8) !important;
-  box-shadow: 0 0 15px rgba(155, 135, 245, 0.2) !important;
+  background-color: rgba(10, 26, 47, 0.8) !important;
+  box-shadow: 0 0 15px rgba(0, 255, 209, 0.2) !important;
 }
 
 .destination-popup {
-  background-color: rgba(13, 18, 30, 0.9) !important;
-  border: 1px solid rgba(0, 149, 255, 0.3) !important;
+  background-color: rgba(10, 26, 47, 0.9) !important;
+  border: 1px solid rgba(0, 255, 209, 0.3) !important;
   backdrop-filter: blur(8px) !important;
   border-radius: 8px !important;
-  box-shadow: 0 0 20px rgba(0, 149, 255, 0.3) !important;
+  box-shadow: 0 0 20px rgba(0, 255, 209, 0.3) !important;
   color: white !important;
   padding: 0 !important;
   max-width: 300px !important;
@@ -136,14 +148,16 @@
 
 .destination-popup .route-info {
   border-radius: 8px !important;
-  background: linear-gradient(180deg, rgba(20, 30, 50, 0.9) 0%, rgba(10, 15, 30, 0.95) 100%) !important;
-  border: 1px solid rgba(0, 149, 255, 0.3) !important;
+  background: linear-gradient(180deg, rgba(10, 26, 47, 0.9) 0%, rgba(8, 20, 35, 0.95) 100%) !important;
+  border: 1px solid rgba(0, 255, 209, 0.3) !important;
 }
 
+/* Enhanced tech glow */
 .tech-glow {
-  box-shadow: 0 0 20px rgba(0, 149, 255, 0.25);
+  box-shadow: 0 0 20px rgba(0, 255, 209, 0.25);
 }
 
+/* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -154,21 +168,26 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0, 149, 255, 0.5);
+  background: rgba(0, 255, 209, 0.5);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 149, 255, 0.7);
+  background: rgba(0, 255, 209, 0.7);
 }
 
 /* Animation for holographic elements */
 @keyframes animate-scan {
   0% {
     transform: translateX(-100%);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
   }
   100% {
     transform: translateX(100%);
+    opacity: 0.3;
   }
 }
 
@@ -189,38 +208,109 @@
   animation: spin-slow 10s linear infinite;
 }
 
-/* Card styling for Mostar-like cards */
+/* Enhanced holographic cards */
 .mostar-card {
-  background: linear-gradient(to bottom right, rgba(13, 18, 30, 0.9), rgba(2, 6, 23, 0.95));
-  border: 1px solid rgba(0, 149, 255, 0.15);
+  background: linear-gradient(to bottom right, rgba(10, 26, 47, 0.9), rgba(2, 6, 23, 0.95));
+  border: 1px solid rgba(0, 255, 209, 0.15);
   border-radius: 12px;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  box-shadow: 0 0 25px rgba(0, 149, 255, 0.1);
+  box-shadow: 0 0 25px rgba(0, 255, 209, 0.1);
   transition: all 0.3s ease;
 }
 
 .mostar-card:hover {
-  box-shadow: 0 0 30px rgba(0, 149, 255, 0.2);
-  border-color: rgba(0, 149, 255, 0.3);
+  box-shadow: 0 0 30px rgba(0, 255, 209, 0.2);
+  border-color: rgba(0, 255, 209, 0.3);
 }
 
 .mostar-card-header {
-  background: linear-gradient(to right, rgba(10, 15, 30, 0.8), rgba(20, 30, 60, 0.8));
-  border-bottom: 1px solid rgba(0, 149, 255, 0.2);
+  background: linear-gradient(to right, rgba(10, 26, 47, 0.8), rgba(12, 30, 55, 0.8));
+  border-bottom: 1px solid rgba(0, 255, 209, 0.2);
   padding: 12px 16px;
 }
 
 .mostar-card-icon {
-  background: rgba(0, 149, 255, 0.1);
+  background: rgba(0, 255, 209, 0.1);
   border-radius: 8px;
   padding: 8px;
-  color: #0ea5e9;
+  color: #00FFD1;
 }
 
 .mostar-number {
-  color: #0ea5e9;
+  color: #00FFD1;
   font-weight: 600;
   font-size: 1.5rem;
-  text-shadow: 0 0 10px rgba(0, 149, 255, 0.5);
+  text-shadow: 0 0 10px rgba(0, 255, 209, 0.5);
+}
+
+/* New styles for glassmorphic elements */
+.glass-panel {
+  @apply relative overflow-hidden rounded-lg;
+  background: rgba(10, 26, 47, 0.7);
+  border: 1px solid rgba(0, 255, 209, 0.2);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 15px rgba(0, 255, 209, 0.1);
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 255, 209, 0.05),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: transform 0.5s ease-in-out;
+}
+
+.glass-panel:hover::before {
+  left: 100%;
+}
+
+/* Data flow visualization */
+.data-flow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.data-stream {
+  position: absolute;
+  background: linear-gradient(to bottom, transparent, #00FFD1, transparent);
+  width: 1px;
+  height: 50px;
+  opacity: 0.3;
+  animation: data-stream 3s linear infinite;
+}
+
+@keyframes data-stream {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(500%);
+  }
+}
+
+/* New error animation */
+.error-flicker {
+  animation: error-flicker 2s ease-in-out infinite;
+}
+
+@keyframes error-flicker {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }

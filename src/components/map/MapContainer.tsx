@@ -132,13 +132,15 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
         'star-intensity': 0.6
       });
 
-      // Add terrain source only if needed
-      map.addSource('mapbox-dem', {
-        'type': 'raster-dem',
-        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        'tileSize': 512,
-        'maxzoom': 14
-      });
+      // Add terrain source only if it doesn't already exist
+      if (!map.getSource('mapbox-dem')) {
+        map.addSource('mapbox-dem', {
+          'type': 'raster-dem',
+          'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+          'tileSize': 512,
+          'maxzoom': 14
+        });
+      }
 
       setMapInitialized(true);
       if (onMapLoaded) onMapLoaded();

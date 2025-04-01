@@ -4,8 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EnhancedRFQForm from '@/components/forms/EnhancedRFQForm';
 import NewShipmentForm from '@/components/forms/NewShipmentForm';
 import { GlassContainer } from '@/components/ui/glass-effects';
+import AppTabs from '@/components/AppTabs';
+import { AppSection } from '@/types/deeptrack';
+import { useNavigate } from 'react-router-dom';
 
 const FormsPage = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<AppSection>('forms');
+  
   const demoForwarders = [
     { id: '1', name: 'Kenya Airways', reliability: 0.92 },
     { id: '2', name: 'DHL', reliability: 0.89 },
@@ -14,34 +20,57 @@ const FormsPage = () => {
     { id: '5', name: 'UPS', reliability: 0.88 }
   ];
 
+  const handleTabChange = (tab: AppSection) => {
+    if (tab !== 'forms') {
+      navigate('/');
+      // The main page will handle setting the correct tab
+    } else {
+      setActiveTab(tab);
+    }
+  };
+
   return (
-    <div className="w-full py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        <GlassContainer className="mb-6 p-4">
-          <h1 className="text-2xl font-bold text-center text-[#00FFD1]">DeepCAL Operations Center</h1>
-          <p className="text-sm text-center text-gray-400 mt-2">
-            Manage shipments and request quotes from the advanced operations hub
-          </p>
-        </GlassContainer>
-        
-        <Tabs defaultValue="rfq" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6">
-            <TabsTrigger value="rfq" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">
-              Request For Quotation
-            </TabsTrigger>
-            <TabsTrigger value="shipment" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">
-              New Shipment
-            </TabsTrigger>
-          </TabsList>
+    <div className="h-screen w-full overflow-x-hidden relative tech-bg">
+      <div className="absolute inset-0 bg-[#0A1A2F] z-0"></div>
+      <div className="tech-grid absolute inset-0 z-0"></div>
+      <div className="network-lines absolute inset-0 z-0"></div>
+      
+      {/* App name in top right */}
+      <div className="app-logo absolute top-4 right-4 bg-[#0A1A2F]/80 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-[#00FFD1]/30 shadow-[0_0_15px_rgba(0,255,209,0.2)]">
+        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00FFD1] to-blue-300">DeepCAL</h1>
+      </div>
+      
+      {/* Top Navigation */}
+      <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      
+      <div className="relative z-10 w-full pt-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <GlassContainer className="mb-6 p-4">
+            <h1 className="text-2xl font-bold text-center text-[#00FFD1]">DeepCAL Operations Center</h1>
+            <p className="text-sm text-center text-gray-400 mt-2">
+              Manage shipments and request quotes from the advanced operations hub
+            </p>
+          </GlassContainer>
           
-          <TabsContent value="rfq">
-            <EnhancedRFQForm availableForwarders={demoForwarders} />
-          </TabsContent>
-          
-          <TabsContent value="shipment">
-            <NewShipmentForm />
-          </TabsContent>
-        </Tabs>
+          <Tabs defaultValue="rfq" className="w-full">
+            <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6">
+              <TabsTrigger value="rfq" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">
+                Request For Quotation
+              </TabsTrigger>
+              <TabsTrigger value="shipment" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">
+                New Shipment
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="rfq">
+              <EnhancedRFQForm availableForwarders={demoForwarders} />
+            </TabsContent>
+            
+            <TabsContent value="shipment">
+              <NewShipmentForm />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

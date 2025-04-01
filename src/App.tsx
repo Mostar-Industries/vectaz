@@ -1,116 +1,52 @@
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Index from './pages/Index';
+import NotFound from './pages/NotFound';
+import Analytics from './pages/Analytics'; // Add import
+import { ThemeProvider } from './ThemeProvider';
+import { Toaster } from './components/ui/toaster';
+import DataBootLoader from './components/DataBootLoader';
+import LoadingScreen from './components/LoadingScreen';
+import { boot, isSystemBooted } from './init/boot';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import LoadingScreen from "./components/LoadingScreen";
-import { isSystemBooted, bootApp } from "./init/boot";
-import { useBaseDataStore } from "@/store/baseState";
-import { Shipment } from "./types/deeptrack";
-import { ThemeProvider } from "./ThemeProvider";
-import FloatingDeepTalk from "./components/FloatingDeepTalk";
-
-// Create a client
-const queryClient = new QueryClient();
-
-// Setup App with React Query for data fetching and caching
-const App = () => {
+const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const { setShipmentData } = useBaseDataStore();
-
+  const [isBooted, setIsBooted] = useState(false);
+  
   useEffect(() => {
-    // Load sample data faster for demonstration
-    const initializeApp = async () => {
-      console.log("Initializing application...");
-      
-      // Check if the system is already booted from a previous session
-      if (isSystemBooted()) {
-        console.log("System already booted, proceeding to application");
-        setIsLoading(false);
-        return;
-      }
-
-      // Sample data for faster boot with all required Shipment type fields
-      const sampleData: Shipment[] = Array(10).fill(0).map((_, i) => ({
-        request_reference: `SR_24-00${i}_NBO`,
-        origin_country: 'Kenya',
-        origin_latitude: 1.2404475,
-        origin_longitude: 36.990054,
-        destination_country: 'Zimbabwe',
-        destination_latitude: -17.80269125,
-        destination_longitude: 31.08848075,
-        weight_kg: 100 + i * 50,
-        delivery_status: i % 2 === 0 ? 'Delivered' : 'Pending',
-        freight_carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3],
-        date_of_collection: "2024-01-11",
-        date_of_arrival_destination: "2024-01-17",
-        cargo_description: "Agricultural supplies",
-        item_category: "Supplies",
-        volume_cbm: 2.5 + i * 0.5,
-        initial_quote_awarded: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3], // Changed from boolean to string
-        final_quote_awarded_freight_forwader_Carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3],
-        comments: "No issues reported",
-        mode_of_shipment: "Air",
-        forwarder_quotes: { 'Kenya Airways': 2500, 'DHL': 2700, 'Kuehne Nagel': 2600 }
-      }));
-      
+    const initialize = async () => {
+      setIsLoading(true);
       try {
-        // Boot the application
-        await bootApp();
-        console.log("Boot completed successfully");
-        
-        // Store the data in the global state
-        setShipmentData(sampleData, 'internal', 'v1.0', 'sample-hash');
+        await boot();
+        setIsBooted(isSystemBooted());
       } catch (error) {
-        console.error("Boot failed:", error);
+        console.error("Boot process failed:", error);
+        // Handle boot failure appropriately
       } finally {
         setIsLoading(false);
       }
     };
     
-    // Initialize immediately and set a fallback timer just in case
-    initializeApp();
-    
-    const fallbackTimer = setTimeout(() => {
-      console.log("Fallback timer triggered");
-      setIsLoading(false);
-    }, 3000); // Show loading screen for max 3 seconds
-    
-    return () => clearTimeout(fallbackTimer);
-  }, [setShipmentData]);
-
+    initialize();
+  }, []);
+  
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark">
-        <TooltipProvider>
-          {isLoading ? (
-            <LoadingScreen />
-          ) : (
-            <>
-              {/* Router for navigation */}
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                
-                {/* Floating DeepTalk appears on every page */}
-                <FloatingDeepTalk />
-              </BrowserRouter>
-          
-              {/* UI Components for notifications */}
-              <Toaster />
-              <Sonner />
-            </>
-          )}
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      {isLoading && <LoadingScreen />}
+      
+      {!isLoading && isBooted && (
+        <Router>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/analytics" element={<Analytics />} /> {/* Add Analytics route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <Toaster />
+        </Router>
+      )}
+      
+      {!isLoading && !isBooted && <DataBootLoader />}
+    </ThemeProvider>
   );
 };
 

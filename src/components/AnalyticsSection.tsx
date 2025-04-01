@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
@@ -91,7 +90,7 @@ const AnalyticsSection: React.FC = () => {
     quoteWinRate: 0.3 + Math.random() * 0.4
   }));
 
-  // Prepare carrier data
+  // Prepare carrier data conforming to the CarrierPerformance interface
   const carrierData: CarrierPerformance[] = uniqueCarriers.map(name => ({
     name,
     totalShipments: shipmentData.filter(s => s.freight_carrier === name).length,

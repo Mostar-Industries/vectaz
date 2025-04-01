@@ -1,16 +1,16 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ForwarderPerformance } from '@/types/deeptrack';
+import { ForwarderPerformance, CarrierPerformance } from '@/types/deeptrack';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { Users, DollarSign, Clock, Target, Star, RotateCcw, Brain, Truck, Plane } from 'lucide-react';
 
 interface ForwarderAnalyticsProps {
   forwarders: ForwarderPerformance[];
+  carriers: CarrierPerformance[];
 }
 
-const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders }) => {
+const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, carriers }) => {
   const [entityType, setEntityType] = useState<'forwarder' | 'carrier'>('forwarder');
   
   // Limit to top 5 forwarders for most charts

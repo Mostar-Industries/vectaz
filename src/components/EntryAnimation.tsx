@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader, CheckCircle, Database, Zap, Server, Cpu, ShieldCheck, Ship } from 'lucide-react';
@@ -232,8 +233,7 @@ const EntryAnimation: React.FC<EntryAnimationProps> = ({ onComplete }) => {
           
           <Progress 
             value={progress} 
-            className="h-1.5 bg-blue-950/50"
-            indicatorClassName="bg-gradient-to-r from-blue-400 to-[#00FFD1]" 
+            className="h-1.5 bg-blue-950/50" 
           />
         </div>
         

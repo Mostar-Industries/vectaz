@@ -65,14 +65,14 @@ const KPICard: React.FC<KPIProps> = ({
 interface KPIPanelProps {
   kpis: {
     totalShipments: number;
-    totalWeight: number;
-    totalVolume: number;
-    avgCostPerKg: number;
-    avgTransitDays: number;
-    modeSplit: {
-      air: number;
-      road: number;
-      sea: number;
+    totalWeight?: number;
+    totalVolume?: number;
+    avgCostPerKg?: number;
+    avgTransitDays?: number;
+    modeSplit?: {
+      air?: number;
+      road?: number;
+      sea?: number;
     };
     forwarderCount?: number;
     carrierCount?: number;
@@ -92,6 +92,12 @@ const KPIPanel: React.FC<KPIPanelProps> = ({ kpis, isLoading = false, className 
     );
   }
 
+  // Safe formatting function to handle undefined values
+  const safeFormat = (value: number | undefined, decimals: number = 1, suffix: string = ''): string => {
+    if (value === undefined) return 'N/A';
+    return `${value.toFixed(decimals)}${suffix}`;
+  };
+
   return (
     <div className={cn("grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6", className)}>
       <KPICard
@@ -102,19 +108,19 @@ const KPIPanel: React.FC<KPIPanelProps> = ({ kpis, isLoading = false, className 
       />
       <KPICard
         title="Avg Transit Time"
-        value={`${kpis.avgTransitDays.toFixed(1)} days`}
+        value={kpis.avgTransitDays !== undefined ? `${kpis.avgTransitDays.toFixed(1)} days` : 'N/A'}
         icon={<Clock className="h-6 w-6" />}
         color="cyan"
       />
       <KPICard
         title="Disruption Score"
-        value={`${(kpis.avgTransitDays / 2).toFixed(1)}`}
+        value={kpis.avgTransitDays !== undefined ? safeFormat(kpis.avgTransitDays / 2) : 'N/A'}
         icon={<AlertTriangle className="h-6 w-6" />}
         color="magenta"
       />
       <KPICard
         title="Resilience Score"
-        value={`${(50).toFixed(1)}`}
+        value={safeFormat(50)}
         icon={<Shield className="h-6 w-6" />}
         color="green"
       />

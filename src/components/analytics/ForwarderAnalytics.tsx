@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +16,9 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
   
   // Limit to top 5 forwarders for most charts
   const topForwarders = forwarders.slice(0, 5);
+  
+  // Limit to top 5 carriers for charts
+  const topCarriers = carriers.slice(0, 5);
   
   // Prepare data for cost comparison chart
   const costData = topForwarders.map(f => ({
@@ -56,14 +60,17 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
     return invert ? 100 - normalized : normalized;
   }
 
-  // Sample carrier data for demonstration
-  const carriers = [
-    { name: "Kenya Airways", shipments: 34, reliability: 82 },
-    { name: "Ethiopian Airlines", shipments: 27, reliability: 79 },
-    { name: "Emirates SkyCargo", shipments: 21, reliability: 86 },
-    { name: "Qatar Airways", shipments: 18, reliability: 84 },
-    { name: "Astral Aviation", shipments: 15, reliability: 75 }
-  ];
+  // Prepare carrier volume data
+  const carrierVolumeData = topCarriers.map(c => ({
+    name: c.name,
+    shipments: c.totalShipments
+  }));
+  
+  // Prepare carrier reliability data
+  const carrierReliabilityData = topCarriers.map(c => ({
+    name: c.name,
+    reliability: (c.reliabilityScore * 100).toFixed(1)
+  }));
 
   return (
     <div className="space-y-6">
@@ -340,7 +347,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold truncate">
-                  {carriers.sort((a, b) => b.reliability - a.reliability)[0]?.name || "N/A"}
+                  {carriers.length > 0 ? carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0]?.name : "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Based on reliability score
@@ -357,7 +364,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold truncate">
-                  {carriers.sort((a, b) => b.shipments - a.shipments)[0]?.name || "N/A"}
+                  {carriers.length > 0 ? carriers.sort((a, b) => b.totalShipments - a.totalShipments)[0]?.name : "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Highest shipment volume
@@ -375,7 +382,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               <CardContent>
                 <div className="text-2xl font-bold">Medium</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  5 active carriers
+                  {carriers.length} active carriers
                 </p>
               </CardContent>
             </Card>
@@ -390,7 +397,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
             <CardContent>
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={carriers} layout="vertical">
+                  <BarChart data={carrierVolumeData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
                     <YAxis dataKey="name" type="category" width={150} />
@@ -412,7 +419,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
             <CardContent>
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={carriers} layout="vertical">
+                  <BarChart data={carrierReliabilityData} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" domain={[0, 100]} />
                     <YAxis dataKey="name" type="category" width={150} />
@@ -438,7 +445,9 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/50">
                   <h3 className="font-medium mb-2">Carrier Performance Analysis</h3>
                   <p className="text-sm text-muted-foreground">
-                    Emirates SkyCargo demonstrates the highest reliability score (86%), followed closely by Qatar Airways (84%). 
+                    {carriers.length > 1 ? 
+                      `${carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0]?.name} demonstrates the highest reliability score (${(carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0]?.reliabilityScore * 100).toFixed(1)}%), followed closely by ${carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[1]?.name}.` : 
+                      'Carrier data analysis requires at least two carriers to compare performance.'}
                     Consider allocating more critical and time-sensitive shipments to these carriers when possible.
                   </p>
                 </div>
@@ -446,9 +455,9 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/50">
                   <h3 className="font-medium mb-2">Carrier Optimization Strategy</h3>
                   <p className="text-sm text-muted-foreground">
-                    Kenya Airways is currently your most used carrier. While they provide good volume capacity, 
-                    their reliability score (82%) suggests there may be opportunities to diversify and test 
-                    alternative carriers for specific routes to improve overall performance.
+                    {carriers.length > 0 ? 
+                      `${carriers.sort((a, b) => b.totalShipments - a.totalShipments)[0]?.name} is currently your most used carrier. While they provide good volume capacity, their reliability score suggests there may be opportunities to diversify and test alternative carriers for specific routes to improve overall performance.` :
+                      'No carrier usage data available for optimization analysis.'}
                   </p>
                 </div>
               </div>

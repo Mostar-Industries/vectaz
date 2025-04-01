@@ -1,4 +1,3 @@
-
 export interface Shipment {
   date_of_collection: string;
   request_reference: string;
@@ -100,8 +99,8 @@ export interface ShipmentMetrics {
     active: number;
     completed: number;
     failed: number;
-    onTime?: number;
-    inTransit?: number;
+    onTime: number;
+    inTransit: number;
   };
   resilienceScore: number;
   noQuoteRatio: number;
@@ -110,7 +109,7 @@ export interface ShipmentMetrics {
   topForwarder?: string;
   topCarrier?: string;
   carrierCount?: number;
-  avgCostPerKg?: number;
+  avgCostPerKg: number;
 }
 
 export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';

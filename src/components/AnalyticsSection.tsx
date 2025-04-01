@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
@@ -7,7 +8,7 @@ import ShipmentAnalytics from '@/components/analytics/ShipmentAnalytics';
 import ForwarderAnalytics from '@/components/analytics/ForwarderAnalytics';
 import CountryAnalytics from '@/components/analytics/CountryAnalytics';
 import WarehouseAnalytics from '@/components/analytics/WarehouseAnalytics';
-import { useDeepTalkHandler } from '@/components/analytics/DeepTalkHandler';
+import { getDeepTalkHandler } from '@/components/analytics/DeepTalkHandler';
 import { analyzeShipmentData } from '@/utils/analyticsUtils';
 import { ShipmentMetrics, CountryPerformance, ForwarderPerformance, WarehousePerformance, CarrierPerformance } from '@/types/deeptrack';
 
@@ -16,7 +17,7 @@ const AnalyticsSection: React.FC = () => {
   const { shipmentData } = useBaseDataStore();
   const [activeTab, setActiveTab] = useState('overview');
   const [showDeepTalk, setShowDeepTalk] = useState(false);
-  const handleDeepTalkQuery = useDeepTalkHandler();
+  const handleDeepTalkQuery = getDeepTalkHandler();
 
   // Process the shipment data for analytics
   const analyticsData = analyzeShipmentData(shipmentData);
@@ -45,6 +46,8 @@ const AnalyticsSection: React.FC = () => {
       active: shipmentData.filter(s => s.delivery_status === 'In Transit').length,
       completed: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
       failed: shipmentData.filter(s => s.delivery_status === 'Failed').length,
+      onTime: shipmentData.filter(s => s.delivery_status === 'Delivered').length,
+      inTransit: shipmentData.filter(s => s.delivery_status === 'In Transit').length
     },
     resilienceScore: 85,
     noQuoteRatio: 0.05,
@@ -57,7 +60,8 @@ const AnalyticsSection: React.FC = () => {
     topForwarder: Object.entries(analyticsData.forwarderBreakdown || {})
       .sort(([_, a], [__, b]) => (b as number) - (a as number))
       .map(([name]) => name)[0] || "Unknown",
-    topCarrier: uniqueCarriers.length > 0 ? uniqueCarriers[0] : "Unknown"
+    topCarrier: uniqueCarriers.length > 0 ? uniqueCarriers[0] : "Unknown",
+    avgCostPerKg: 12.50 // Add a default value for average cost per kg
   };
 
   // Prepare country performance data conforming to the CountryPerformance interface
@@ -91,16 +95,23 @@ const AnalyticsSection: React.FC = () => {
   }));
 
   // Prepare carrier data conforming to the CarrierPerformance interface
-  const carrierData: CarrierPerformance[] = uniqueCarriers.map(name => ({
-    name,
-    totalShipments: shipmentData.filter(s => s.freight_carrier === name).length,
-    avgTransitDays: 4 + Math.random() * 6,
-    onTimeRate: 0.7 + Math.random() * 0.3,
-    reliabilityScore: 0.65 + Math.random() * 0.35,
-    serviceScore: Math.random() * 100,
-    punctualityScore: Math.random() * 100,
-    handlingScore: Math.random() * 100
-  }));
+  const carrierData: CarrierPerformance[] = uniqueCarriers.map(name => {
+    const totalShipments = shipmentData.filter(s => s.freight_carrier === name).length;
+    const reliabilityValue = 0.65 + Math.random() * 0.35;
+    return {
+      name,
+      totalShipments,
+      avgTransitDays: 4 + Math.random() * 6,
+      onTimeRate: 0.7 + Math.random() * 0.3,
+      reliabilityScore: reliabilityValue,
+      serviceScore: Math.random() * 100,
+      punctualityScore: Math.random() * 100,
+      handlingScore: Math.random() * 100,
+      // Add the required properties for ForwarderAnalytics
+      shipments: totalShipments,
+      reliability: reliabilityValue * 100
+    };
+  });
 
   // Prepare warehouse data conforming to the WarehousePerformance interface
   const warehouseData: WarehousePerformance[] = Array(5).fill(0).map((_, i) => ({

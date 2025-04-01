@@ -4,13 +4,13 @@ import { Bot, BrainCircuit, X, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import DeepTalk from './DeepTalk';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useDeepTalkHandler } from './analytics/DeepTalkHandler';
+import { getDeepTalkHandler } from './analytics/DeepTalkHandler';
 
 const FloatingDeepTalk: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [pulseCount, setPulseCount] = useState(0);
-  const handleQuery = useDeepTalkHandler();
+  const handleQuery = getDeepTalkHandler();
 
   useEffect(() => {
     if (!isOpen) {

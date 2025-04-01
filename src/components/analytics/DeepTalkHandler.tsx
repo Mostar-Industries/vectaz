@@ -44,7 +44,11 @@ export const useDeepTalkHandler = () => {
 };
 
 // Export a typed handler function that matches the expected signature
+// This function extracts just the handleQuery function from the hook result
 export const getDeepTalkHandler = (): ((query: string) => Promise<string>) => {
   const { handleQuery } = useDeepTalkHandler();
   return handleQuery;
 };
+
+// This hook is for direct use in components
+export default useDeepTalkHandler;

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import MapVisualizer from '@/components/MapVisualizer';
@@ -12,6 +11,7 @@ import SettingsSection from '@/components/SettingsSection';
 import EntryAnimation from '@/components/EntryAnimation';
 import { motion, AnimatePresence } from 'framer-motion';
 import IconNavigation from '@/components/IconNavigation';
+import { DecisionMatrix } from '@/components';
 
 const Index = () => {
   const { isDataLoaded, shipmentData } = useBaseDataStore();

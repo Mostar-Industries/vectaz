@@ -91,12 +91,12 @@ export const useBaseDataStore = create<BaseDataStore>((set, get) => ({
   // Check if the engine is allowed to boot
   canBootEngine: () => {
     const state = get();
-    const { cost, time, reliability } = state.criteriaWeights;
-
     return (
       state.isDataLoaded &&
       !state.hasMockData() &&
-      cost > 0 && time > 0 && reliability > 0
+      state.criteriaWeights.cost > 0 && 
+      state.criteriaWeights.time > 0 && 
+      state.criteriaWeights.reliability > 0
     );
   },
 

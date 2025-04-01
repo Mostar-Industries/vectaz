@@ -49,47 +49,6 @@ const calculateDataHash = (data: any[]): string => {
   return 'sha256-' + Math.abs(hash).toString(16);
 };
 
-// Process raw data into our Shipment format
-export const processRawData = (data: any[]): Shipment[] => {
-  return data.map(item => {
-    // Parse forwarder quotes from columns
-    const forwarderQuotes: Record<string, number> = {};
-    const knownForwarders = [
-      'kenya_airways', 'kuehne_nagel', 'scan_global_logistics', 
-      'dhl_express', 'dhl_global', 'bwosi', 'agl', 'siginon', 'frieght_in_time'
-    ];
-    
-    knownForwarders.forEach(forwarder => {
-      if (item[forwarder] && typeof item[forwarder] === 'number') {
-        forwarderQuotes[forwarder] = item[forwarder];
-      }
-    });
-    
-    return {
-      date_of_collection: item.date_of_collection,
-      request_reference: item.request_reference || item.shipment_id,
-      cargo_description: item.cargo_description,
-      item_category: item.item_category,
-      origin_country: item.origin_country || item.origin,
-      origin_longitude: parseFloat(item.origin_longitude),
-      origin_latitude: parseFloat(item.origin_latitude),
-      destination_country: item.destination_country || item.dest,
-      destination_longitude: parseFloat(item.destination_longitude),
-      destination_latitude: parseFloat(item.destination_latitude),
-      freight_carrier: item.freight_carrier || item.carrier,
-      weight_kg: parseFloat(item.weight_kg),
-      volume_cbm: parseFloat(item.volume_cbm),
-      initial_quote_awarded: item.initial_quote_awarded,
-      final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier,
-      comments: item.comments,
-      date_of_arrival_destination: item.date_of_arrival_destination,
-      delivery_status: item.delivery_status,
-      mode_of_shipment: item.mode_of_shipment,
-      forwarder_quotes: forwarderQuotes
-    };
-  });
-};
-
 // Main data validation and loading function
 export const validateAndLoadData = (data: any[], config: DataValidationConfig): DatasetMetadata | null => {
   try {

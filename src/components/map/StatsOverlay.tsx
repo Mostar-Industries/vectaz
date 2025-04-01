@@ -24,8 +24,8 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
         </div>
       </div>
       
-      {/* Repositioned floating stat cards to center */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 space-y-3 z-10 w-80">
+      {/* Floating stat cards - repositioned to left center */}
+      <div className="absolute top-1/2 left-4 transform -translate-y-1/2 space-y-3 z-10 w-80">
         <div className="glassmorphism-card p-3 rounded-md shadow-md border border-mostar-light-blue/30 max-w-xs">
           <h3 className="font-bold mb-2 text-sm text-cyber-blue">Active Shipments</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">

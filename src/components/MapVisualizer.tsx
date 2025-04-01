@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Package, MapPin, Shield, Zap, Ship, AlertTriangle } from 'lucide-react';
@@ -28,7 +27,6 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
   const mapContainerRef = useRef<any>(null);
   const { toast } = useToast();
   
-  // Load country markers on component mount
   useEffect(() => {
     const markers = getDestinationMarkers().map(country => ({
       ...country,
@@ -37,13 +35,11 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     setCountryMarkers(markers);
   }, []);
 
-  // Limit to only 3 most recent routes
   const limitedRoutes = routes.slice(0, 3);
 
   const handleMapLoaded = () => {
     setMapLoaded(true);
     
-    // Welcome toast with instructions
     toast({
       title: "Map Loaded",
       description: "Tap to rotate the globe and explore destination countries.",
@@ -55,7 +51,6 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     setActiveRoute(routeIndex);
     
     if (routeIndex !== null) {
-      // Show info on the map for the selected route
       showRouteInfoOnMap(limitedRoutes[routeIndex], routeIndex);
     }
   };
@@ -71,11 +66,9 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
   const showRouteInfoOnMap = (route: Route, index: number) => {
     const { origin, destination, weight, deliveryStatus } = route;
     
-    // Generate a random risk score between 1-10
     const riskScore = Math.floor(Math.random() * 10) + 1;
     const resilienceScore = Math.floor(Math.random() * 30) + 70;
     
-    // Add witty commentary based on status
     let statusComment = '';
     if (deliveryStatus === 'Delivered') {
       statusComment = 'Right on schedule. Someone deserves a raise.';
@@ -85,7 +78,6 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       statusComment = 'This package has seen more countries than Anthony Bourdain. Status: Lost in transit.';
     }
     
-    // Create HTML content for the popup with enhanced styling
     const popupContent = `
       <div class="route-info p-3">
         <div class="flex items-center justify-between mb-2">
@@ -137,25 +129,19 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       </div>
     `;
     
-    // Jump to the location
     mapContainerRef.current.jumpToLocation(destination.lat, destination.lng, destination.name);
     
-    // Show info popup at the location
     mapContainerRef.current.showInfoAtLocation(destination.lat, destination.lng, popupContent);
   };
 
   const handleJumpToLocation = (lat: number, lng: number, name: string) => {
-    // Access the map instance's jumpToLocation method through ref
     if (mapContainerRef.current?.jumpToLocation) {
       mapContainerRef.current.jumpToLocation(lat, lng, name);
     }
   };
 
   const handleShipmentSelect = (shipment: Route, index: number) => {
-    // When a shipment is selected, show its info on the map
     showRouteInfoOnMap(shipment, index);
-    
-    // Also set the active route
     setActiveRoute(index);
   };
 
@@ -186,19 +172,16 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       
       {mapLoaded && (
         <>
-          {/* Repositioned holographic shipment list to center-right */}
           {limitedRoutes.length > 0 && (
             <ShipmentHologram 
               shipments={limitedRoutes}
               onSelect={handleShipmentSelect}
-              className="absolute top-4 left-1/2 transform -translate-x-1/2 w-80 max-h-[500px]"
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 w-80 max-h-[320px]"
             />
           )}
           
-          {/* Stats overlay - now positioned by StatsOverlay component */}
           <StatsOverlay routesCount={limitedRoutes.length} />
           
-          {/* 3D mode toggle */}
           <button
             onClick={toggle3DMode}
             className="absolute bottom-24 right-4 glass-panel p-2 flex items-center space-x-2 text-xs text-[#00FFD1] hover:bg-[#00FFD1]/10 transition-colors"
@@ -207,7 +190,6 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
             <span>{is3DMode ? "2D View" : "3D View"}</span>
           </button>
           
-          {/* Map legend */}
           <div className="absolute bottom-4 left-4 glass-panel p-3 text-xs">
             <div className="text-white mb-2 font-semibold">Status Legend</div>
             <div className="flex items-center space-x-2 mb-1">
@@ -228,7 +210,6 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
             </div>
           </div>
           
-          {/* Country count indicator */}
           <div className="absolute top-4 left-4 glass-panel p-2 text-xs">
             <div className="text-[#00FFD1] font-semibold flex items-center">
               <MapPin size={14} className="mr-1" />

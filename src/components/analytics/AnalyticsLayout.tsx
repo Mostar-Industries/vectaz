@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BarChart, Brain, X } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
@@ -6,7 +7,14 @@ import { Button } from '@/components/ui/button';
 
 interface AnalyticsLayoutProps {
   title: string;
-  kpis?: any;
+  kpis?: Array<{
+    label: string;
+    value: string | number;
+    trend?: string;
+    trendDirection?: 'up' | 'down' | 'neutral';
+    iconName?: string;
+    color?: string;
+  }>;
   children: React.ReactNode;
   showDeepTalk: boolean;
   onToggleDeepTalk: () => void;
@@ -56,7 +64,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       
       {/* KPIs - Compact View */}
       {kpis && (
-        <div className="mb-4 overflow-x-auto">
+        <div className="mb-4 overflow-x-auto glass-panel rounded-lg border border-gray-700">
           <KPIPanel className="min-w-max" kpis={kpis} />
         </div>
       )}
@@ -64,7 +72,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       {/* Main Content Area - Dynamic Grid */}
       <div className={`transition-all duration-300 ${showDeepTalk ? 'grid grid-cols-1 lg:grid-cols-4 gap-4' : ''}`}>
         {/* Primary Content - Always full width when DeepTalk closed */}
-        <div className={showDeepTalk ? 'lg:col-span-3' : ''}>
+        <div className={`${showDeepTalk ? 'lg:col-span-3' : ''} glass-panel rounded-lg border border-gray-700 p-4`}>
           {children}
         </div>
         

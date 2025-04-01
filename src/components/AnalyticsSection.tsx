@@ -1,4 +1,5 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
 import AnalyticsTabs from '@/components/analytics/AnalyticsTabs';
@@ -34,7 +35,7 @@ const AnalyticsSection: React.FC = () => {
   const [trendData, setTrendData] = useState<HistoricalTrends>({});
   const [calculationError, setCalculationError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('overview');
-
+  const [showDeepTalk, setShowDeepTalk] = useState<boolean>(false);
 
   // Initialize Core engine with validated data
   useEffect(() => {
@@ -70,6 +71,13 @@ const AnalyticsSection: React.FC = () => {
       console.error('Core Engine Error:', error);
     }
   }, [shipmentData]);
+
+  // Handle DeepTalk queries
+  const handleDeepTalkQuery = async (query: string): Promise<string> => {
+    // Simulate a response - in a real implementation, this would call an AI endpoint
+    return `Based on your logistics data analysis, I can provide insights about "${query}". 
+    The data shows significant trends in on-time delivery rates and cost efficiency across your top forwarders.`;
+  };
 
   // Build KPIs from Core metrics
   const kpis = coreMetrics ? [
@@ -109,14 +117,15 @@ const AnalyticsSection: React.FC = () => {
 
   if (calculationError) {
     return (
-      <AnalyticsLayout title="Error" showDeepTalk={false} onToggleDeepTalk={function (): void {
-        throw new Error('Function not implemented.');
-      } } onDeepTalkQuery={function (_query: string): Promise<string> {
-        throw new Error('Function not implemented.');
-      } }>
-        <div className="core-error">
-          <h3>🚨 Core Engine Failure</h3> 
-          <p>{calculationError}</p>
+      <AnalyticsLayout 
+        title="Error" 
+        showDeepTalk={false} 
+        onToggleDeepTalk={() => setShowDeepTalk(!showDeepTalk)} 
+        onDeepTalkQuery={handleDeepTalkQuery}
+      >
+        <div className="core-error p-4">
+          <h3 className="text-xl text-red-400 mb-2">🚨 Core Engine Failure</h3> 
+          <p className="mb-2">{calculationError}</p>
           <p>Please verify your shipment data format</p>
         </div>
       </AnalyticsLayout>
@@ -127,61 +136,67 @@ const AnalyticsSection: React.FC = () => {
     <AnalyticsLayout
         title="DeepCAL Analytics"
         kpis={kpis}
-        showDeepTalk={false}
-        onToggleDeepTalk={function (): void {
-        throw new Error('Function not implemented.');
-        }} onDeepTalkQuery={function (_query: string): Promise<string> {
-          throw new Error('Function not implemented.');
-        }}>
+        showDeepTalk={showDeepTalk}
+        onToggleDeepTalk={() => setShowDeepTalk(!showDeepTalk)}
+        onDeepTalkQuery={handleDeepTalkQuery}
+    >
       <AnalyticsTabs
         activeTab={activeTab}
         onTabChange={setActiveTab}
         overviewContent={<OverviewContent metrics={coreMetrics} />}
-        shipmentsContent={<ShipmentAnalytics
-          transitTime={coreMetrics.avgTransitDays}          metrics={{
-                      totalShipments: coreMetrics.totalShipments,
-                      avgTransitTime: coreMetrics.avgTransitDays,
-                      shipmentStatusCounts: {
-                        pending: 0,
-                        active: 0,
-                        completed: coreMetrics.totalShipments,
-                        delayed: 0,
-                        cancelled: 0
-                      },
-                      shipmentsByMode: {
-                        air: coreMetrics.modeSplit.air,
-                        sea: coreMetrics.modeSplit.sea,
-                        road: coreMetrics.modeSplit.road
-                      },
-                      delayedVsOnTimeRate: {
-                        onTime: Math.round(coreMetrics.onTimeRate * coreMetrics.totalShipments),
-                        delayed: Math.round((1 - coreMetrics.onTimeRate) * coreMetrics.totalShipments)
-                      },
-                      monthlyTrend: [],
-                      disruptionProbabilityScore: 0,
-                      resilienceScore: coreMetrics.routeResilience * 100,
-                      noQuoteRatio: 0, 
-                      avgCostPerKg: coreMetrics.costEfficiency
-                    }}
-                  />
-                  }
-                  
-          modeSplit={coreMetrics.modeSplit}
-        />}
-        forwardersContent={<ForwarderAnalytics
-          forwarders={new DeepCALEngine().getForwarderPerformance()} carriers={[]} />}
-        countriesContent={<CountryAnalytics
-          countries={new DeepCALEngine().getTopRoutes(10)}
-        />}
-        warehousesContent={<WarehouseAnalytics
-          warehouses={new DeepCALEngine().getWarehousePerformance()} 
-        />}
+        shipmentsContent={
+          <ShipmentAnalytics
+            transitTime={coreMetrics.avgTransitDays}
+            metrics={{
+              totalShipments: coreMetrics.totalShipments,
+              avgTransitTime: coreMetrics.avgTransitDays,
+              shipmentStatusCounts: {
+                pending: 0,
+                active: 0,
+                completed: coreMetrics.totalShipments,
+                delayed: 0,
+                cancelled: 0
+              },
+              shipmentsByMode: {
+                air: coreMetrics.modeSplit.air,
+                sea: coreMetrics.modeSplit.sea,
+                road: coreMetrics.modeSplit.road
+              },
+              delayedVsOnTimeRate: {
+                onTime: Math.round(coreMetrics.onTimeRate * coreMetrics.totalShipments),
+                delayed: Math.round((1 - coreMetrics.onTimeRate) * coreMetrics.totalShipments)
+              },
+              monthlyTrend: [],
+              disruptionProbabilityScore: 0,
+              resilienceScore: coreMetrics.routeResilience * 100,
+              noQuoteRatio: 0, 
+              avgCostPerKg: coreMetrics.costEfficiency
+            }}
+            modeSplit={coreMetrics.modeSplit}
+          />
+        }
+        forwardersContent={
+          <ForwarderAnalytics
+            forwarders={new DeepCALEngine().getForwarderPerformance()} 
+            carriers={[]} 
+          />
+        }
+        countriesContent={
+          <CountryAnalytics
+            countries={new DeepCALEngine().getTopRoutes(10)}
+          />
+        }
+        warehousesContent={
+          <WarehouseAnalytics
+            warehouses={new DeepCALEngine().getWarehousePerformance()} 
+          />
+        }
       />
     </AnalyticsLayout>
-    ) : (
-    <div className="core-loading">
+  ) : (
+    <div className="core-loading flex flex-col items-center justify-center h-[50vh] glass-panel rounded-lg border border-gray-700 p-8">
       <DeepCALSpinner />
-      <p>Initializing Core Analytics Engine...</p>
+      <p className="mt-4 text-lg">Initializing Core Analytics Engine...</p>
     </div>
   );
 };

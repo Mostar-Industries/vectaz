@@ -142,7 +142,9 @@
   
   /* Glass panel styles */
   .glass-panel {
-    @apply relative overflow-hidden rounded-lg border border-mostar-light-blue/20 bg-black/60 backdrop-blur-md shadow-sm;
+    backdrop-filter: blur(12px);
+    background: rgba(15, 23, 42, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   }
   
   .glass-panel::before {

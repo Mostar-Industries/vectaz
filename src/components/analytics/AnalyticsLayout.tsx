@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 
 interface AnalyticsLayoutProps {
   title: string;
-  kpis: any;
+  kpis?: any;
   children: React.ReactNode;
   showDeepTalk: boolean;
   onToggleDeepTalk: () => void;
@@ -44,7 +44,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
         </Button>
       </div>
       
-      <KPIPanel className="mb-6" />
+      {kpis && <KPIPanel className="mb-6" />}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">

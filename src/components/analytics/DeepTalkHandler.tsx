@@ -40,5 +40,11 @@ export const useDeepTalkHandler = () => {
     }
   };
 
+  return { handleQuery, isProcessing };
+};
+
+// Export a typed handler function that matches the expected signature
+export const getDeepTalkHandler = (): ((query: string) => Promise<string>) => {
+  const { handleQuery } = useDeepTalkHandler();
   return handleQuery;
 };

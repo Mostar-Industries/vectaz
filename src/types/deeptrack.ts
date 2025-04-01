@@ -44,7 +44,7 @@ export interface CarrierPerformance {
   serviceScore?: number;
   punctualityScore?: number;
   handlingScore?: number;
-  // Add missing properties used in ForwarderAnalytics
+  // Properties to match ForwarderAnalytics component usage
   shipments: number;
   reliability: number;
 }

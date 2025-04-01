@@ -46,13 +46,15 @@ const LoadingScreen: React.FC = () => {
         }
         
         const newPhase = Math.floor(prevProgress / 25);
-        if (newPhase !== loadingPhase) {
+        if (newPhase !== loadingPhase && newPhase < loadingPhases.length) {
           setLoadingPhase(newPhase);
-          setVerificationStatus(prev => [...prev, `${loadingPhases[Math.min(newPhase - 1, 3)].name} Complete`]);
+          if (newPhase > 0) {
+            setVerificationStatus(prev => [...prev, `${loadingPhases[Math.min(newPhase - 1, 3)].name} Complete`]);
+          }
         }
         
         const phaseProgress = prevProgress % 25;
-        if (phaseProgress % 8 === 0) {
+        if (phaseProgress % 8 === 0 && newPhase < loadingPhases.length) {
           const currentPhase = Math.min(newPhase, loadingPhases.length - 1);
           const msgIndex = Math.floor(phaseProgress / 8) % loadingPhases[currentPhase].messages.length;
           setLoadingText(loadingPhases[currentPhase].messages[msgIndex]);
@@ -106,15 +108,15 @@ const LoadingScreen: React.FC = () => {
   };
   
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-slate-950 to-blue-950 flex flex-col items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gradient-to-b from-slate-950 to-blue-950 flex flex-col items-center justify-center z-50 overflow-hidden">
       {/* Particles background */}
       <Particles
         particleColors={particleColors}
-        particleCount={250}
+        particleCount={200}
         particleSpread={12}
-        speed={0.06}
+        speed={0.05}
         particleBaseSize={80}
-        moveParticlesOnHover={true}
+        moveParticlesOnHover={false}
         particleHoverFactor={0.5}
         alphaParticles={true}
         sizeRandomness={0.8}
@@ -126,13 +128,13 @@ const LoadingScreen: React.FC = () => {
       
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px]" />
       
-      <div className="max-w-md w-full z-10 px-6">
+      <div className="max-w-md w-full z-10 px-6 relative">
         <LogoSection showLogo={showLogo} showTagline={showTagline} />
         
         <LoadingStatusPanel 
           progress={progress}
           currentPhase={loadingPhase}
-          phaseName={loadingPhases[loadingPhase].name}
+          phaseName={loadingPhases[Math.min(loadingPhase, loadingPhases.length - 1)].name}
           totalPhases={loadingPhases.length}
           loadingText={loadingText}
         />

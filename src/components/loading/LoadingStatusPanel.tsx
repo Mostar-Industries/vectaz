@@ -25,12 +25,12 @@ const LoadingStatusPanel: React.FC<LoadingStatusPanelProps> = ({
           <p className="text-sm font-semibold text-blue-200">
             Phase {currentPhase + 1}/{totalPhases}: {phaseName}
           </p>
-          <p className="text-xs text-blue-200/60 font-mono">{progress}%</p>
+          <p className="text-xs text-blue-200/60 font-mono">{Math.round(progress)}%</p>
         </div>
         
         <Progress 
           value={progress} 
-          className="h-1.5 bg-blue-950/50" 
+          className="h-2 bg-blue-950/50" 
         />
       </div>
       
@@ -38,9 +38,9 @@ const LoadingStatusPanel: React.FC<LoadingStatusPanelProps> = ({
         <motion.div 
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 1.5, repeat: Infinity }}
-          className="w-2 h-2 bg-blue-400 rounded-full mr-2"
+          className="w-2 h-2 bg-blue-400 rounded-full mr-2 flex-shrink-0"
         />
-        <p className="text-sm text-blue-200/80 font-mono">
+        <p className="text-sm text-blue-200/80 font-mono break-words">
           {loadingText}
         </p>
       </div>

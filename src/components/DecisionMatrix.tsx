@@ -14,37 +14,38 @@ const DecisionMatrix: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [calculationResult, setCalculationResult] = useState<any>(null);
 
-  // Load matrix data on component mount
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      
-      // Try to load from Supabase first
-      const dbMatrix = await retrieveDecisionMatrix();
-      
-      if (dbMatrix && dbMatrix.rows.length > 0) {
-        setMatrixData(dbMatrix);
-      } else {
-        // If not in database, load from CSV file
-        const csvMatrix = await loadDecisionMatrix();
-        if (csvMatrix) {
-          const formattedMatrix: MatrixData = {
-            rows: csvMatrix.matrix,
-            columnCount: csvMatrix.criteria.length
-          };
-          setMatrixData(formattedMatrix);
-          
-          // Store in Supabase for future use
-          if (formattedMatrix.rows.length > 0) {
-            await storeDecisionMatrix(formattedMatrix);
-          }
+  // Function to load matrix data 
+  const loadMatrixData = async () => {
+    setIsLoading(true);
+    
+    // Try to load from Supabase first
+    const dbMatrix = await retrieveDecisionMatrix();
+    
+    if (dbMatrix && dbMatrix.rows.length > 0) {
+      setMatrixData(dbMatrix);
+    } else {
+      // If not in database, load from CSV file
+      const csvMatrix = await loadDecisionMatrix();
+      if (csvMatrix) {
+        const formattedMatrix: MatrixData = {
+          rows: csvMatrix.matrix,
+          columnCount: csvMatrix.criteria.length
+        };
+        setMatrixData(formattedMatrix);
+        
+        // Store in Supabase for future use
+        if (formattedMatrix.rows.length > 0) {
+          await storeDecisionMatrix(formattedMatrix);
         }
       }
-      
-      setIsLoading(false);
-    };
+    }
     
-    loadData();
+    setIsLoading(false);
+  };
+
+  // Load matrix data on component mount
+  useEffect(() => {
+    loadMatrixData();
     
     // Set up Supabase realtime subscription for calculation results
     const channel = supabase
@@ -194,7 +195,7 @@ const DecisionMatrix: React.FC = () => {
         )}
       </CardContent>
       <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={() => loadData()}>
+        <Button variant="outline" onClick={() => loadMatrixData()}>
           Reload Matrix
         </Button>
         <Button onClick={runCalculation} disabled={isProcessing}>

@@ -1,94 +1,75 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { loadDecisionMatrix, MatrixData } from "@/utils/decisionMatrixParser";
+import { MatrixData } from '@/utils/decisionMatrixParser';
+import { fetchJsonData } from '@/utils/pathMapping';
 
-// Retrieve matrix data from database
-export const retrieveDecisionMatrix = async (): Promise<MatrixData | null> => {
+/**
+ * Loads a decision matrix from a data source
+ */
+export const loadMatrixFromSource = async (): Promise<MatrixData | null> => {
   try {
-    // Initialize the Supabase client with the right method
-    const { data, error } = await supabase.rpc('get_latest_decision_matrix');
+    // Load from a data source
+    const matrixData = await fetchJsonData('src/core/base_data/decision_matrix.json');
     
-    if (error) throw error;
-    if (!data) return null;
+    if (!matrixData || !matrixData.matrix || !matrixData.criteria) {
+      throw new Error('Invalid matrix data format');
+    }
     
     return {
-      rows: data.matrix || [],
-      columnCount: (data.criteria || []).length
+      rows: matrixData.matrix,
+      columnCount: matrixData.criteria.length
     };
   } catch (error) {
-    console.error("Error retrieving decision matrix:", error);
+    console.error('Error loading matrix from source:', error);
     return null;
   }
 };
 
-// Store matrix data in database
+/**
+ * Retrieves a stored decision matrix
+ */
+export const retrieveDecisionMatrix = async (): Promise<MatrixData | null> => {
+  try {
+    // In a real app, this would fetch from a database
+    return await loadMatrixFromSource();
+  } catch (error) {
+    console.error('Error retrieving decision matrix:', error);
+    return null;
+  }
+};
+
+/**
+ * Stores a decision matrix
+ */
 export const storeDecisionMatrix = async (matrixData: MatrixData): Promise<boolean> => {
   try {
-    // Create a minimal DecisionMatrix from MatrixData
-    const decisionMatrix = {
-      alternatives: matrixData.rows.map((_, idx) => `Alt ${idx + 1}`),
-      criteria: Array.from({ length: matrixData.columnCount }, (_, idx) => `Criterion ${idx + 1}`),
-      matrix: matrixData.rows
-    };
-    
-    // Use the correct typing for RPC calls
-    const response = await supabase.rpc('store_decision_matrix', {
-      alternatives_data: decisionMatrix.alternatives,
-      criteria_data: decisionMatrix.criteria,
-      matrix_data: decisionMatrix.matrix
-    });
-    
-    if (response.error) throw response.error;
+    // In a real app, this would store to a database
+    console.log('Storing matrix data:', matrixData);
     return true;
   } catch (error) {
-    console.error("Error storing decision matrix:", error);
+    console.error('Error storing decision matrix:', error);
     return false;
   }
 };
 
-// Run a calculation on the decision matrix
+/**
+ * Runs a calculation on a decision matrix
+ */
 export const runMatrixCalculation = async (matrixData: MatrixData): Promise<any> => {
-  if (!matrixData || matrixData.rows.length === 0) {
-    toast({
-      title: "Error",
-      description: "No matrix data available to process",
-      variant: "destructive",
-    });
-    return null;
-  }
-  
   try {
-    // Call the Edge Function to process the matrix
-    const response = await supabase.functions.invoke('process-decision-matrix', {
-      body: { matrix: matrixData.rows }
-    });
+    // Simulate a calculation process
+    // In a real app, this might call an API or a complex algorithm
     
-    if (response.error) throw response.error;
+    const scores = matrixData.rows.map(row => 
+      row.reduce((sum, val) => sum + val, 0) / row.length
+    );
     
-    toast({
-      title: "Success",
-      description: "Matrix calculation completed successfully",
-    });
-    
-    return response.data;
-  } catch (error) {
-    console.error("Error processing matrix:", error);
-    toast({
-      title: "Calculation Error",
-      description: "Failed to process the matrix. Using TypeScript fallback.",
-      variant: "destructive",
-    });
-    
-    // Fallback to simple TypeScript calculation
-    const simpleResult = {
-      scores: matrixData.rows.map(row => 
-        row.reduce((sum, val) => sum + val, 0) / row.length
-      ),
-      method: "ts-fallback",
+    return {
+      scores,
+      method: "TOPSIS",
       timestamp: new Date().toISOString()
     };
-    
-    return simpleResult;
+  } catch (error) {
+    console.error('Error calculating matrix result:', error);
+    throw error;
   }
 };

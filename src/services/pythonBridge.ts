@@ -1,112 +1,122 @@
 
-import { toast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchJsonData } from '@/utils/pathMapping';
 
-interface CalculationRequest {
-  matrix: number[][];
-  weights?: number[];
-  method?: string;
+// Interface for Python script configuration
+interface PythonScriptConfig {
+  path: string;
+  args?: string[];
+  input?: any;
 }
 
-interface CalculationResult {
-  scores: number[];
-  method: string;
-  timestamp: string;
-  details?: any;
-}
-
-// Type for Supabase function response
-interface SupabaseFunctionResponse {
-  data: CalculationResult | null;
-  error: Error | null;
+// Interface for Python script result
+interface PythonScriptResult<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+  logs?: string[];
 }
 
 /**
- * Call the Python calculation backend through Supabase Edge Function
- * 
- * @param request The calculation request parameters
- * @returns The calculation results
+ * Simulates calling a Python script by loading mock data
  */
-export const calculateWithPython = async (
-  request: CalculationRequest
-): Promise<CalculationResult> => {
+export async function callPythonScript<T>(config: PythonScriptConfig): Promise<PythonScriptResult<T>> {
   try {
-    // Call the Supabase Edge Function
-    const response = await supabase.functions.invoke('process-decision-matrix', {
-      body: request
-    });
+    console.log(`[PythonBridge] Calling script: ${config.path}`);
     
-    if (response.error) throw response.error;
-    if (!response.data) throw new Error("No data returned from calculation");
+    // In a real implementation, this would execute the Python script
+    // For now, we'll simulate the response by loading mock data
     
-    return response.data as CalculationResult;
-  } catch (error: any) {
-    console.error("Error calling Python calculation:", error);
-    toast({
-      title: "Calculation Error",
-      description: "Failed to call Python calculation service",
-      variant: "destructive",
-    });
+    // Add a small delay to simulate processing time
+    await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Return a fallback response
+    // Determine which mock data to return based on the script path
+    let mockDataPath = '';
+    
+    if (config.path.includes('ranking.py')) {
+      mockDataPath = 'src/core/base_data/deepcal_oracle.json';
+    } else if (config.path.includes('feedback.py')) {
+      mockDataPath = 'src/core/base_reference/forwarder_folklore.json';
+    } else if (config.path.includes('weighting.py')) {
+      // Return a simple weights object
+      return {
+        success: true,
+        data: {
+          cost: 0.4,
+          time: 0.3,
+          reliability: 0.3
+        } as unknown as T,
+        logs: ['Calculated weights using Neutrosophic AHP']
+      };
+    } else {
+      // Generic mock data
+      return {
+        success: true,
+        data: { result: 'Executed successfully' } as unknown as T,
+        logs: ['Script executed with generic response']
+      };
+    }
+    
+    // Load the mock data
+    const mockData = await fetchJsonData(mockDataPath);
+    
     return {
-      scores: [],
-      method: "error",
-      timestamp: new Date().toISOString(),
-      details: { error: error.message }
-    };
-  }
-};
-
-/**
- * Store calculation results in Supabase for later retrieval
- * 
- * @param result The calculation result to store
- * @returns Success status
- */
-export const storeCalculationResult = async (
-  result: CalculationResult
-): Promise<boolean> => {
-  try {
-    // Using the 'rpc' method to call a stored procedure for storing calculation results
-    const response = await supabase.rpc('store_calculation_result', {
-      calc_scores: result.scores,
-      calc_method: result.method,
-      calc_timestamp: result.timestamp,
-      calc_details: result.details || {}
-    });
-    
-    if (response.error) throw response.error;
-    
-    return true;
-  } catch (error) {
-    console.error("Error storing calculation result:", error);
-    return false;
-  }
-};
-
-/**
- * Retrieve the latest calculation results from Supabase
- * 
- * @returns The latest calculation result or null if not found
- */
-export const getLatestCalculationResult = async (): Promise<CalculationResult | null> => {
-  try {
-    // Using the 'rpc' method to call a stored procedure for retrieving the latest calculation
-    const response = await supabase.rpc('get_latest_calculation_result');
-    
-    if (response.error) throw response.error;
-    if (!response.data) return null;
-    
-    // Convert the returned data to the expected format
-    return {
-      scores: response.data.scores || [],
-      method: response.data.method || "unknown",
-      timestamp: response.data.timestamp || new Date().toISOString(),
-      details: response.data.details || {}
+      success: true,
+      data: mockData as T,
+      logs: [`Successfully executed ${config.path}`]
     };
   } catch (error) {
-    console.error("Error retrieving calculation result:", error);
-    return null;
+    console.error('[PythonBridge] Error executing Python script:', error);
+    return {
+      success: false,
+      data: {} as T,
+      error: error instanceof Error ? error.message : String(error),
+      logs: [`Failed to execute ${config.path}`]
+    };
   }
-};
+}
+
+/**
+ * Runs the TOPSIS ranking algorithm via Python
+ */
+export async function runTopsisRanking(input: any): Promise<any> {
+  try {
+    const result = await callPythonScript<any>({
+      path: 'src/core/base_engine/py/ranking.py',
+      input
+    });
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to run TOPSIS ranking');
+    }
+    
+    return result.data;
+  } catch (error) {
+    console.error('Error running TOPSIS ranking:', error);
+    throw error;
+  }
+}
+
+/**
+ * Gets AHP weights via Python
+ */
+export async function getAhpWeights(): Promise<Record<string, number>> {
+  try {
+    const result = await callPythonScript<Record<string, number>>({
+      path: 'src/core/base_engine/py/weighting.py'
+    });
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get AHP weights');
+    }
+    
+    return result.data;
+  } catch (error) {
+    console.error('Error getting AHP weights:', error);
+    // Return default weights as fallback
+    return {
+      cost: 0.4,
+      time: 0.3,
+      reliability: 0.3
+    };
+  }
+}

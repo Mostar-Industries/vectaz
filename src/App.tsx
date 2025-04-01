@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoadingScreen from "./components/LoadingScreen";
-import { isSystemBooted, boot } from "./init/boot";
+import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
 import { ThemeProvider } from "./ThemeProvider";
@@ -58,24 +58,16 @@ const App = () => {
         forwarder_quotes: { 'Kenya Airways': 2500, 'DHL': 2700, 'Kuehne Nagel': 2600 }
       }));
       
-      // Boot with the sample data
-      const success = await boot({
-        file: 'internal_data.json',
-        requireShape: [
-          'request_reference', 'origin_country', 'destination_country', 
-          'weight_kg', 'delivery_status'
-        ],
-        minRows: 1,
-        onSuccess: () => {
-          console.log("Boot completed successfully");
-          // Store the data in the global state
-          setShipmentData(sampleData, 'internal', 'v1.0', 'sample-hash');
-          setIsLoading(false);
-        }
-      }, sampleData);
-      
-      if (!success) {
-        console.error("Boot failed, proceeding with limited functionality");
+      try {
+        // Boot the application
+        await bootApp();
+        console.log("Boot completed successfully");
+        
+        // Store the data in the global state
+        setShipmentData(sampleData, 'internal', 'v1.0', 'sample-hash');
+      } catch (error) {
+        console.error("Boot failed:", error);
+      } finally {
         setIsLoading(false);
       }
     };

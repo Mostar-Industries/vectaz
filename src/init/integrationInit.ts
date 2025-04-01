@@ -19,7 +19,7 @@ export const initializeIntegration = async (): Promise<void> => {
       toast({
         title: 'Integration Warning',
         description: 'Some components may not work correctly due to integration issues',
-        variant: 'warning',
+        variant: 'default',
       });
     }
   } catch (error) {
@@ -32,7 +32,5 @@ export const initializeIntegration = async (): Promise<void> => {
   }
 };
 
-// Initialize on import
-initializeIntegration().catch(error => {
-  console.error('Unhandled error in integration initialization:', error);
-});
+// Export syncFrontendWithBackend to make it available
+export { syncFrontendWithBackend } from '@/utils/syncUtility';

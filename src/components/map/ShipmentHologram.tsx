@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { Activity, Shield, Zap, MapPin, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Route } from '@/types/deeptrack';
 import { GlassContainer, GlassIconContainer } from '@/components/ui/glass-effects';
-
 interface ShipmentHologramProps {
   shipments: Route[];
   onSelect: (shipment: Route, index: number) => void;
@@ -18,7 +16,7 @@ const generateRiskScore = (): number => {
 
 // Get color based on delivery status
 const getStatusColor = (status: string): string => {
-  switch(status) {
+  switch (status) {
     case 'Delivered':
       return 'text-green-400';
     case 'In Transit':
@@ -27,22 +25,16 @@ const getStatusColor = (status: string): string => {
       return 'text-red-400';
   }
 };
-
-const ShipmentHologram: React.FC<ShipmentHologramProps> = ({ 
-  shipments, 
+const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
+  shipments,
   onSelect,
-  className 
+  className
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  
+
   // Limit to only 3 most recent shipments
   const recentShipments = shipments.slice(0, 3);
-  
-  return (
-    <div className={cn(
-      "system-status-card max-h-[320px] overflow-hidden",
-      className
-    )}>
+  return <div className={cn("system-status-card max-h-[320px] overflow-hidden", className)}>
       {/* Holographic header */}
       <div className="system-status-header flex justify-between items-center">
         <div className="flex items-center">
@@ -57,22 +49,10 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
       {/* Shipment list - fixed to maximum 3 */}
       <div className="p-3 space-y-2">
         {recentShipments.map((shipment, index) => {
-          const isHovered = hoveredIndex === index;
-          const riskScore = generateRiskScore();
-          const statusColor = getStatusColor(shipment.deliveryStatus || 'Delivered');
-          
-          return (
-            <GlassContainer
-              key={index}
-              variant={isHovered ? 'blue' : 'default'}
-              className={cn(
-                "p-3 rounded-md cursor-pointer",
-                isHovered && "border-blue-500/30"
-              )}
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={() => onSelect(shipment, index)}
-            >
+        const isHovered = hoveredIndex === index;
+        const riskScore = generateRiskScore();
+        const statusColor = getStatusColor(shipment.deliveryStatus || 'Delivered');
+        return <GlassContainer key={index} variant={isHovered ? 'blue' : 'default'} onMouseEnter={() => setHoveredIndex(index)} onMouseLeave={() => setHoveredIndex(null)} onClick={() => onSelect(shipment, index)} className="">
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="font-medium text-sm flex items-center">
@@ -90,10 +70,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
               </div>
               
               {/* Additional details that appear on hover */}
-              <div className={cn(
-                "mt-2 pt-2 border-t border-blue-500/10 grid grid-cols-2 gap-x-2 gap-y-1 text-xs",
-                isHovered ? "opacity-100" : "opacity-60"
-              )}>
+              <div className={cn("mt-2 pt-2 border-t border-blue-500/10 grid grid-cols-2 gap-x-2 gap-y-1 text-xs", isHovered ? "opacity-100" : "opacity-60")}>
                 <div className="flex items-center">
                   <Shield className="h-3 w-3 mr-1 text-green-400" />
                   <span className="text-gray-400">Resilience:</span>
@@ -107,23 +84,17 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
                   </span>
                 </div>
                 <div className="col-span-2 text-right mt-1">
-                  <button 
-                    className="text-blue-400 hover:text-blue-300 transition-colors text-xs underline-offset-2 hover:underline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelect(shipment, index);
-                    }}
-                  >
+                  <button className="text-blue-400 hover:text-blue-300 transition-colors text-xs underline-offset-2 hover:underline" onClick={e => {
+                e.stopPropagation();
+                onSelect(shipment, index);
+              }}>
                     Jump to location
                   </button>
                 </div>
               </div>
-            </GlassContainer>
-          );
-        })}
+            </GlassContainer>;
+      })}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ShipmentHologram;

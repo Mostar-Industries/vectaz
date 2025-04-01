@@ -33,6 +33,12 @@ export interface ForwarderPerformance {
   costScore?: number;
   timeScore?: number;
   quoteWinRate?: number;
+  serviceScore?: number;
+  punctualityScore?: number;
+  handlingScore?: number;
+  // Properties to match ForwarderAnalytics component usage
+  shipments?: number;
+  reliability?: number;
 }
 
 export interface CarrierPerformance {

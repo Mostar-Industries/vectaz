@@ -165,8 +165,8 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       mapContainerRef.current.toggleTerrain(!is3DMode);
       
       toast({
-        title: is3DMode ? "2D Mode" : "3D Terrain View",
-        description: is3DMode ? "Switched to flat map view" : "Behold your empire in 3D glory!",
+        title: is3DMode? "2D Mode" : "3D Terrain View",
+        description: is3DMode? "Switched to flat map view": "Behold your empire in 3D glory!",
         duration: 2000,
       });
     }
@@ -191,7 +191,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
             <ShipmentHologram 
               shipments={limitedRoutes}
               onSelect={handleShipmentSelect}
-              className="absolute top-4 right-4 w-80 max-h-[250px]"
+              className="absolute top-4 right-4 w-80 max-h-[500px]"
             />
           )}
           

@@ -1,35 +1,22 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
 import { Map, BarChart, Cpu, Info, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TabItem, AppSection } from '@/types/deeptrack';
 
 interface AppTabsProps {
+  activeTab: AppSection;
+  onTabChange: (tab: AppSection) => void;
   className?: string;
 }
 
-const AppTabs: React.FC<AppTabsProps> = ({ className }) => {
-  const location = useLocation();
-  const currentPath = location.pathname;
-  
-  // Map paths to tab IDs
-  const getActiveTab = (): AppSection => {
-    if (currentPath === '/analytics') return 'analytics';
-    if (currentPath === '/deepcal') return 'deepcal';
-    if (currentPath === '/about') return 'about';
-    if (currentPath === '/settings') return 'settings';
-    return 'map';
-  };
-  
-  const activeTab = getActiveTab();
-  
+const AppTabs: React.FC<AppTabsProps> = ({ activeTab, onTabChange, className }) => {
   const tabs: TabItem[] = [
-    { id: 'map', label: 'Map View', icon: Map, path: '/' },
-    { id: 'analytics', label: 'Analytics', icon: BarChart, path: '/analytics' },
-    { id: 'deepcal', label: 'DeepCAL', icon: Cpu, path: '/deepcal' },
-    { id: 'about', label: 'About', icon: Info, path: '/about' },
-    { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
+    { id: 'map', label: 'Map View', icon: Map },
+    { id: 'analytics', label: 'Analytics', icon: BarChart },
+    { id: 'deepcal', label: 'DeepCAL', icon: Cpu },
+    { id: 'about', label: 'About', icon: Info },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -39,9 +26,9 @@ const AppTabs: React.FC<AppTabsProps> = ({ className }) => {
     )}>
       <div className="flex items-center space-x-1 px-1">
         {tabs.map((tab) => (
-          <Link
+          <button
             key={tab.id}
-            to={tab.path}
+            onClick={() => onTabChange(tab.id)}
             className={cn(
               "relative flex items-center justify-center px-3 py-2 rounded-full transition-all duration-300",
               activeTab === tab.id
@@ -54,7 +41,7 @@ const AppTabs: React.FC<AppTabsProps> = ({ className }) => {
             {activeTab === tab.id && (
               <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-cyan-400/20"></span>
             )}
-          </Link>
+          </button>
         ))}
       </div>
     </div>

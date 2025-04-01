@@ -1,17 +1,23 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import MapVisualizer from '@/components/MapVisualizer';
 import { useToast } from '@/hooks/use-toast';
+import { AppSection } from '@/types/deeptrack';
 import AppTabs from '@/components/AppTabs';
+import AnalyticsSection from '@/components/AnalyticsSection';
+import DeepCALSection from '@/components/DeepCALSection';
+import AboutSection from '@/components/AboutSection';
+import SettingsSection from '@/components/SettingsSection';
 import EntryAnimation from '@/components/EntryAnimation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import IconNavigation from '@/components/IconNavigation';
+import { DecisionMatrix } from '@/components';
 
 const Index = () => {
   const { isDataLoaded, shipmentData } = useBaseDataStore();
   const [routes, setRoutes] = useState([]);
   const [showEntry, setShowEntry] = useState(true);
+  const [activeTab, setActiveTab] = useState<AppSection>('map');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,6 +55,73 @@ const Index = () => {
     setShowEntry(false);
   };
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'map':
+        return (
+          <motion.div 
+            key="map-section"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="h-screen w-full"
+          >
+            <MapVisualizer routes={routes} isLoading={!isDataLoaded} />
+          </motion.div>
+        );
+      case 'analytics':
+        return (
+          <motion.div 
+            key="analytics-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="pt-8 pb-24"
+          >
+            <AnalyticsSection />
+          </motion.div>
+        );
+      case 'deepcal':
+        return (
+          <motion.div 
+            key="deepcal-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="pt-8 pb-24"
+          >
+            <DeepCALSection />
+          </motion.div>
+        );
+      case 'about':
+        return (
+          <motion.div 
+            key="about-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="pt-8 pb-24"
+          >
+            <AboutSection />
+          </motion.div>
+        );
+      case 'settings':
+        return (
+          <motion.div 
+            key="settings-section"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="pt-8 pb-24"
+          >
+            <SettingsSection />
+          </motion.div>
+        );
+      default:
+        return null;
+    }
+  };
+
   if (showEntry) {
     return <EntryAnimation onComplete={handleEntryComplete} />;
   }
@@ -60,17 +133,11 @@ const Index = () => {
       
       {/* Application content */}
       <div className="relative z-10">
-        <motion.div 
-          key="map-section"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="h-screen w-full"
-        >
-          <MapVisualizer routes={routes} isLoading={!isDataLoaded} />
-        </motion.div>
+        <AnimatePresence mode="wait">
+          {renderContent()}
+        </AnimatePresence>
         
-        {/* App name in top right */}
+        {/* App name in top right (moved from left to right) */}
         <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-blue-500/30 tech-glow">
           <h1 className="text-xl font-bold neon-text">DeepCAL</h1>
         </div>
@@ -81,7 +148,7 @@ const Index = () => {
         </div>
         
         {/* Navigation tabs (at the top) */}
-        <AppTabs />
+        <AppTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     </div>
   );

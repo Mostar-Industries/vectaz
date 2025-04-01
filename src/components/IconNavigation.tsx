@@ -29,7 +29,8 @@ const IconNavigation = () => {
   ];
 
   const handleSectionChange = (section: AppSection) => {
-    if (baseStore.setActiveSection) {
+    // Safe access to setActiveSection
+    if (baseStore && typeof baseStore.setActiveSection === 'function') {
       baseStore.setActiveSection(section);
     } else {
       console.warn('setActiveSection is not available in the store');

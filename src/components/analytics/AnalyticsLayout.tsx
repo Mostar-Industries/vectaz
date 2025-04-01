@@ -4,6 +4,7 @@ import { BarChart, Brain, X } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
 import DeepTalk from '@/components/DeepTalk';
 import { Button } from '@/components/ui/button';
+import { useMediaQuery } from '@/hooks/use-mobile';
 
 interface AnalyticsLayoutProps {
   activeTab: string;
@@ -28,6 +29,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
   onTabChange
 }) => {
   const [showDeepTalk, setShowDeepTalk] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   
   const handleToggleDeepTalk = () => {
     setShowDeepTalk(!showDeepTalk);
@@ -79,19 +81,20 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       )}
       
       {/* Main Content Area - Dynamic Grid */}
-      <div className={`transition-all duration-300 ${showDeepTalk ? 'grid grid-cols-1 lg:grid-cols-4 gap-4' : ''}`}>
+      <div className={`transition-all duration-300 ${showDeepTalk ? (isMobile ? 'flex flex-col space-y-4' : 'grid grid-cols-1 lg:grid-cols-4 gap-4') : ''}`}>
         {/* Primary Content - Always full width when DeepTalk closed */}
-        <div className={`${showDeepTalk ? 'lg:col-span-3' : ''} glass-panel rounded-lg border border-gray-700 p-4`}>
+        <div className={`${showDeepTalk ? (isMobile ? '' : 'lg:col-span-3') : ''} glass-panel rounded-lg border border-gray-700 p-4`}>
           {children}
         </div>
         
         {/* DeepTalk Panel - Slides in/out */}
         {showDeepTalk && (
-          <div className="lg:col-span-1 glass-panel border border-blue-500/20 rounded-lg overflow-hidden">
+          <div className={`${isMobile ? '' : 'lg:col-span-1'} glass-panel border border-blue-500/20 rounded-lg overflow-hidden`}>
             <DeepTalk 
               className="h-[calc(100vh-220px)] min-h-[400px] max-h-[800px]" 
               initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?" 
               onQueryData={handleDeepTalkQuery} 
+              onClose={handleToggleDeepTalk}
             />
           </div>
         )}

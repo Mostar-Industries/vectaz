@@ -40,7 +40,61 @@ export const useDeepTalkHandler = () => {
     }
   };
 
-  return { handleQuery, isProcessing };
+  const handleVoiceQuery = async (audioBlob: Blob): Promise<string> => {
+    try {
+      setIsProcessing(true);
+      
+      // Convert audio to base64
+      const base64Audio = await blobToBase64(audioBlob);
+      
+      // Process analytics data
+      const analyticsData = analyzeShipmentData(shipmentData);
+      
+      // Call the voice processor function
+      const response = await fetch('/api/voice-processor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          audio: base64Audio,
+          context: analyticsData
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Voice processing failed');
+      }
+      
+      const data = await response.json();
+      return data.response;
+    } catch (error) {
+      console.error("Error processing voice query:", error);
+      toast({
+        title: "Error",
+        description: "Failed to process your voice query. Please try again.",
+        variant: "destructive",
+      });
+      return "I'm sorry, I encountered an error processing your voice query. Please try again or type your question.";
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Helper function to convert Blob to base64
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        resolve(base64String.split(',')[1]); // Remove the data URL prefix
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  return { handleQuery, handleVoiceQuery, isProcessing };
 };
 
 // Export a typed handler function that matches the expected signature

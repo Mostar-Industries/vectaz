@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import DeepTalk from './DeepTalk';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDeepTalkHandler } from './analytics/DeepTalkHandler';
+import { useMediaQuery } from '@/hooks/use-mobile';
 
 const FloatingDeepTalk: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [pulseCount, setPulseCount] = useState(0);
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const handleQuery = getDeepTalkHandler();
 
   useEffect(() => {
@@ -21,6 +23,23 @@ const FloatingDeepTalk: React.FC = () => {
     }
   }, [isOpen]);
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setIsExpanded(false);
+  };
+
+  const getFloatingPosition = () => {
+    if (isExpanded) {
+      return isMobile 
+        ? 'fixed inset-2 h-auto' 
+        : 'fixed inset-10 h-auto';
+    }
+    
+    return isMobile
+      ? 'w-[90vw] max-w-[400px] h-[70vh] max-h-[600px]'
+      : 'w-80 md:w-96 h-[480px]';
+  };
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <AnimatePresence>
@@ -30,7 +49,7 @@ const FloatingDeepTalk: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             className={`bg-black/60 backdrop-blur-lg border border-cyan-500/30 rounded-lg shadow-[0_0_15px_rgba(0,149,255,0.15)] overflow-hidden ${
-              isExpanded ? 'fixed inset-10 h-auto' : 'w-80 md:w-96 h-[480px]'
+              getFloatingPosition()
             }`}
           >
             <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-900/60 to-indigo-900/60 border-b border-cyan-500/20">
@@ -55,7 +74,7 @@ const FloatingDeepTalk: React.FC = () => {
                   variant="ghost" 
                   size="icon" 
                   className="h-6 w-6 rounded-full hover:bg-white/10"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                 >
                   <X className="h-3.5 w-3.5 text-white/70" />
                 </Button>
@@ -66,6 +85,7 @@ const FloatingDeepTalk: React.FC = () => {
                 className="h-full border-none" 
                 initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?"
                 onQueryData={handleQuery}
+                onClose={handleClose}
               />
             </div>
           </motion.div>

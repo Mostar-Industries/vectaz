@@ -1,0 +1,12 @@
+
+# test-workflow.yaml
+tests:
+  - name: "Ranking API Integration"
+    steps:
+      - Load weights: { "cost": 0.6, "time": 0.3, "reliability": 0.1 }
+      - Call: src/core/base_engine/ts/engine.ts → getRankedAlternatives()
+      - Assert: Output matches src/core/base_schema/recommendationSchema.json
+  - name: "Schema Validation"
+    steps:
+      - Mock form submission with invalid data
+      - Assert: AIValidationError is thrown

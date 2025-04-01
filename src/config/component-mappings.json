@@ -1,0 +1,12 @@
+
+{
+  "RankingTable": {
+    "service": "src/core/base_engine/ts/engine.ts",
+    "function": "getRankedAlternatives",
+    "input": ["cost", "time", "reliability"]
+  },
+  "ShipmentForm": {
+    "validation": "src/core/base_schema/shipmentsField.json",
+    "data_source": "src/core/base_reference/modesOfShipments.json"
+  }
+}

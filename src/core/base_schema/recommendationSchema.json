@@ -1,0 +1,72 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Recommendation Schema",
+  "description": "Schema for forwarder recommendations",
+  "type": "object",
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "forwarder": {
+            "type": "string",
+            "description": "The name of the forwarder"
+          },
+          "closenessCoefficient": {
+            "type": "number",
+            "description": "The closeness coefficient from TOPSIS calculation"
+          },
+          "sourceRows": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Source identifiers used in the calculation"
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Human-readable explanation of the recommendation"
+          },
+          "dataVersion": {
+            "type": "string",
+            "description": "Version of the data used in the calculation"
+          },
+          "datasetHash": {
+            "type": "string",
+            "description": "Hash of the dataset used in the calculation"
+          }
+        },
+        "required": ["forwarder", "closenessCoefficient"]
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "engine": {
+          "type": "string",
+          "description": "The engine used for calculation"
+        },
+        "data_version": {
+          "type": "string",
+          "description": "Version of the data used"
+        },
+        "hash": {
+          "type": "string",
+          "description": "Hash of the dataset"
+        },
+        "explanation_ready": {
+          "type": "boolean",
+          "description": "Whether explanations are available"
+        },
+        "computation_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the computation was performed"
+        }
+      }
+    }
+  },
+  "required": ["results", "metadata"]
+}

@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 export default {
 	darkMode: ["class"],
@@ -52,29 +51,29 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Custom MoStar color palette
+				// Custom colors for MoStar Industries
 				mostar: {
-					'dark': '#0A0E17',
-					'darkest': '#050810', // Keeping existing darkest shade
+					'dark': '#090c16', // Darker blue for background
+					'darkest': '#050810', // Even darker for card backgrounds
 					'blue': '#0039e6',
 					'light-blue': '#00a2ff',
 					'cyan': '#00ffff',
-					'purple': '#6b46c1',
+					'purple': '#9500ff',
 					'magenta': '#f81ce5',
-					'bright-magenta': '#ff00ff', // Keeping existing bright-magenta
+					'bright-magenta': '#ff00ff',
 					'pink': '#ff00a0',
 					'green': '#00ff9d',
 					'yellow': '#ffca00',
-					'terminal-green': '#0f3', // Keeping existing terminal colors
+					'terminal-green': '#0f3',
 					'terminal-blue': '#33a1ff',
 				},
-				// Neon gradient colors
+				// Our accent gradient colors
 				neon: {
 					'blue': '#33a1ff',
 					'cyan': '#00ffff',
 					'purple': '#9500ff',
 					'magenta': '#f81ce5',
-					'bright-magenta': '#ff00ff', // Keeping existing bright-magenta
+					'bright-magenta': '#ff00ff',
 					'green': '#00ff9d',
 				},
 			},
@@ -183,7 +182,7 @@ export default {
 			},
 			backgroundImage: {
 				'grid-pattern': 'radial-gradient(circle, rgba(0, 162, 255, 0.1) 1px, transparent 1px)',
-				'cyber-grid': 'linear-gradient(rgba(0, 162, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 162, 255, 0.07) 1px, transparent 1px)',
+				'cyber-grid': 'linear-gradient(rgba(0, 162, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 162, 255, 0.05) 1px, transparent 1px)',
 				'cyber-grid-magenta': 'linear-gradient(rgba(248, 28, 229, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(248, 28, 229, 0.05) 1px, transparent 1px)',
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
@@ -227,9 +226,9 @@ export default {
 					'animation': 'text-gradient 8s ease infinite',
 				},
 				'.glassmorphism': {
-					'background': 'rgba(10, 14, 23, 0.6)',
+					'background': 'rgba(9, 12, 22, 0.5)',
 					'backdrop-filter': 'blur(12px)',
-					'border': '1px solid rgba(255, 255, 255, 0.1)',
+					'border': '1px solid rgba(51, 161, 255, 0.1)',
 				},
 				'.glassmorphism-dark': {
 					'background': 'rgba(5, 8, 16, 0.7)',
@@ -237,7 +236,7 @@ export default {
 					'border': '1px solid rgba(51, 161, 255, 0.2)',
 				},
 				'.glassmorphism-terminal': {
-					'background': 'rgba(10, 14, 23, 0.7)',
+					'background': 'rgba(9, 12, 22, 0.7)',
 					'backdrop-filter': 'blur(4px)',
 					'border': '1px solid rgba(51, 161, 255, 0.3)',
 					'box-shadow': '0 0 10px rgba(0, 162, 255, 0.1)',
@@ -267,7 +266,7 @@ export default {
 					'clip-path': 'polygon(0 0, 100% 0, 100% 100%, 0 85%)',
 				},
 				'.cyber-terminal': {
-					'background': 'rgba(10, 14, 23, 0.95)',
+					'background': 'rgba(9, 12, 22, 0.95)',
 					'border': '1px solid rgba(51, 161, 255, 0.3)',
 					'box-shadow': 'inset 0 0 30px rgba(0, 0, 0, 0.5), 0 0 10px rgba(51, 161, 255, 0.2)',
 				},

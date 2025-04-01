@@ -1,16 +1,13 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, BrainCircuit, X, Mic, MicOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BrainCircuit, X } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
-import { useToast } from "@/hooks/use-toast";
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-}
+import MessageList from './chat/MessageList';
+import PromptSuggestions from './chat/PromptSuggestions';
+import ChatInput from './chat/ChatInput';
+import { Message } from './chat/MessageItem';
+import { useVoiceFunctions } from './chat/useVoiceFunctions';
 
 interface DeepTalkProps {
   className?: string;
@@ -35,7 +32,6 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
   ]);
   const [input, setInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const [promptIdeas, setPromptIdeas] = useState<string[]>([
     "What's our most disrupted route?",
     "Compare DHL and Kenya Airways performance",
@@ -43,15 +39,8 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     "How can we optimize our shipping costs?",
     "What are the trends in our logistics performance?"
   ]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-
-  // Auto-scroll to bottom of messages
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  
+  const { speakResponse } = useVoiceFunctions();
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -166,164 +155,6 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     setInput(prompt);
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        try {
-          // Process audio through Rasa/voice-to-text service
-          const text = await processAudioToText(audioBlob);
-          setInput(text);
-          
-          // Automatically send the transcribed message
-          setTimeout(() => {
-            if (text.trim()) {
-              const userMessage: Message = {
-                id: Date.now().toString(),
-                text,
-                sender: 'user',
-                timestamp: new Date()
-              };
-              
-              setMessages(prev => [...prev, userMessage]);
-              setInput('');
-              
-              // Process the voice input
-              handleVoiceInput(text);
-            }
-          }, 500);
-        } catch (error) {
-          console.error('Error processing audio:', error);
-          toast({
-            title: "Speech Recognition Error",
-            description: "We couldn't understand that. Please try again or type your question.",
-            variant: "destructive",
-          });
-        }
-      };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
-      
-      toast({
-        title: "Recording Started",
-        description: "I'm listening. Speak clearly...",
-      });
-    } catch (error) {
-      console.error('Error accessing microphone:', error);
-      toast({
-        title: "Microphone Error",
-        description: "Could not access your microphone. Please check permissions.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
-      setIsRecording(false);
-      
-      toast({
-        title: "Processing Your Voice",
-        description: "Converting your speech to text...",
-      });
-    }
-  };
-
-  const processAudioToText = async (audioBlob: Blob): Promise<string> => {
-    // This is a placeholder for the actual implementation
-    // In a real implementation, this would call the Rasa NLU service or other speech-to-text service
-    
-    // Mock implementation for demonstration purposes
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // This would be replaced with actual API call results
-        resolve("What are the logistics trends for Kenya in the last quarter?");
-      }, 1000);
-    });
-  };
-
-  const handleVoiceInput = async (text: string) => {
-    setIsProcessing(true);
-    
-    try {
-      let responseText = "I'm analyzing your voice query...";
-      
-      if (onQueryData) {
-        responseText = await onQueryData(text);
-      } else {
-        responseText = "Voice processing is currently unavailable. Please try again later.";
-      }
-      
-      // Generate new prompt ideas based on the current conversation context
-      generateNewPromptIdeas(text, responseText);
-      
-      // Add AI response
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: responseText,
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, aiMessage]);
-      setIsProcessing(false);
-      
-      // Speak the response
-      speakResponse(responseText);
-    } catch (error) {
-      console.error('Error processing voice query:', error);
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "I'm sorry, I couldn't process your voice query. Please try again or type your question.",
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-      setIsProcessing(false);
-    }
-  };
-
-  const speakResponse = (text: string) => {
-    // This is a placeholder for the actual implementation
-    // In a real implementation, this would use the African female voice
-    // through a text-to-speech service
-
-    // For demonstration, we'll use the browser's built-in speech synthesis
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Try to find a female voice, preferably African if available
-      const voices = window.speechSynthesis.getVoices();
-      const femaleVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('female') || 
-        voice.name.toLowerCase().includes('woman')
-      );
-      
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      }
-      
-      // Set other properties to make it sound more natural
-      utterance.pitch = 1.1;  // Slightly higher pitch for female voice
-      utterance.rate = 0.9;   // Slightly slower for clarity
-      
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
   return (
     <div className={cn("flex flex-col h-full overflow-hidden rounded-lg bg-black/60 backdrop-blur-md border border-blue-500/20", className)}>
       <div className="px-4 py-3 border-b border-blue-500/20 bg-black/50 flex justify-between items-center">
@@ -344,98 +175,16 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         )}
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map(message => (
-          <div 
-            key={message.id}
-            className={cn(
-              "flex",
-              message.sender === 'user' ? "justify-end" : "justify-start"
-            )}
-          >
-            <div 
-              className={cn(
-                "max-w-[90%] md:max-w-[80%] rounded-lg px-4 py-2",
-                message.sender === 'user' 
-                  ? "bg-blue-500 text-white"
-                  : "bg-black/40 border border-blue-500/10 text-white"
-              )}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                {message.sender === 'ai' 
-                  ? <Bot className="h-4 w-4 text-cyan-400" /> 
-                  : <User className="h-4 w-4" />
-                }
-                <span className="text-xs opacity-75">
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-              <p className="text-sm whitespace-pre-line">{message.text}</p>
-            </div>
-          </div>
-        ))}
-        
-        {isProcessing && (
-          <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-lg px-4 py-2 bg-black/40 border border-blue-500/10 text-white">
-              <div className="flex items-center gap-2">
-                <Bot className="h-4 w-4 text-cyan-400" />
-                <Loader2 className="h-4 w-4 animate-spin text-cyan-400" />
-                <span className="text-xs">DeepTalk is analyzing...</span>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
+      <MessageList messages={messages} isProcessing={isProcessing} />
       
-      {/* Prompt suggestions */}
-      <div className="px-4 py-2 border-t border-blue-500/20 bg-black/30">
-        <div className="flex overflow-x-auto pb-2 gap-2 hide-scrollbar">
-          {promptIdeas.map((prompt, index) => (
-            <button
-              key={index}
-              onClick={() => handlePromptClick(prompt)}
-              className="text-xs shrink-0 px-2 py-1 rounded-full bg-blue-500/10 hover:bg-blue-500/20 transition-colors text-blue-400"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PromptSuggestions promptIdeas={promptIdeas} onPromptClick={handlePromptClick} />
       
-      <div className="p-4 border-t border-blue-500/20">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-            placeholder="Ask about routes, forwarders, or risk metrics..."
-            className="flex-1 px-4 py-2 rounded-lg border border-blue-500/20 bg-black/30 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <Button 
-            onClick={isRecording ? stopRecording : startRecording}
-            size="icon"
-            variant="outline"
-            className={cn(
-              "bg-transparent border border-blue-500/20",
-              isRecording ? "text-red-400 hover:text-red-500" : "text-blue-400 hover:text-blue-500"
-            )}
-          >
-            {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          <Button 
-            onClick={handleSendMessage}
-            disabled={!input.trim() || isProcessing}
-            size="icon"
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <ChatInput 
+        input={input}
+        setInput={setInput}
+        handleSendMessage={handleSendMessage}
+        isProcessing={isProcessing}
+      />
     </div>
   );
 };

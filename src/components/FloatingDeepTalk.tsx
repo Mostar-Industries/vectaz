@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import DeepTalk from './DeepTalk';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDeepTalkHandler } from './analytics/DeepTalkHandler';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const FloatingDeepTalk: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [pulseCount, setPulseCount] = useState(0);
-  const isMobile = useMediaQuery('(max-width: 768px)');
+  const isMobile = useIsMobile();
   const handleQuery = getDeepTalkHandler();
 
   useEffect(() => {

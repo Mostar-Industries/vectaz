@@ -15,7 +15,9 @@ import { useBaseDataStore } from '@/store/baseState';
 
 const IconNavigation = () => {
   const location = useLocation();
-  const { setActiveSection } = useBaseDataStore();
+  const { setActiveSection } = useBaseDataStore((state) => ({ 
+    setActiveSection: state.setActiveSection 
+  }));
   const isIndex = location.pathname === '/';
 
   // Icons we'll display in the bottom navigation

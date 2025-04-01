@@ -19,6 +19,7 @@ import {
 
 // Import the DeepCALSpinner from its own file
 import DeepCALSpinner from './DeepCALSpinner';
+import DeepCALExplainer from './analytics/DeepCALExplainer';
 
 // Updated interface matching Core engine outputs
 interface CoreMetrics {
@@ -37,7 +38,6 @@ interface CoreMetrics {
 const AnalyticsSection: React.FC = () => {
   const { shipmentData } = useBaseDataStore();
   const [coreMetrics, setCoreMetrics] = useState<CoreMetrics | null>(null);
-  const [trendData, setTrendData] = useState<Record<string, any>>({});
   const [calculationError, setCalculationError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [showDeepTalk, setShowDeepTalk] = useState<boolean>(false);
@@ -86,16 +86,6 @@ const AnalyticsSection: React.FC = () => {
         }
       });
 
-      // Get historical trends
-      const trends = {
-        totalShipments: { change: 5, direction: 'up' as TrendDirection },
-        onTimeRate: { change: 2.5, direction: 'up' as TrendDirection },
-        avgTransitDays: { change: 0.5, direction: 'down' as TrendDirection },
-        costEfficiency: { change: 3, direction: 'up' as TrendDirection },
-        routeResilience: { change: 1, direction: 'up' as TrendDirection }
-      };
-
-      setTrendData(trends);
       setForwarders(forwarderPerformance);
       setCarriers(processedCarriers);
       setCountries(countryPerformance);
@@ -118,11 +108,10 @@ const AnalyticsSection: React.FC = () => {
 
   return (
     <div className="w-full h-full">
-      <AnalyticsLayout activeTab={activeTab} onTabChange={handleTabChange}>
+      <AnalyticsLayout activeTab={activeTab as any} onTabChange={handleTabChange as any}>
         {activeTab === 'overview' && coreMetrics && (
           <OverviewContent 
             metrics={coreMetrics}
-            trendData={trendData}
             forwarderCount={forwarders.length}
             routeCount={(new Set(shipmentData.map(s => `${s.origin_country}-${s.destination_country}`))).size}
             shipmentCount={shipmentData.length}
@@ -131,19 +120,31 @@ const AnalyticsSection: React.FC = () => {
         )}
         
         {activeTab === 'shipments' && shipmentMetrics && (
-          <ShipmentAnalytics metrics={shipmentMetrics} />
+          <>
+            <ShipmentAnalytics metrics={shipmentMetrics} />
+            <DeepCALExplainer metricType="shipment" data={shipmentMetrics} />
+          </>
         )}
         
         {activeTab === 'forwarders' && (
-          <ForwarderAnalytics forwarders={forwarders} carriers={carriers} />
+          <>
+            <ForwarderAnalytics forwarders={forwarders} carriers={carriers} />
+            <DeepCALExplainer metricType="forwarder" data={forwarders[0]} />
+          </>
         )}
         
         {activeTab === 'countries' && (
-          <CountryAnalytics countries={countries} />
+          <>
+            <CountryAnalytics countries={countries} />
+            <DeepCALExplainer metricType="country" data={countries[0]} />
+          </>
         )}
         
         {activeTab === 'warehouses' && (
-          <WarehouseAnalytics warehouses={warehouses} />
+          <>
+            <WarehouseAnalytics warehouses={warehouses} />
+            <DeepCALExplainer metricType="warehouse" data={warehouses[0]} />
+          </>
         )}
       </AnalyticsLayout>
     </div>

@@ -1,12 +1,12 @@
 
-# frontend-config.yaml
+# Frontend Configuration for DeepCAL
 apis:
   ranking:
     path: "/api/engine/rankings"
-    method: POST
+    method: "POST"
     input_schema: "src/core/base_schema/shipmentsField.json"
     output_schema: "src/core/base_schema/recommendationSchema.json"
   data_ingestion:
     path: "/api/engine/dataintake"
-    method: PUT
+    method: "PUT"
     source: "src/core/base_data/deeptrack_3.json"

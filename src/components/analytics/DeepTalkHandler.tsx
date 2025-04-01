@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBaseDataStore } from '@/store/baseState';
 import { analyzeShipmentData } from '@/utils/analyticsUtils';
 import { generateInsightFromQuery } from '@/services/deepExplain';
+import { decisionEngine } from '@/core/engine';
 
 export const useDeepTalkHandler = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -13,6 +14,11 @@ export const useDeepTalkHandler = () => {
   const handleQuery = async (query: string): Promise<string> => {
     try {
       setIsProcessing(true);
+      
+      // Initialize the decision engine if not already initialized
+      if (!decisionEngine.isReady() && shipmentData.length > 0) {
+        decisionEngine.initialize(shipmentData);
+      }
       
       // Process analytics data
       const analyticsData = analyzeShipmentData(shipmentData);
@@ -34,5 +40,8 @@ export const useDeepTalkHandler = () => {
     }
   };
 
-  return handleQuery;
+  return {
+    handleQuery,
+    isProcessing
+  };
 };

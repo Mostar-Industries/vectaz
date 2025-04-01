@@ -16,32 +16,54 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 // Perform a simplified version of AHP-TOPSIS calculation
 function ahpTopsisCalculation(matrix: number[][]): number[] {
   // This is a simplified stand-in for the Python calculation
-  // In a production environment, you would call a dedicated Python service
   
-  // Step 1: Calculate row sums (simplified)
-  const rowSums = matrix.map(row => 
-    row.reduce((sum, val) => sum + val, 0)
-  );
+  // Validate input matrix
+  if (!matrix || !Array.isArray(matrix) || matrix.length === 0) {
+    console.error("Invalid matrix format");
+    return [];
+  }
   
-  // Step 2: Normalize by the sum
-  const total = rowSums.reduce((sum, val) => sum + val, 0);
-  const normalizedScores = rowSums.map(val => val / total);
-  
-  return normalizedScores;
+  try {
+    // Step 1: Calculate row sums
+    const rowSums = matrix.map(row => 
+      row.reduce((sum, val) => {
+        // Handle NaN or invalid values
+        const numVal = Number(val);
+        return sum + (isNaN(numVal) ? 0 : numVal);
+      }, 0)
+    );
+    
+    // Step 2: Normalize by the sum
+    const total = rowSums.reduce((sum, val) => sum + val, 0);
+    const normalizedScores = total > 0 ? 
+      rowSums.map(val => val / total) : 
+      rowSums.map(() => 0);
+    
+    return normalizedScores;
+  } catch (error) {
+    console.error("Error in AHP-TOPSIS calculation:", error);
+    return [];
+  }
 }
 
 // Store the result in the database
 async function storeResult(result: any): Promise<void> {
-  const { error } = await supabase
-    .from('calculation_results')
-    .insert({
-      scores: result.scores,
-      method: result.method,
-      timestamp: new Date().toISOString()
-    });
-  
-  if (error) {
-    console.error('Error storing result:', error);
+  try {
+    const { error } = await supabase
+      .from('calculation_results')
+      .insert({
+        scores: result.scores,
+        method: result.method,
+        timestamp: new Date().toISOString()
+      });
+    
+    if (error) {
+      console.error('Error storing result:', error);
+    } else {
+      console.log('Result stored successfully');
+    }
+  } catch (storeError) {
+    console.error('Exception storing result:', storeError);
   }
 }
 
@@ -84,7 +106,10 @@ serve(async (req) => {
   
   try {
     // Parse the request body
-    const { matrix } = await req.json();
+    const requestData = await req.json();
+    const { matrix } = requestData;
+    
+    console.log("Received matrix data:", JSON.stringify(matrix).substring(0, 100) + "...");
     
     if (!matrix || !Array.isArray(matrix) || matrix.length === 0) {
       throw new Error('Invalid matrix data');
@@ -94,8 +119,10 @@ serve(async (req) => {
     
     try {
       // Try to call the Python API first
+      console.log("Attempting to call Python API...");
       result = await callPythonApi(matrix);
       result.method = "python-neutrosophic";
+      console.log("Python API call successful");
     } catch (error) {
       // Fall back to the TypeScript implementation
       console.log('Falling back to TypeScript implementation');
@@ -105,6 +132,7 @@ serve(async (req) => {
         method: "typescript-fallback",
         timestamp: new Date().toISOString()
       };
+      console.log("TypeScript fallback calculation completed");
     }
     
     // Store the result in the database

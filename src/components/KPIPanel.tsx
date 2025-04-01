@@ -1,141 +1,262 @@
 
 import React from 'react';
-import { TrendingUp, TrendingDown, Clock, Package, AlertTriangle, Truck, FileText, Shield, Users, Plane } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { TrendingUp, TrendingDown, DollarSign, Clock, Truck, AlertTriangle, Boxes, BarChart, Scale } from 'lucide-react';
+import { useBaseDataStore } from '@/store/baseState';
+import { calculateShipmentMetrics, calculateForwarderPerformance } from '@/utils/analyticsUtils';
+import { ForwarderPerformance, ShipmentMetrics, CarrierPerformance } from '@/types/deeptrack';
+import { decisionEngine } from '@/core/engine';
 
-interface KPIProps {
-  title: string;
-  value: string | number;
-  change?: number;
-  icon?: React.ReactNode;
-  color?: 'blue' | 'cyan' | 'magenta' | 'green' | 'purple'; 
-}
-
-const KPICard: React.FC<KPIProps> = ({ 
-  title, 
-  value, 
-  change, 
-  icon,
-  color = 'blue'
-}) => {
-  // Map the color to the appropriate class
-  const colorClasses = {
-    blue: 'glass-card-blue',
-    cyan: 'glass-card-cyan',
-    magenta: 'glass-card-magenta',
-    green: 'glass-card-green',
-    purple: 'glass-card-purple'
-  };
-  
-  const cardClass = colorClasses[color];
-  
-  // Icon color classes
-  const iconColors = {
-    blue: 'text-blue-400',
-    cyan: 'text-cyan-400',
-    magenta: 'text-pink-500',
-    green: 'text-green-400',
-    purple: 'text-purple-400'
-  };
-  
-  return (
-    <div className={`p-4 rounded-lg transition-all duration-300 backdrop-blur-md ${cardClass}`}>
-      <div className="flex justify-between items-center">
-        <h3 className="text-sm font-medium text-gray-300">{title}</h3>
-        <div className={`h-10 w-10 rounded-full bg-black/40 flex items-center justify-center transform transition-transform ${iconColors[color]}`}>
-          {icon}
-        </div>
-      </div>
-      <div className="flex items-baseline gap-2 mt-2">
-        <span className="text-3xl font-bold tracking-tight text-white">{value}</span>
-        {change !== undefined && (
-          <span className={cn(
-            "text-xs flex items-center",
-            change >= 0 ? 'text-green-400' : 'text-red-400'
-          )}>
-            {change >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-            {Math.abs(change)}%
-          </span>
-        )}
-      </div>
-    </div>
-  );
+// Helper function to safely format numbers with toFixed
+const safeFormat = (value: number | undefined, digits: number = 0): string => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return 'N/A';
+  }
+  return value.toFixed(digits);
 };
 
-interface KPIPanelProps {
-  kpis: {
-    totalShipments: number;
-    totalWeight?: number;
-    totalVolume?: number;
-    avgCostPerKg?: number;
-    avgTransitDays?: number;
-    modeSplit?: {
-      air?: number;
-      road?: number;
-      sea?: number;
-    };
-    forwarderCount?: number;
-    carrierCount?: number;
-  };
-  isLoading?: boolean;
-  className?: string;
-}
+// Helper function to calculate percentages safely
+const calculatePercentage = (value: number | undefined, total: number | undefined): number => {
+  if (!value || !total || total === 0) return 0;
+  return (value / total) * 100;
+};
 
-const KPIPanel: React.FC<KPIPanelProps> = ({ kpis, isLoading = false, className }) => {
-  if (isLoading) {
-    return (
-      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6", className)}>
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-24 bg-mostar-darkest/50 animate-pulse rounded-lg border border-mostar-light-blue/10"></div>
-        ))}
-      </div>
-    );
-  }
+const KPIPanel: React.FC = () => {
+  const { shipmentData } = useBaseDataStore();
+  
+  // Calculate metrics from shipment data
+  const shipmentMetrics: ShipmentMetrics = calculateShipmentMetrics(shipmentData);
+  
+  // Calculate forwarder performance metrics
+  const forwarderPerformance: ForwarderPerformance[] = calculateForwarderPerformance(shipmentData);
+  
+  // Get top forwarders by deep score
+  const topForwarders = [...forwarderPerformance]
+    .sort((a, b) => (b.deepScore || 0) - (a.deepScore || 0))
+    .slice(0, 3);
+  
+  // Extract carrier-specific data
+  const carriers: CarrierPerformance[] = shipmentData
+    .reduce((acc: { [key: string]: any }, shipment) => {
+      const carrier = shipment.freight_carrier;
+      if (carrier) {
+        if (!acc[carrier]) {
+          acc[carrier] = { 
+            name: carrier, 
+            shipments: 0, 
+            reliability: 0,
+            onTimeCount: 0
+          };
+        }
+        acc[carrier].shipments++;
+        
+        // Calculate on-time ratio
+        if (shipment.delivery_status === 'Delivered') {
+          acc[carrier].onTimeCount++;
+          acc[carrier].reliability = (acc[carrier].onTimeCount / acc[carrier].shipments) * 100;
+        }
+      }
+      return acc;
+    }, {});
+  
+  // Convert to array and sort by shipment count
+  const carrierPerformance: CarrierPerformance[] = Object.values(carriers)
+    .sort((a: any, b: any) => b.shipments - a.shipments)
+    .slice(0, 5);
 
-  // Safe formatting function to handle undefined values
-  const safeFormat = (value: number | undefined, decimals: number = 1, suffix: string = ''): string => {
-    if (value === undefined) return 'N/A';
-    return `${value.toFixed(decimals)}${suffix}`;
-  };
+  // Metrics to display
+  const { 
+    totalShipments, 
+    avgTransitTime, 
+    disruptionProbabilityScore, 
+    resilienceScore, 
+    shipmentStatusCounts, 
+    shipmentsByMode 
+  } = shipmentMetrics;
 
+  // Calculate on-time delivery percentage
+  const onTimeDeliveryPercentage = calculatePercentage(
+    shipmentStatusCounts?.onTime, 
+    shipmentStatusCounts?.completed
+  );
+  
+  // Check if decision engine is initialized
+  const isEngineReady = decisionEngine.isReady();
+  
   return (
-    <div className={cn("grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6", className)}>
-      <KPICard
-        title="Total Shipments"
-        value={kpis.totalShipments}
-        icon={<Package className="h-6 w-6" />}
-        color="blue"
-      />
-      <KPICard
-        title="Avg Transit Time"
-        value={kpis.avgTransitDays !== undefined ? `${kpis.avgTransitDays.toFixed(1)} days` : 'N/A'}
-        icon={<Clock className="h-6 w-6" />}
-        color="cyan"
-      />
-      <KPICard
-        title="Disruption Score"
-        value={kpis.avgTransitDays !== undefined ? safeFormat(kpis.avgTransitDays / 2) : 'N/A'}
-        icon={<AlertTriangle className="h-6 w-6" />}
-        color="magenta"
-      />
-      <KPICard
-        title="Resilience Score"
-        value={safeFormat(50)}
-        icon={<Shield className="h-6 w-6" />}
-        color="green"
-      />
-      <KPICard
-        title="Freight Forwarders"
-        value={kpis.forwarderCount || 5}
-        icon={<Users className="h-6 w-6" />}
-        color="blue"
-      />
-      <KPICard
-        title="Carriers"
-        value={kpis.carrierCount || 8}
-        icon={<Plane className="h-6 w-6" />}
-        color="purple"
-      />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Total Shipments
+          </CardTitle>
+          <Boxes className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{totalShipments || 0}</div>
+          <p className="text-xs text-muted-foreground">
+            {shipmentStatusCounts?.completed || 0} completed, {shipmentStatusCounts?.inTransit || 0} in transit
+          </p>
+          <Progress className="mt-2" value={calculatePercentage(shipmentStatusCounts?.completed, totalShipments)} />
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Avg. Transit Time
+          </CardTitle>
+          <Clock className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{safeFormat(avgTransitTime, 1)} days</div>
+          <div className="flex items-center pt-1">
+            {avgTransitTime && avgTransitTime < 7 ? (
+              <TrendingDown className="mr-1 h-3 w-3 text-green-500" />
+            ) : (
+              <TrendingUp className="mr-1 h-3 w-3 text-red-500" />
+            )}
+            <p className="text-xs text-muted-foreground">
+              {avgTransitTime && avgTransitTime < 7 ? "Below" : "Above"} target (7 days)
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            On-Time Delivery
+          </CardTitle>
+          <BarChart className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{safeFormat(onTimeDeliveryPercentage, 1)}%</div>
+          <div className="flex items-center pt-1">
+            {onTimeDeliveryPercentage > 85 ? (
+              <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
+            ) : (
+              <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
+            )}
+            <p className="text-xs text-muted-foreground">
+              {onTimeDeliveryPercentage > 85 ? "Above" : "Below"} target (85%)
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Avg. Cost Per KG
+          </CardTitle>
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">
+            ${safeFormat(shipmentMetrics.avgCostPerKg, 2)}
+          </div>
+          <div className="flex items-center pt-1">
+            {shipmentMetrics.avgCostPerKg && shipmentMetrics.avgCostPerKg < 10 ? (
+              <TrendingDown className="mr-1 h-3 w-3 text-green-500" />
+            ) : (
+              <TrendingUp className="mr-1 h-3 w-3 text-red-500" />
+            )}
+            <p className="text-xs text-muted-foreground">
+              {shipmentMetrics.avgCostPerKg && shipmentMetrics.avgCostPerKg < 10 ? "Below" : "Above"} benchmark ($10/kg)
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Disruption Risk
+          </CardTitle>
+          <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{safeFormat(disruptionProbabilityScore, 1)}</div>
+          <p className="text-xs text-muted-foreground">
+            Risk score (0-10)
+          </p>
+          <div className="mt-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+            <div 
+              className={`h-2 rounded-full ${
+                disruptionProbabilityScore && disruptionProbabilityScore < 3 ? 'bg-green-500' : 
+                disruptionProbabilityScore && disruptionProbabilityScore < 7 ? 'bg-amber-500' : 'bg-red-500'
+              }`} 
+              style={{ width: `${Math.min((disruptionProbabilityScore || 0) * 10, 100)}%` }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Resilience Score
+          </CardTitle>
+          <Scale className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{safeFormat(resilienceScore, 1)}</div>
+          <p className="text-xs text-muted-foreground">
+            Supply chain stability (0-100)
+          </p>
+          <Progress className="mt-2" value={resilienceScore || 0} />
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Top Forwarder
+          </CardTitle>
+          <Truck className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold truncate">
+            {topForwarders.length > 0 ? topForwarders[0].name : "N/A"}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            DeepScore™ {topForwarders.length > 0 ? safeFormat(topForwarders[0].deepScore, 1) : "N/A"}
+          </p>
+          <div className="mt-2 text-xs">
+            {topForwarders.length > 1 && 
+              <p className="text-muted-foreground truncate">
+                Runner-up: {topForwarders[1].name} ({safeFormat(topForwarders[1].deepScore, 1)})
+              </p>
+            }
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">
+            Top Carrier
+          </CardTitle>
+          <Truck className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold truncate">
+            {carrierPerformance.length > 0 ? carrierPerformance[0].name : "N/A"}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {carrierPerformance.length > 0 ? `${carrierPerformance[0].shipments} shipments` : "No data"}
+          </p>
+          <div className="mt-2 text-xs">
+            {carrierPerformance.length > 1 && 
+              <p className="text-muted-foreground truncate">
+                Runner-up: {carrierPerformance[1].name} ({carrierPerformance[1].shipments} shipments)
+              </p>
+            }
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

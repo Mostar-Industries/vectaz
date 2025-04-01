@@ -1,5 +1,5 @@
 
-# test-workflow.yaml
+# Test Workflow Configuration
 tests:
   - name: "Ranking API Integration"
     steps:

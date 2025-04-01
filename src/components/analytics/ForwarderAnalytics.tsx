@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,9 +15,6 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
   
   // Limit to top 5 forwarders for most charts
   const topForwarders = forwarders.slice(0, 5);
-  
-  // Limit to top 5 carriers for charts
-  const topCarriers = carriers.slice(0, 5);
   
   // Prepare data for cost comparison chart
   const costData = topForwarders.map(f => ({
@@ -60,16 +56,9 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
     return invert ? 100 - normalized : normalized;
   }
 
-  // Prepare carrier data for charts
-  const carrierVolumeData = topCarriers.map(c => ({
-    name: c.name,
-    shipments: c.totalShipments
-  }));
-
-  const carrierReliabilityData = topCarriers.map(c => ({
-    name: c.name,
-    reliability: c.reliabilityScore * 100
-  }));
+  // Use the carriers prop instead of redefining it
+  // Process top carriers for visualization
+  const topCarriers = carriers.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -346,7 +335,9 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold truncate">
-                  {carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0]?.name || "N/A"}
+                  {topCarriers.length > 0 ? 
+                    (topCarriers.sort((a, b) => (b.reliability || 0) - (a.reliability || 0))[0]?.name || "N/A") : 
+                    "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Based on reliability score
@@ -363,7 +354,9 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold truncate">
-                  {carriers.sort((a, b) => b.totalShipments - a.totalShipments)[0]?.name || "N/A"}
+                  {topCarriers.length > 0 ? 
+                    (topCarriers.sort((a, b) => (b.shipments || 0) - (a.shipments || 0))[0]?.name || "N/A") : 
+                    "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Highest shipment volume
@@ -379,7 +372,9 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{carriers.length > 8 ? 'High' : carriers.length > 4 ? 'Medium' : 'Low'}</div>
+                <div className="text-2xl font-bold">
+                  {carriers.length <= 3 ? "Low" : carriers.length <= 6 ? "Medium" : "High"}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   {carriers.length} active carriers
                 </p>
@@ -396,7 +391,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
             <CardContent>
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={carrierVolumeData} layout="vertical">
+                  <BarChart data={topCarriers} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
                     <YAxis dataKey="name" type="category" width={150} />
@@ -418,7 +413,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
             <CardContent>
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={carrierReliabilityData} layout="vertical">
+                  <BarChart data={topCarriers} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" domain={[0, 100]} />
                     <YAxis dataKey="name" type="category" width={150} />
@@ -444,24 +439,20 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/50">
                   <h3 className="font-medium mb-2">Carrier Performance Analysis</h3>
                   <p className="text-sm text-muted-foreground">
-                    {carriers.length > 0
-                      ? `${carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0]?.name} demonstrates the highest reliability score (${(carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[0]?.reliabilityScore * 100).toFixed(0)}%), followed by ${carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[1]?.name} (${(carriers.sort((a, b) => b.reliabilityScore - a.reliabilityScore)[1]?.reliabilityScore * 100).toFixed(0)}%).
-                      Consider allocating more critical and time-sensitive shipments to these carriers when possible.`
-                      : 'No carrier data available for analysis.'
-                    }
+                    {topCarriers.length > 1 ?
+                      `${topCarriers.sort((a, b) => (b.reliability || 0) - (a.reliability || 0))[0]?.name || "Top carrier"} demonstrates the highest reliability score, followed by ${topCarriers.sort((a, b) => (b.reliability || 0) - (a.reliability || 0))[1]?.name || "others"}. 
+                      Consider allocating more critical and time-sensitive shipments to these carriers when possible.` :
+                      "Not enough carrier data to perform a comparative analysis."}
                   </p>
                 </div>
                 
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/50">
                   <h3 className="font-medium mb-2">Carrier Optimization Strategy</h3>
                   <p className="text-sm text-muted-foreground">
-                    {carriers.length > 0
-                      ? `${carriers.sort((a, b) => b.totalShipments - a.totalShipments)[0]?.name} is currently your most used carrier. 
-                      While they provide good volume capacity, their reliability score 
-                      (${(carriers.sort((a, b) => b.totalShipments - a.totalShipments)[0]?.reliabilityScore * 100).toFixed(0)}%) suggests there may be opportunities to diversify and test 
-                      alternative carriers for specific routes to improve overall performance.`
-                      : 'No carrier data available for optimization analysis.'
-                    }
+                    {topCarriers.length > 0 ?
+                      `${topCarriers.sort((a, b) => (b.shipments || 0) - (a.shipments || 0))[0]?.name || "Most used carrier"} is currently your most used carrier. 
+                      ${carriers.length > 3 ? "Consider testing alternative carriers for specific routes to improve overall performance and resilience." : "Consider adding more carriers to your network for better resilience and flexibility."}` :
+                      "No carrier data available for optimization analysis."}
                   </p>
                 </div>
               </div>

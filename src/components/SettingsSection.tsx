@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Sliders, Map, Database, Cpu, Users } from 'lucide-react';
@@ -18,9 +17,9 @@ const SettingsSection: React.FC = () => {
     newWeights[type] = value[0] / 100;
     
     // Normalize weights to ensure they sum to 1
-    const sum = Object.values(newWeights).reduce((a, b) => a + b, 0);
+    const sum = Object.values(newWeights).reduce((a, b) => Number(a) + Number(b), 0);
     Object.keys(newWeights).forEach(key => {
-      newWeights[key as keyof typeof newWeights] = newWeights[key as keyof typeof newWeights] / sum;
+      newWeights[key as keyof typeof newWeights] = Number(newWeights[key as keyof typeof newWeights]) / Number(sum);
     });
     
     setCriteriaWeights(newWeights);

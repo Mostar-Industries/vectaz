@@ -1,6 +1,13 @@
 
 import { Shipment } from "@/types/deeptrack";
-import { computeForwarderRankings, CriteriaWeights } from "@/lib/algorithm";
+import { computeForwarderRankings } from "@/lib/algorithm";
+
+// Define and export CriteriaWeights interface
+export interface CriteriaWeights {
+  cost: number;
+  time: number;
+  reliability: number;
+}
 
 // Simple decision engine implementation
 export class DecisionEngine {

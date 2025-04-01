@@ -10,7 +10,7 @@ import ForwarderAnalytics from './analytics/ForwarderAnalytics';
 import OverviewContent from './analytics/OverviewContent';
 import ShipmentAnalytics from './analytics/ShipmentAnalytics'; 
 import DeepCALSpinner from './DeepCALSpinner';
-import { TrendDirection } from '@/types/deeptrack';
+import { TrendDirection, ShipmentMetrics } from '@/types/deeptrack';
 
 // Updated interface matching Core engine outputs
 interface CoreMetrics {
@@ -43,7 +43,7 @@ const AnalyticsSection: React.FC = () => {
         throw new Error('Core engine initialization failed');
       }      
 
-      // Get metrics directly from Core engine
+      // Get metrics directly from Core engine (actual shipment count from data)
       const metrics = {
         totalShipments: shipmentData.length,
         onTimeRate: 0.85, // Placeholder
@@ -132,6 +132,36 @@ const AnalyticsSection: React.FC = () => {
     );
   }
 
+  // Create shipment metrics from core metrics
+  const shipmentMetrics: ShipmentMetrics = {
+    totalShipments: coreMetrics?.totalShipments || 0,
+    avgTransitTime: coreMetrics?.avgTransitDays || 0,
+    shipmentStatusCounts: {
+      active: 0,
+      completed: coreMetrics?.totalShipments || 0,
+      failed: 0,
+      onTime: Math.round((coreMetrics?.onTimeRate || 0.85) * (coreMetrics?.totalShipments || 0)),
+      inTransit: 0,
+      delayed: 0,
+      cancelled: 0,
+      pending: 0
+    },
+    shipmentsByMode: {
+      air: coreMetrics?.modeSplit.air || 0,
+      sea: coreMetrics?.modeSplit.sea || 0,
+      road: coreMetrics?.modeSplit.road || 0
+    },
+    delayedVsOnTimeRate: {
+      onTime: Math.round((coreMetrics?.onTimeRate || 0.85) * (coreMetrics?.totalShipments || 0)),
+      delayed: Math.round((1 - (coreMetrics?.onTimeRate || 0.85)) * (coreMetrics?.totalShipments || 0))
+    },
+    monthlyTrend: [],
+    disruptionProbabilityScore: 0,
+    resilienceScore: (coreMetrics?.routeResilience || 0.75) * 100,
+    noQuoteRatio: 0,
+    avgCostPerKg: coreMetrics?.costEfficiency || 0
+  };
+
   return coreMetrics ? (
     <AnalyticsLayout
         title="DeepCAL Analytics"
@@ -146,35 +176,7 @@ const AnalyticsSection: React.FC = () => {
         overviewContent={<OverviewContent metrics={coreMetrics} />}
         shipmentsContent={
           <ShipmentAnalytics
-            transitTime={coreMetrics.avgTransitDays}
-            metrics={{
-              totalShipments: coreMetrics.totalShipments,
-              avgTransitTime: coreMetrics.avgTransitDays,
-              shipmentStatusCounts: {
-                active: 0,
-                completed: coreMetrics.totalShipments,
-                failed: 0,
-                onTime: Math.round(coreMetrics.onTimeRate * coreMetrics.totalShipments),
-                inTransit: 0,
-                delayed: 0,
-                cancelled: 0
-              },
-              shipmentsByMode: {
-                air: coreMetrics.modeSplit.air,
-                sea: coreMetrics.modeSplit.sea,
-                road: coreMetrics.modeSplit.road
-              },
-              delayedVsOnTimeRate: {
-                onTime: Math.round(coreMetrics.onTimeRate * coreMetrics.totalShipments),
-                delayed: Math.round((1 - coreMetrics.onTimeRate) * coreMetrics.totalShipments)
-              },
-              monthlyTrend: [],
-              disruptionProbabilityScore: 0,
-              resilienceScore: coreMetrics.routeResilience * 100,
-              noQuoteRatio: 0, 
-              avgCostPerKg: coreMetrics.costEfficiency
-            }}
-            modeSplit={coreMetrics.modeSplit}
+            metrics={shipmentMetrics}
           />
         }
         forwardersContent={

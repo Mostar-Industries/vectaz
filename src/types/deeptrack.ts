@@ -16,7 +16,7 @@ export interface Shipment {
   initial_quote_awarded: string;
   final_quote_awarded_freight_forwader_Carrier: string;
   comments: string;
-  date_of_arrival_destination: string;
+  date_of_arrival_destination: string | null;
   delivery_status: string;
   mode_of_shipment: string;
   forwarder_quotes: Record<string, number>;
@@ -155,4 +155,8 @@ export interface HistoricalTrends {
   totalShipments?: { change: number; direction: TrendDirection };
   onTimeRate?: { baseline: number; change: number };
   // Add other metrics as needed
+}
+
+export interface ShipmentAnalyticsProps {
+  metrics: ShipmentMetrics;
 }

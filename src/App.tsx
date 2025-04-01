@@ -34,28 +34,34 @@ const App = () => {
         return;
       }
 
-      // Sample data for faster boot with all required Shipment type fields
-      const sampleData: Shipment[] = Array(10).fill(0).map((_, i) => ({
-        request_reference: `SR_24-00${i}_NBO`,
-        origin_country: 'Kenya',
-        origin_latitude: 1.2404475,
-        origin_longitude: 36.990054,
-        destination_country: 'Zimbabwe',
-        destination_latitude: -17.80269125,
-        destination_longitude: 31.08848075,
-        weight_kg: 100 + i * 50,
-        delivery_status: i % 2 === 0 ? 'Delivered' : 'Pending',
-        freight_carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3],
-        date_of_collection: "2024-01-11",
-        date_of_arrival_destination: "2024-01-17",
-        cargo_description: "Agricultural supplies",
-        item_category: "Supplies",
-        volume_cbm: 2.5 + i * 0.5,
-        initial_quote_awarded: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3], // Changed from boolean to string
-        final_quote_awarded_freight_forwader_Carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel'][i % 3],
+      // Generate 105 sample shipments for accurate data representation
+      const sampleData: Shipment[] = Array(105).fill(0).map((_, i) => ({
+        request_reference: `SR_24-${i.toString().padStart(3, '0')}_NBO`,
+        origin_country: ['Kenya', 'South Africa', 'Ethiopia', 'Nigeria', 'Egypt'][i % 5],
+        origin_latitude: 1.2404475 + (i * 0.01),
+        origin_longitude: 36.990054 + (i * 0.01),
+        destination_country: ['Zimbabwe', 'Tanzania', 'Uganda', 'Sudan', 'Rwanda'][i % 5],
+        destination_latitude: -17.80269125 + (i * 0.01),
+        destination_longitude: 31.08848075 + (i * 0.01),
+        weight_kg: 100 + i * 10,
+        delivery_status: i % 10 === 0 ? 'Pending' : i % 5 === 0 ? 'In Transit' : 'Delivered',
+        freight_carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel', 'FedEx', 'UPS'][i % 5],
+        date_of_collection: `2024-${(Math.floor(i/30) + 1).toString().padStart(2, '0')}-${(i % 30 + 1).toString().padStart(2, '0')}`,
+        date_of_arrival_destination: i % 10 === 0 ? null : `2024-${(Math.floor(i/30) + 1).toString().padStart(2, '0')}-${((i % 30) + 5).toString().padStart(2, '0')}`,
+        cargo_description: ["Agricultural supplies", "Medical equipment", "Construction materials", "Food supplies", "Electronic devices"][i % 5],
+        item_category: ["Supplies", "Equipment", "Materials", "Food", "Electronics"][i % 5],
+        volume_cbm: 2.5 + i * 0.15,
+        initial_quote_awarded: ['Kenya Airways', 'DHL', 'Kuehne Nagel', 'FedEx', 'UPS'][i % 5],
+        final_quote_awarded_freight_forwader_Carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel', 'FedEx', 'UPS'][i % 5],
         comments: "No issues reported",
-        mode_of_shipment: "Air",
-        forwarder_quotes: { 'Kenya Airways': 2500, 'DHL': 2700, 'Kuehne Nagel': 2600 }
+        mode_of_shipment: i % 3 === 0 ? "Air" : i % 3 === 1 ? "Sea" : "Road",
+        forwarder_quotes: { 
+          'kenya airways': 2500 + i * 50, 
+          'dhl': 2700 + i * 45, 
+          'kuehne nagel': 2600 + i * 55,
+          'fedex': 2800 + i * 40,
+          'ups': 2550 + i * 52
+        }
       }));
       
       try {

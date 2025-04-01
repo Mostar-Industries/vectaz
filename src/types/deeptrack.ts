@@ -1,4 +1,3 @@
-
 export interface Shipment {
   date_of_collection: string;
   request_reference: string;
@@ -122,7 +121,7 @@ export interface ShipmentMetrics {
   avgCostPerKg: number;
 }
 
-export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';
+export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'forms';
 
 export interface TabItem {
   id: AppSection;

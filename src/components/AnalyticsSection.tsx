@@ -88,7 +88,11 @@ const AnalyticsSection: React.FC = () => {
 
       // Get historical trends
       const trends = {
-        totalShipments: { change: 5, direction: 'up' as TrendDirection }
+        totalShipments: { change: 5, direction: 'up' as TrendDirection },
+        onTimeRate: { change: 2.5, direction: 'up' as TrendDirection },
+        avgTransitDays: { change: 0.5, direction: 'down' as TrendDirection },
+        costEfficiency: { change: 3, direction: 'up' as TrendDirection },
+        routeResilience: { change: 1, direction: 'up' as TrendDirection }
       };
 
       setTrendData(trends);
@@ -114,11 +118,11 @@ const AnalyticsSection: React.FC = () => {
 
   return (
     <div className="w-full h-full">
-      <AnalyticsLayout onTabChange={handleTabChange}>
+      <AnalyticsLayout activeTab={activeTab} onTabChange={handleTabChange}>
         {activeTab === 'overview' && coreMetrics && (
           <OverviewContent 
             metrics={coreMetrics}
-            trends={trendData}
+            trendData={trendData}
             forwarderCount={forwarders.length}
             routeCount={(new Set(shipmentData.map(s => `${s.origin_country}-${s.destination_country}`))).size}
             shipmentCount={shipmentData.length}

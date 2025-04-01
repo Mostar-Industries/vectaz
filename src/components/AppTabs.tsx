@@ -1,48 +1,75 @@
-
 import React from 'react';
-import { Map, BarChart, Cpu, Info, Settings } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { 
+  Globe, 
+  BarChart3, 
+  BrainCircuit, 
+  InfoIcon, 
+  Settings,
+  ClipboardList
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TabItem, AppSection } from '@/types/deeptrack';
+import { AppSection } from '@/types/deeptrack';
 
 interface AppTabsProps {
   activeTab: AppSection;
   onTabChange: (tab: AppSection) => void;
-  className?: string;
 }
 
-const AppTabs: React.FC<AppTabsProps> = ({ activeTab, onTabChange, className }) => {
-  const tabs: TabItem[] = [
-    { id: 'map', label: 'Map View', icon: Map },
-    { id: 'analytics', label: 'Analytics', icon: BarChart },
-    { id: 'deepcal', label: 'DeepCAL', icon: Cpu },
-    { id: 'about', label: 'About', icon: Info },
-    { id: 'settings', label: 'Settings', icon: Settings },
+const AppTabs: React.FC<AppTabsProps> = ({ activeTab, onTabChange }) => {
+  // Define the tabs we want to display
+  const tabs = [
+    { id: 'map', icon: Globe, label: 'Map' },
+    { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+    { id: 'forms', icon: ClipboardList, label: 'Forms', path: '/forms' },
+    { id: 'deepcal', icon: BrainCircuit, label: 'DeepCAL' },
+    { id: 'about', icon: InfoIcon, label: 'About' },
+    { id: 'settings', icon: Settings, label: 'Settings' }
   ];
 
   return (
-    <div className={cn(
-      "fixed top-8 left-1/2 transform -translate-x-1/2 z-20 bg-[#0A1A2F]/60 backdrop-blur-md rounded-full shadow-[0_0_20px_rgba(0,255,209,0.15)] overflow-hidden border border-[#00FFD1]/30",
-      className
-    )}>
-      <div className="flex items-center space-x-1 px-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={cn(
-              "relative flex items-center justify-center px-3 py-2 rounded-full transition-all duration-300",
-              activeTab === tab.id
-                ? "text-white bg-gradient-to-r from-[#00FFD1]/30 to-blue-500/30 shadow-inner shadow-white/10"
-                : "text-[#00FFD1]/60 hover:text-[#00FFD1]/90 hover:bg-white/5"
-            )}
-          >
-            <tab.icon className="w-4 h-4 mr-2" />
-            <span className="text-xs font-medium">{tab.label}</span>
-            {activeTab === tab.id && (
-              <span className="absolute inset-0 rounded-full animate-pulse opacity-20 bg-[#00FFD1]/20"></span>
-            )}
-          </button>
-        ))}
+    <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-20">
+      <div className="glass-panel px-3 py-2 rounded-full flex items-center space-x-1">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const Icon = tab.icon;
+          
+          // If the tab has a path, render a Link
+          if (tab.path) {
+            return (
+              <Link
+                key={tab.id}
+                to={tab.path}
+                className={cn(
+                  "flex items-center rounded-full px-4 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-[#00FFD1]/20 text-[#00FFD1]"
+                    : "text-gray-400 hover:bg-[#00FFD1]/10 hover:text-[#00FFD1]"
+                )}
+              >
+                <Icon className="h-4 w-4 mr-2" />
+                {tab.label}
+              </Link>
+            );
+          }
+          
+          // Otherwise, render a button
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id as AppSection)}
+              className={cn(
+                "flex items-center rounded-full px-4 py-2 text-sm transition-colors",
+                isActive
+                  ? "bg-[#00FFD1]/20 text-[#00FFD1]"
+                  : "text-gray-400 hover:bg-[#00FFD1]/10 hover:text-[#00FFD1]"
+              )}
+            >
+              <Icon className="h-4 w-4 mr-2" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

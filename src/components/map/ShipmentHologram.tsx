@@ -35,9 +35,12 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   
+  // Limit to only 3 most recent shipments
+  const recentShipments = shipments.slice(0, 3);
+  
   return (
     <div className={cn(
-      "system-status-card",
+      "system-status-card max-h-[320px] overflow-hidden",
       className
     )}>
       {/* Holographic header */}
@@ -47,13 +50,13 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
           <span>Recent Shipments</span>
         </div>
         <div className="text-xs text-blue-400/80">
-          {shipments.length} shipments
+          {recentShipments.length} shipments
         </div>
       </div>
       
-      {/* Shipment list - now fixed to maximum 3 */}
+      {/* Shipment list - fixed to maximum 3 */}
       <div className="p-3 space-y-2">
-        {shipments.map((shipment, index) => {
+        {recentShipments.map((shipment, index) => {
           const isHovered = hoveredIndex === index;
           const riskScore = generateRiskScore();
           const statusColor = getStatusColor(shipment.deliveryStatus || 'Delivered');

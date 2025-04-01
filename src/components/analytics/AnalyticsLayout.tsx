@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { BarChartIcon, Brain } from 'lucide-react';
+import { BarChart, Brain, X } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
 import DeepTalk from '@/components/DeepTalk';
 import { Button } from '@/components/ui/button';
@@ -23,11 +22,12 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
   onDeepTalkQuery
 }) => {
   return (
-    <div className="container mx-auto p-4 md:p-6 animate-fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold flex items-center">
+    <div className="container mx-auto p-4 animate-fade-in">
+      {/* Header Row - Fixed Height */}
+      <div className="flex justify-between items-center mb-4 h-16">
+        <h1 className="text-2xl md:text-3xl font-bold flex items-center">
           <div className="p-2 mr-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <BarChartIcon className="h-8 w-8 text-blue-400" />
+            <BarChart className="h-6 w-6 md:h-8 md:w-8 text-blue-400" />
           </div>
           <span className="bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
             {title}
@@ -35,26 +35,44 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
         </h1>
         
         <Button 
+          size="sm"
           variant="outline" 
           className="flex items-center gap-2 bg-black/50 backdrop-blur-md border border-blue-500/20 text-blue-400 hover:bg-blue-500/10" 
           onClick={onToggleDeepTalk}
         >
-          <Brain className="h-5 w-5" />
-          {showDeepTalk ? 'Close DeepTalk' : 'Ask DeepTalk™'}
+          {showDeepTalk ? (
+            <>
+              <X className="h-4 w-4" />
+              <span className="hidden sm:inline">Close</span>
+            </>
+          ) : (
+            <>
+              <Brain className="h-4 w-4" />
+              <span className="hidden sm:inline">DeepTalk™</span>
+            </>
+          )}
         </Button>
       </div>
       
-      {kpis && <KPIPanel className="mb-6" />}
+      {/* KPIs - Compact View */}
+      {kpis && (
+        <div className="mb-4 overflow-x-auto">
+          <KPIPanel className="min-w-max" kpis={kpis} />
+        </div>
+      )}
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      {/* Main Content Area - Dynamic Grid */}
+      <div className={`transition-all duration-300 ${showDeepTalk ? 'grid grid-cols-1 lg:grid-cols-4 gap-4' : ''}`}>
+        {/* Primary Content - Always full width when DeepTalk closed */}
+        <div className={showDeepTalk ? 'lg:col-span-3' : ''}>
           {children}
         </div>
         
+        {/* DeepTalk Panel - Slides in/out */}
         {showDeepTalk && (
-          <div className="lg:col-span-1 glass-panel">
+          <div className="lg:col-span-1 glass-panel border border-blue-500/20 rounded-lg overflow-hidden">
             <DeepTalk 
-              className="h-[calc(100vh-300px)] min-h-[500px]" 
+              className="h-[calc(100vh-220px)] min-h-[400px] max-h-[800px]" 
               initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?" 
               onQueryData={onDeepTalkQuery} 
             />

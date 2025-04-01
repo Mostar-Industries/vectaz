@@ -135,3 +135,19 @@ export interface Route {
   shipmentCount: number;
   deliveryStatus?: string;
 }
+
+interface KPIResults {
+  onTimeRate: number;
+  avgTransitDays: number;
+  modeSplit: {
+    air: number;
+    sea: number;
+    road: number;
+  };
+}
+
+interface HistoricalTrends {
+  totalShipments?: { change: number; direction: TrendDirection };
+  onTimeRate?: { baseline: number; change: number };
+  // Add other metrics as needed
+}

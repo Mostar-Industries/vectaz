@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TrendingUp, TrendingDown, Clock, Package, AlertTriangle, Truck, FileText, Shield } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Package, AlertTriangle, Truck, FileText, Shield, Users, Plane } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface KPIProps {
@@ -8,7 +8,7 @@ interface KPIProps {
   value: string | number;
   change?: number;
   icon?: React.ReactNode;
-  color?: 'blue' | 'cyan' | 'magenta' | 'green'; 
+  color?: 'blue' | 'cyan' | 'magenta' | 'green' | 'purple'; 
 }
 
 const KPICard: React.FC<KPIProps> = ({ 
@@ -23,7 +23,8 @@ const KPICard: React.FC<KPIProps> = ({
     blue: 'glass-card-blue',
     cyan: 'glass-card-cyan',
     magenta: 'glass-card-magenta',
-    green: 'glass-card-green'
+    green: 'glass-card-green',
+    purple: 'glass-card-purple'
   };
   
   const cardClass = colorClasses[color];
@@ -33,7 +34,8 @@ const KPICard: React.FC<KPIProps> = ({
     blue: 'text-blue-400',
     cyan: 'text-cyan-400',
     magenta: 'text-pink-500',
-    green: 'text-green-400'
+    green: 'text-green-400',
+    purple: 'text-purple-400'
   };
   
   return (
@@ -72,6 +74,8 @@ interface KPIPanelProps {
       road: number;
       sea: number;
     };
+    forwarderCount?: number;
+    carrierCount?: number;
   };
   isLoading?: boolean;
   className?: string;
@@ -80,8 +84,8 @@ interface KPIPanelProps {
 const KPIPanel: React.FC<KPIPanelProps> = ({ kpis, isLoading = false, className }) => {
   if (isLoading) {
     return (
-      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6", className)}>
-        {[...Array(4)].map((_, i) => (
+      <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6", className)}>
+        {[...Array(6)].map((_, i) => (
           <div key={i} className="h-24 bg-mostar-darkest/50 animate-pulse rounded-lg border border-mostar-light-blue/10"></div>
         ))}
       </div>
@@ -89,7 +93,7 @@ const KPIPanel: React.FC<KPIPanelProps> = ({ kpis, isLoading = false, className 
   }
 
   return (
-    <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6", className)}>
+    <div className={cn("grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6", className)}>
       <KPICard
         title="Total Shipments"
         value={kpis.totalShipments}
@@ -113,6 +117,18 @@ const KPIPanel: React.FC<KPIPanelProps> = ({ kpis, isLoading = false, className 
         value={`${(50).toFixed(1)}`}
         icon={<Shield className="h-6 w-6" />}
         color="green"
+      />
+      <KPICard
+        title="Freight Forwarders"
+        value={kpis.forwarderCount || 5}
+        icon={<Users className="h-6 w-6" />}
+        color="blue"
+      />
+      <KPICard
+        title="Carriers"
+        value={kpis.carrierCount || 8}
+        icon={<Plane className="h-6 w-6" />}
+        color="purple"
       />
     </div>
   );

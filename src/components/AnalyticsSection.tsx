@@ -10,7 +10,7 @@ import CountryAnalytics from '@/components/analytics/CountryAnalytics';
 import WarehouseAnalytics from '@/components/analytics/WarehouseAnalytics';
 import { useDeepTalkHandler } from '@/components/analytics/DeepTalkHandler';
 import { analyzeShipmentData } from '@/utils/analyticsUtils';
-import { ShipmentMetrics, CountryPerformance, ForwarderPerformance, WarehousePerformance } from '@/types/deeptrack';
+import { ShipmentMetrics, CountryPerformance, ForwarderPerformance, WarehousePerformance, CarrierPerformance } from '@/types/deeptrack';
 
 // Analytics section connects all the analytics components together
 const AnalyticsSection: React.FC = () => {
@@ -21,6 +21,12 @@ const AnalyticsSection: React.FC = () => {
 
   // Process the shipment data for analytics
   const analyticsData = analyzeShipmentData(shipmentData);
+
+  // Extract unique carriers from shipment data
+  const uniqueCarriers = [...new Set(shipmentData.map(s => s.freight_carrier))].filter(Boolean);
+  
+  // Extract unique forwarders from shipment data
+  const uniqueForwarders = [...new Set(shipmentData.map(s => s.final_quote_awarded_freight_forwader_Carrier))].filter(Boolean);
 
   // Prepare shipment metrics that conform to the ShipmentMetrics interface
   const shipmentMetrics: ShipmentMetrics = {
@@ -42,7 +48,17 @@ const AnalyticsSection: React.FC = () => {
       failed: shipmentData.filter(s => s.delivery_status === 'Failed').length,
     },
     resilienceScore: 85,
-    noQuoteRatio: 0.05
+    noQuoteRatio: 0.05,
+    carrierCount: uniqueCarriers.length,
+    forwarderPerformance: Object.fromEntries(Object.entries(analyticsData.forwarderBreakdown || {}).map(([name, count]) => [name, count as number])),
+    carrierPerformance: Object.fromEntries(uniqueCarriers.map(carrier => [
+      carrier, 
+      shipmentData.filter(s => s.freight_carrier === carrier).length
+    ])),
+    topForwarder: Object.entries(analyticsData.forwarderBreakdown || {})
+      .sort(([_, a], [__, b]) => (b as number) - (a as number))
+      .map(([name]) => name)[0] || "Unknown",
+    topCarrier: uniqueCarriers.length > 0 ? uniqueCarriers[0] : "Unknown"
   };
 
   // Prepare country performance data conforming to the CountryPerformance interface
@@ -73,6 +89,18 @@ const AnalyticsSection: React.FC = () => {
     costScore: 0.6 + Math.random() * 0.4,
     timeScore: 0.65 + Math.random() * 0.35,
     quoteWinRate: 0.3 + Math.random() * 0.4
+  }));
+
+  // Prepare carrier data
+  const carrierData: CarrierPerformance[] = uniqueCarriers.map(name => ({
+    name,
+    totalShipments: shipmentData.filter(s => s.freight_carrier === name).length,
+    avgTransitDays: 4 + Math.random() * 6,
+    onTimeRate: 0.7 + Math.random() * 0.3,
+    reliabilityScore: 0.65 + Math.random() * 0.35,
+    serviceScore: Math.random() * 100,
+    punctualityScore: Math.random() * 100,
+    handlingScore: Math.random() * 100
   }));
 
   // Prepare warehouse data conforming to the WarehousePerformance interface
@@ -142,11 +170,23 @@ const AnalyticsSection: React.FC = () => {
       <AnalyticsTabs
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        overviewContent={<OverviewContent shipmentMetrics={shipmentMetrics} countryPerformance={countryPerformance} />}
-        shipmentsContent={<ShipmentAnalytics metrics={shipmentMetrics} />}
-        forwardersContent={<ForwarderAnalytics forwarders={forwarderData} />}
-        countriesContent={<CountryAnalytics countries={countryPerformance} />}
-        warehousesContent={<WarehouseAnalytics warehouses={warehouseData} />}
+        overviewContent={<OverviewContent 
+          shipmentMetrics={shipmentMetrics} 
+          countryPerformance={countryPerformance} 
+        />}
+        shipmentsContent={<ShipmentAnalytics 
+          metrics={shipmentMetrics} 
+        />}
+        forwardersContent={<ForwarderAnalytics 
+          forwarders={forwarderData} 
+          carriers={carrierData}
+        />}
+        countriesContent={<CountryAnalytics 
+          countries={countryPerformance} 
+        />}
+        warehousesContent={<WarehouseAnalytics 
+          warehouses={warehouseData} 
+        />}
       />
     </AnalyticsLayout>
   );

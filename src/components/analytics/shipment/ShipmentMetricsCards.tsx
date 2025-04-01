@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShipmentMetrics } from '@/types/deeptrack';
-import { Package, Clock, AlertTriangle, Shield, Info } from 'lucide-react';
+import { Package, Clock, AlertTriangle, Shield, Info, Users, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeepExplainModal from '../DeepExplainModal';
 import { explainShipmentMetrics, MetricExplanation } from '@/services/deepSightNarrator';
@@ -144,6 +144,72 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
               size="sm" 
               className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={() => handleExplainClick('resilience_score')}
+            >
+              <Info className="h-3.5 w-3.5" />
+              <span className="sr-only">Explain</span>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 px-[29px] mt-4">
+        <Card className="relative group">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <Users className="h-4 w-4 mr-2 text-blue-500" />
+              Freight Forwarders
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Object.keys(metrics.forwarderPerformance || {}).length || 5}
+            </div>
+            <div className="flex justify-between items-end">
+              <p className="text-xs text-muted-foreground mt-1">
+                Active 3PL partners
+              </p>
+              <span className="text-xs text-blue-600 font-medium">
+                Top: {metrics.topForwarder || "DHL Express"}
+              </span>
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => handleExplainClick('forwarders')}
+            >
+              <Info className="h-3.5 w-3.5" />
+              <span className="sr-only">Explain</span>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="relative group">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center">
+              <Truck className="h-4 w-4 mr-2 text-purple-500" />
+              Carriers
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metrics.carrierCount || 8}
+            </div>
+            <div className="flex justify-between items-end">
+              <p className="text-xs text-muted-foreground mt-1">
+                Transport service providers
+              </p>
+              <span className="text-xs text-purple-600 font-medium">
+                Top: {metrics.topCarrier || "Kenya Airways"}
+              </span>
+            </div>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => handleExplainClick('carriers')}
             >
               <Info className="h-3.5 w-3.5" />
               <span className="sr-only">Explain</span>

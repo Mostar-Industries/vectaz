@@ -35,6 +35,17 @@ export interface ForwarderPerformance {
   quoteWinRate?: number;
 }
 
+export interface CarrierPerformance {
+  name: string;
+  totalShipments: number;
+  avgTransitDays: number;
+  onTimeRate: number;
+  reliabilityScore: number;
+  serviceScore?: number;
+  punctualityScore?: number;
+  handlingScore?: number;
+}
+
 export interface RoutePerformance {
   origin: string;
   destination: string;
@@ -85,6 +96,11 @@ export interface ShipmentMetrics {
   shipmentStatusCounts: {active: number, completed: number, failed: number};
   resilienceScore: number;
   noQuoteRatio: number;
+  forwarderPerformance?: Record<string, number>;
+  carrierPerformance?: Record<string, number>;
+  topForwarder?: string;
+  topCarrier?: string;
+  carrierCount?: number;
 }
 
 export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';

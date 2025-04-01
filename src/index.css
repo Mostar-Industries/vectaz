@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,538 +5,133 @@
 
 @layer base {
   :root {
-    --background: 225 47% 5%;
-    --foreground: 210 40% 98%;
-
-    --card: 224 47% 4%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 224 47% 4%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 100% 50%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
+ 
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+ 
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 47.4% 11.2%;
+ 
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
+ 
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+ 
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --ring: 215 20.2% 65.1%;
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+ 
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+ 
     --accent: 216 34% 17%;
     --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
+ 
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
+ 
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+ 
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
+ 
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
+ 
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-
+ 
+    --ring: 216 34% 17%;
+ 
     --radius: 0.5rem;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply bg-mostar-dark text-foreground font-body antialiased overflow-x-hidden;
-    background-image: radial-gradient(circle at 50% 0%, rgba(0, 162, 255, 0.07) 0%, rgba(5, 8, 16, 0.7) 70%);
-    background-attachment: fixed;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-wide;
-  }
-  
-  code, pre {
-    @apply font-mono;
-  }
-  
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    @apply bg-mostar-darkest;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply bg-mostar-blue/30 rounded-full transition-colors;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-mostar-light-blue/50;
-  }
-  
-  /* Scanline effect for cyberpunk feel */
-  .scanline {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: rgba(51, 161, 255, 0.1);
-    opacity: 0.75;
-    z-index: 100;
-    pointer-events: none;
-    animation: scan-line 6s linear infinite;
-  }
-  
-  /* Loading overlay animation */
-  .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-    background-color: #050810;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: opacity 0.5s ease-in-out;
-  }
-  
-  .loading-logo {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    border-top-color: #00a2ff;
-    border-bottom-color: #00ffff;
-    animation: spin 1.5s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  /* Glass Reflection Styles */
-  .glass-card {
-    @apply relative overflow-hidden rounded-lg border border-white/10 bg-black/50 backdrop-blur-md transition-all duration-300;
-  }
-  
-  .glass-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -50%;
-    width: 200%;
-    height: 100%;
-    background: linear-gradient(
-      90deg, 
-      transparent, 
-      rgba(255, 255, 255, 0.05), 
-      transparent
-    );
-    transform: rotate(45deg);
-    pointer-events: none;
-  }
-  
-  /* Glass panel styles */
-  .glass-panel {
-    backdrop-filter: blur(12px);
-    background: rgba(15, 23, 42, 0.6);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  }
-  
-  .glass-panel::before {
-    content: '';
-    position: absolute;
-    top: -100%;
-    left: -100%;
-    width: 300%;
-    height: 200%;
-    background: linear-gradient(
-      45deg,
-      transparent,
-      rgba(255, 255, 255, 0.03),
-      transparent
-    );
-    transform-origin: center;
-    pointer-events: none;
-    transition: transform 1s ease;
-  }
-  
-  .glass-panel:hover::before {
-    transform: rotate(10deg) translate(10%, 10%);
-  }
-  
-  /* Glass Reflection Card with color variations */
-  .glass-card-blue {
-    @apply glass-card border-blue-500/20 before:from-blue-500/5 before:to-transparent;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
-  }
-  
-  .glass-card-cyan {
-    @apply glass-card border-cyan-500/20 before:from-cyan-500/5 before:to-transparent;
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.1);
-  }
-  
-  .glass-card-magenta {
-    @apply glass-card border-pink-500/20 before:from-pink-500/5 before:to-transparent;
-    box-shadow: 0 0 20px rgba(236, 72, 153, 0.1);
-  }
-  
-  .glass-card-green {
-    @apply glass-card border-green-500/20 before:from-green-500/5 before:to-transparent;
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
-  }
-  
-  /* System Status Card (matching reference image) */
-  .system-status-card {
-    @apply relative overflow-hidden rounded-lg border border-blue-500/20 bg-black/80 backdrop-blur-md shadow-sm;
-  }
-  
-  .system-status-card::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      55deg,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
-    transform: rotate(30deg);
-    pointer-events: none;
-  }
-  
-  .system-status-header {
-    @apply text-lg font-semibold text-white py-2 px-4 border-b border-blue-500/20;
-    text-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
-  }
-  
-  /* Activity feed styling (matching reference image) */
-  .activity-item {
-    @apply flex items-start gap-3 py-3 border-b border-blue-500/10 last:border-0;
-  }
-  
-  .activity-icon {
-    @apply flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center;
-  }
-  
-  .activity-icon-magenta {
-    @apply bg-pink-500/10 text-pink-500;
-  }
-  
-  .activity-icon-cyan {
-    @apply bg-cyan-500/10 text-cyan-500;
-  }
-  
-  .activity-icon-green {
-    @apply bg-green-500/10 text-green-500;
-  }
-  
-  .activity-content {
-    @apply flex-1;
-  }
-  
-  .activity-title {
-    @apply text-sm font-medium text-white;
-  }
-  
-  .activity-time {
-    @apply text-xs text-gray-400 mt-1;
-  }
-  
-  .live-indicator {
-    @apply flex items-center gap-2 text-xs font-medium text-green-400;
-  }
-  
-  .live-dot {
-    @apply w-2 h-2 rounded-full bg-green-400 animate-pulse;
-    box-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
-  }
-  
-  /* Chart container styling */
-  .chart-container {
-    @apply rounded-lg border border-blue-500/20 bg-black/70 backdrop-blur-md p-4 overflow-hidden relative;
-  }
-  
-  .chart-container::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-      45deg,
-      transparent,
-      rgba(59, 130, 246, 0.05),
-      transparent
-    );
-    transform: rotate(30deg);
-    pointer-events: none;
-  }
-  
-  /* Terminal-style card */
-  .terminal-card {
-    @apply relative overflow-hidden rounded-md transition-all duration-300;
-    background: rgba(8, 14, 25, 0.85);
-    border: 1px solid rgba(51, 161, 255, 0.2);
-    backdrop-filter: blur(10px);
-  }
-  
-  /* Cyber-themed card effects */
-  .cyber-card {
-    @apply relative overflow-hidden rounded-md border border-mostar-light-blue/10 p-6 glassmorphism-card transition-all duration-300;
-  }
-  
-  .cyber-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(51, 161, 255, 0.08), transparent);
-    transform: translateX(-100%);
-    transition: transform 0.6s;
-    pointer-events: none;
-  }
-  
-  .cyber-card:hover::before {
-    transform: translateX(100%);
-  }
-  
-  .cyber-card .glow-line {
-    @apply absolute h-px bg-gradient-to-r from-transparent via-mostar-light-blue to-transparent w-0 transition-all duration-500;
-    pointer-events: none;
-  }
-  
-  .cyber-card:hover .glow-line {
-    @apply w-full;
-  }
-  
-  /* Button styles */
-  .button-cyber {
-    @apply relative overflow-hidden font-display uppercase tracking-wide text-sm font-medium py-3 px-6 bg-mostar-darkest border border-mostar-light-blue/30 rounded text-white transition-all duration-300;
-  }
-  
-  .button-cyber::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-mostar-blue/20 to-mostar-light-blue/20 opacity-0 transition-opacity duration-300;
-  }
-  
-  .button-cyber:hover::before {
-    @apply opacity-100;
-  }
-  
-  .button-cyber::after {
-    content: '';
-    @apply absolute bottom-0 left-0 h-[2px] w-0 bg-mostar-light-blue transition-all duration-300;
-  }
-  
-  .button-cyber:hover::after {
-    @apply w-full;
-  }
-  
-  /* Primary futuristic button with glow */
-  .button-cyber-primary {
-    @apply relative overflow-hidden font-display uppercase tracking-wide text-sm font-medium py-3 px-6 bg-mostar-blue/20 border border-mostar-light-blue/50 rounded text-white transition-all duration-300;
-    box-shadow: 0 0 10px rgba(51, 161, 255, 0.2);
-  }
-  
-  .button-cyber-primary:hover {
-    @apply bg-mostar-blue/30 border-mostar-light-blue/80;
-    box-shadow: 0 0 15px rgba(51, 161, 255, 0.4);
-  }
-  
-  /* Nav tab styles */
-  .cyber-tab {
-    @apply relative py-2 px-4 text-sm font-medium text-muted-foreground transition-colors border-b-2 border-transparent;
-  }
-  
-  .cyber-tab.active {
-    @apply text-mostar-light-blue border-mostar-light-blue text-glow-blue;
-  }
-  
-  .cyber-tab::after {
-    content: '';
-    @apply absolute bottom-0 left-0 h-[2px] w-0 bg-mostar-light-blue/50 transition-all duration-300;
-  }
-  
-  .cyber-tab:hover::after {
-    @apply w-full;
-  }
-  
-  /* Terminal text output */
-  .terminal-text {
-    @apply font-mono text-sm leading-relaxed;
-  }
-  
-  .terminal-text .command {
-    @apply text-mostar-light-blue;
-  }
-  
-  .terminal-text .info {
-    @apply text-mostar-terminal-green;
-  }
-  
-  .terminal-text .warning {
-    @apply text-yellow-500;
-  }
-  
-  .terminal-text .error {
-    @apply text-red-500;
-  }
-  
-  .terminal-text .system {
-    @apply text-mostar-purple;
-  }
-  
-  /* Glowing text variants */
-  .text-cyber-blue {
-    @apply text-mostar-light-blue text-glow-blue;
-  }
-  
-  .text-cyber-green {
-    @apply text-mostar-green text-glow-green;
-  }
-  
-  .text-cyber-magenta {
-    @apply text-mostar-magenta text-glow-magenta;
-  }
-  
-  .text-cyber-bright-magenta {
-    @apply text-mostar-bright-magenta text-glow-bright-magenta;
-  }
-  
-  /* Security badge */
-  .security-badge {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
-    background: rgba(255, 202, 0, 0.1);
-    border: 1px solid rgba(255, 202, 0, 0.3);
-    color: #ffca00;
-    text-shadow: 0 0 5px rgba(255, 202, 0, 0.5);
-  }
-  
-  /* Status indicators */
-  .status-indicator {
-    @apply relative inline-block h-2 w-2 rounded-full;
-  }
-  
-  .status-indicator::after {
-    @apply absolute inset-0 rounded-full;
-    content: '';
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-  
-  .status-indicator.online {
-    @apply bg-mostar-green;
-  }
-  
-  .status-indicator.online::after {
-    box-shadow: 0 0 8px rgba(0, 255, 157, 0.7);
-  }
-  
-  .status-indicator.warning {
-    @apply bg-mostar-yellow;
-  }
-  
-  .status-indicator.warning::after {
-    box-shadow: 0 0 8px rgba(255, 202, 0, 0.7);
-  }
-  
-  .status-indicator.error {
-    @apply bg-red-500;
-  }
-  
-  .status-indicator.error::after {
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
-  }
-  
-  /* Data visualization elements */
-  .data-node {
-    @apply absolute h-1.5 w-1.5 rounded-full bg-mostar-light-blue;
-    box-shadow: 0 0 5px rgba(51, 161, 255, 0.8);
-    animation: pulse-glow 3s ease-in-out infinite;
-  }
-  
-  .data-link {
-    @apply absolute bg-mostar-light-blue/30;
-    height: 1px;
-    transform-origin: 0 0;
-  }
-  
-  /* Music player effects */
-  .audio-wave {
-    display: flex;
-    align-items: flex-end;
-    height: 20px;
-    width: 30px;
-  }
-  
-  .audio-wave .bar {
-    width: 3px;
-    margin: 0 1px;
-    background: linear-gradient(to top, #33a1ff, #00ffff);
-    border-radius: 1px;
-    animation: audio-wave-anim 0.8s infinite ease-in-out;
-  }
-  
-  .audio-wave .bar:nth-child(2) {
-    animation-delay: 0.1s;
-  }
-  
-  .audio-wave .bar:nth-child(3) {
-    animation-delay: 0.2s;
-  }
-  
-  .audio-wave .bar:nth-child(4) {
-    animation-delay: 0.3s;
-  }
-  
-  @keyframes audio-wave-anim {
-    0% {
-      height: 5px;
-    }
-    50% {
-      height: 15px;
-    }
-    100% {
-      height: 5px;
-    }
-  }
-  
-  .music-controls {
-    transition: all 0.3s ease;
-  }
-  
-  .music-controls:hover {
-    box-shadow: 0 0 15px rgba(51, 161, 255, 0.5);
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Custom animations */
-@layer utilities {
-  .animate-delay-100 {
-    animation-delay: 100ms;
-  }
-  .animate-delay-200 {
-    animation-delay: 200ms;
-  }
-  .animate-delay-300 {
-    animation-delay: 300ms;
-  }
-  .animate-delay-400 {
-    animation-delay: 400ms;
-  }
-  .animate-delay-500 {
-    animation-delay: 500ms;
-  }
-  .animate-delay-1000 {
-    animation-delay: 1000ms;
-  }
+/* Glass Panel Effects */
+.glass-panel {
+  backdrop-filter: blur(12px);
+  background: rgba(15, 23, 42, 0.6);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Mostar UI Theme Colors */
+:root {
+  --mostar-blue: #0070F3;
+  --mostar-light-blue: #00BFFF;
+  --mostar-cyan: #00D1ED;
+  --mostar-magenta: #FF00FF;
+  --mostar-green: #00FF9D;
+  --cyber-blue: rgb(0, 170, 255);
+  --cyber-green: rgb(0, 255, 157);
+  --cyber-magenta: rgb(255, 0, 255);
+  --cyber-cyan: rgb(0, 209, 237);
+}
+
+/* Specialized Card Effects */
+.glassmorphism-card {
+  @apply backdrop-blur-md bg-black/30 rounded-lg border transition-all;
+}
+
+.glassmorphism-card-magenta {
+  @apply backdrop-blur-md bg-purple-950/30 rounded-lg border transition-all;
+}
+
+.glassmorphism-card-green {
+  @apply backdrop-blur-md bg-green-950/30 rounded-lg border transition-all;
+}
+
+/* Shadow Effects */
+.shadow-neon-blue {
+  box-shadow: 0 0 10px rgba(0, 191, 255, 0.3);
+}
+
+.shadow-neon-cyan {
+  box-shadow: 0 0 10px rgba(0, 209, 237, 0.3);
+}
+
+.shadow-neon-magenta {
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+}
+
+.shadow-neon-green {
+  box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+}
+
+/* Chart Panels */
+.cyber-panel {
+  @apply glass-panel p-0;
 }

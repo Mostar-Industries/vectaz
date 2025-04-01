@@ -102,6 +102,9 @@ export interface ShipmentMetrics {
     failed: number;
     onTime: number;
     inTransit: number;
+    delayed?: number;
+    cancelled?: number;
+    pending?: number;
   };
   resilienceScore: number;
   noQuoteRatio: number;
@@ -136,6 +139,8 @@ export interface Route {
   deliveryStatus?: string;
 }
 
+export type TrendDirection = 'up' | 'down' | 'neutral';
+
 interface KPIResults {
   onTimeRate: number;
   avgTransitDays: number;
@@ -146,7 +151,7 @@ interface KPIResults {
   };
 }
 
-interface HistoricalTrends {
+export interface HistoricalTrends {
   totalShipments?: { change: number; direction: TrendDirection };
   onTimeRate?: { baseline: number; change: number };
   // Add other metrics as needed

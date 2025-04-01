@@ -7,14 +7,52 @@ import ShipmentResilienceChart from './shipment/ShipmentResilienceChart';
 import ShipmentModeChart from './shipment/ShipmentModeChart';
 
 interface OverviewContentProps {
-  shipmentMetrics: ShipmentMetrics;
-  countryPerformance: CountryPerformance[];
+  metrics: {
+    totalShipments: number;
+    onTimeRate: number;
+    avgTransitDays: number;
+    costEfficiency: number;
+    routeResilience: number;
+    modeSplit: {
+      air: number;
+      sea: number;
+      road: number;
+    };
+  };
+  countryPerformance?: CountryPerformance[];
 }
 
 const OverviewContent: React.FC<OverviewContentProps> = ({
-  shipmentMetrics,
-  countryPerformance
+  metrics,
+  countryPerformance = []
 }) => {
+  // Convert to shipmentMetrics format expected by charts
+  const shipmentMetrics: ShipmentMetrics = {
+    totalShipments: metrics.totalShipments,
+    avgTransitTime: metrics.avgTransitDays,
+    shipmentsByMode: {
+      air: metrics.modeSplit.air,
+      sea: metrics.modeSplit.sea,
+      road: metrics.modeSplit.road
+    },
+    delayedVsOnTimeRate: {
+      onTime: Math.round(metrics.onTimeRate * metrics.totalShipments),
+      delayed: Math.round((1 - metrics.onTimeRate) * metrics.totalShipments)
+    },
+    monthlyTrend: [],
+    disruptionProbabilityScore: 0,
+    resilienceScore: metrics.routeResilience * 100,
+    shipmentStatusCounts: {
+      active: 0,
+      completed: metrics.totalShipments,
+      failed: 0,
+      onTime: Math.round(metrics.onTimeRate * metrics.totalShipments),
+      inTransit: 0
+    },
+    noQuoteRatio: 0,
+    avgCostPerKg: metrics.costEfficiency
+  };
+
   return (
     <div className="space-y-6">
       {/* Metrics Cards Row */}
@@ -95,7 +133,7 @@ const OverviewContent: React.FC<OverviewContentProps> = ({
         <div className="cyber-panel rounded-md overflow-hidden border border-mostar-light-blue/20 hover:border-mostar-light-blue/40 transition-all duration-300">
           <div className="p-4">
             <h3 className="text-xl font-semibold text-cyber-blue">Shipment Mode Distribution</h3>
-            <p className="text-sm text-muted-foreground">Breakdown by transportation mode</p>
+            <p className="text-sm text-muted-foreground">Distribution by transportation mode</p>
           </div>
           <div className="h-[360px]">
             <ShipmentModeChart shipmentsByMode={shipmentMetrics.shipmentsByMode} />

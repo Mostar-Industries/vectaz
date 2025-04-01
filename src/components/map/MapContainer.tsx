@@ -20,6 +20,9 @@ interface MapContainerProps {
   onCountryClick?: (country: string) => void;
 }
 
+// Set the Mapbox access token globally
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2x4czNxbjU2MWM2eTJqc2gwNGIwaWhkMSJ9.jSwZdyaPa1dOHepNU5P71g';
+
 // Using forwardRef to properly handle the ref
 const MapContainer = forwardRef<any, MapContainerProps>(({ 
   routes, 
@@ -59,6 +62,17 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
       }
     },
     
+    // Method to toggle terrain
+    toggleTerrain: (show3D: boolean) => {
+      if (mapRef.current) {
+        if (show3D) {
+          mapRef.current.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+        } else {
+          mapRef.current.setTerrain(null);
+        }
+      }
+    },
+    
     // Method to show info at a location
     showInfoAtLocation: (lat: number, lng: number, content: string) => {
       if (mapRef.current) {
@@ -83,11 +97,8 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
   // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || isLoading) return;
-
-    // Set the access token for Mapbox
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2x4czNxbjU2MWM2eTJqc2gwNGIwaWhkMSJ9.jSwZdyaPa1dOHepNU5P71g';
     
-    // Create a new map instance
+    // Create a new map instance - directly using the token set above
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/akanimo1/cm8bw23rp00i501sbgbr258r0',
@@ -119,6 +130,14 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
         'horizon-blend': 0.2,
         'space-color': 'rgb(5, 10, 20)',
         'star-intensity': 0.6
+      });
+
+      // Add terrain source only if needed
+      map.addSource('mapbox-dem', {
+        'type': 'raster-dem',
+        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512,
+        'maxzoom': 14
       });
 
       setMapInitialized(true);

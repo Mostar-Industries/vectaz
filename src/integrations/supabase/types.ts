@@ -146,6 +146,18 @@ export type Database = {
         }
         Relationships: []
       }
+      request_reference: {
+        Row: {
+          sn: number | null
+        }
+        Insert: {
+          sn?: number | null
+        }
+        Update: {
+          sn?: number | null
+        }
+        Relationships: []
+      }
       shipments: {
         Row: {
           actual_delivery_date: string | null

@@ -1,0 +1,47 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-gradient-primary {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500;
+  }
+  
+  .animate-spin-reverse {
+    animation: spin-reverse 1.5s linear infinite;
+  }
+  
+  @keyframes spin-reverse {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+}
+
+/* Add this if not already present in your CSS */
+.tech-bg {
+  background-color: #0A1A2F;
+}
+
+.tech-grid {
+  background-image: linear-gradient(rgba(0, 255, 209, 0.05) 1px, transparent 1px),
+                   linear-gradient(90deg, rgba(0, 255, 209, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.network-lines {
+  background: radial-gradient(circle, transparent 20%, #0A1A2F 20%, #0A1A2F 80%, transparent 80%, transparent),
+              radial-gradient(circle, transparent 20%, #0A1A2F 20%, #0A1A2F 80%, transparent 80%, transparent) 50px 50px,
+              linear-gradient(rgba(0, 255, 209, 0.05) 4px, transparent 4px) 25px 25px,
+              linear-gradient(90deg, rgba(0, 255, 209, 0.05) 4px, transparent 4px) 25px 25px;
+  background-size: 100px 100px, 100px 100px, 50px 50px, 50px 50px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

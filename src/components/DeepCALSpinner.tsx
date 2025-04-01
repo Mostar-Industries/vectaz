@@ -1,14 +1,12 @@
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
 
 const DeepCALSpinner: React.FC = () => {
   return (
-    <div className="relative flex items-center justify-center">
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="h-16 w-16 rounded-full border-4 border-blue-500/20 border-t-blue-500 animate-spin"></div>
-      </div>
-      <Loader2 className="h-12 w-12 text-blue-400 animate-pulse" />
+    <div className="relative flex items-center justify-center w-20 h-20">
+      <div className="absolute w-16 h-16 border-4 border-t-transparent border-[#00FFD1] rounded-full animate-spin"></div>
+      <div className="absolute w-12 h-12 border-4 border-t-transparent border-blue-400 rounded-full animate-spin-reverse"></div>
+      <div className="absolute text-xs font-bold text-white">DEEP</div>
     </div>
   );
 };

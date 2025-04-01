@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
@@ -8,7 +7,7 @@ import CountryAnalytics from './analytics/CountryAnalytics';
 import ForwarderAnalytics from './analytics/ForwarderAnalytics';
 import OverviewContent from './analytics/OverviewContent';
 import ShipmentAnalytics from './analytics/ShipmentAnalytics'; 
-import { TrendDirection, ShipmentMetrics, ForwarderPerformance, CountryPerformance, WarehousePerformance, CarrierPerformance } from '@/types/deeptrack';
+import { ShipmentMetrics, ForwarderPerformance, CountryPerformance, WarehousePerformance, CarrierPerformance } from '@/types/deeptrack';
 import { 
   calculateShipmentMetrics, 
   calculateForwarderPerformance, 
@@ -106,16 +105,28 @@ const AnalyticsSection: React.FC = () => {
     }
   };
 
+  // Determine the title based on the active tab
+  const getTabTitle = () => {
+    switch(activeTab) {
+      case 'overview': return 'Analytics Overview';
+      case 'shipments': return 'Shipment Analytics';
+      case 'forwarders': return 'Forwarder Analytics';
+      case 'countries': return 'Country Analytics';
+      case 'warehouses': return 'Warehouse Analytics';
+      default: return 'Analytics Dashboard';
+    }
+  };
+
   return (
     <div className="w-full h-full">
-      <AnalyticsLayout activeTab={activeTab as any} onTabChange={handleTabChange as any}>
+      <AnalyticsLayout 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+        title={getTabTitle()}
+      >
         {activeTab === 'overview' && coreMetrics && (
           <OverviewContent 
             metrics={coreMetrics}
-            forwarderCount={forwarders.length}
-            routeCount={(new Set(shipmentData.map(s => `${s.origin_country}-${s.destination_country}`))).size}
-            shipmentCount={shipmentData.length}
-            carrierCount={carriers.length}
           />
         )}
         

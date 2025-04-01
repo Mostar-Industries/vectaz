@@ -1,12 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart, Brain, X } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
 import DeepTalk from '@/components/DeepTalk';
 import { Button } from '@/components/ui/button';
 
 interface AnalyticsLayoutProps {
-  title: string;
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+  children: React.ReactNode;
+  title?: string;
   kpis?: Array<{
     label: string;
     value: string | number;
@@ -15,20 +18,26 @@ interface AnalyticsLayoutProps {
     iconName?: string;
     color?: string;
   }>;
-  children: React.ReactNode;
-  showDeepTalk: boolean;
-  onToggleDeepTalk: () => void;
-  onDeepTalkQuery: (query: string) => Promise<string>;
 }
 
 const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
-  title,
+  title = "Analytics Dashboard",
   kpis,
   children,
-  showDeepTalk,
-  onToggleDeepTalk,
-  onDeepTalkQuery
+  activeTab,
+  onTabChange
 }) => {
+  const [showDeepTalk, setShowDeepTalk] = useState(false);
+  
+  const handleToggleDeepTalk = () => {
+    setShowDeepTalk(!showDeepTalk);
+  };
+  
+  const handleDeepTalkQuery = async (query: string): Promise<string> => {
+    // This is a placeholder function that would be connected to the actual DeepCAL engine
+    return `I've analyzed your query: "${query}". Here's what the data suggests...`;
+  };
+
   return (
     <div className="container mx-auto p-4 animate-fade-in">
       {/* Header Row - Fixed Height */}
@@ -46,7 +55,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
           size="sm"
           variant="outline" 
           className="flex items-center gap-2 bg-black/50 backdrop-blur-md border border-blue-500/20 text-blue-400 hover:bg-blue-500/10" 
-          onClick={onToggleDeepTalk}
+          onClick={handleToggleDeepTalk}
         >
           {showDeepTalk ? (
             <>
@@ -82,7 +91,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
             <DeepTalk 
               className="h-[calc(100vh-220px)] min-h-[400px] max-h-[800px]" 
               initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?" 
-              onQueryData={onDeepTalkQuery} 
+              onQueryData={handleDeepTalkQuery} 
             />
           </div>
         )}

@@ -15,9 +15,7 @@ import { useBaseDataStore } from '@/store/baseState';
 
 const IconNavigation = () => {
   const location = useLocation();
-  const { setActiveSection } = useBaseDataStore((state) => ({ 
-    setActiveSection: state.setActiveSection 
-  }));
+  const baseStore = useBaseDataStore();
   const isIndex = location.pathname === '/';
 
   // Icons we'll display in the bottom navigation
@@ -31,7 +29,11 @@ const IconNavigation = () => {
   ];
 
   const handleSectionChange = (section: AppSection) => {
-    setActiveSection(section);
+    if (baseStore.setActiveSection) {
+      baseStore.setActiveSection(section);
+    } else {
+      console.warn('setActiveSection is not available in the store');
+    }
   };
 
   return (

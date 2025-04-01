@@ -21,6 +21,9 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
   const [is3DMode, setIs3DMode] = useState(false);
   const mapContainerRef = useRef<any>(null);
   const { toast } = useToast();
+  
+  // Limit to only 3 most recent routes
+  const limitedRoutes = routes.slice(0, 3);
 
   const handleMapLoaded = () => {
     setMapLoaded(true);
@@ -38,7 +41,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     
     if (routeIndex !== null) {
       // Show info on the map for the selected route
-      showRouteInfoOnMap(routes[routeIndex], routeIndex);
+      showRouteInfoOnMap(limitedRoutes[routeIndex], routeIndex);
     }
   };
   
@@ -146,55 +149,27 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     }
   };
 
-  // Generate random data flow lines for visual effect
-  useEffect(() => {
-    if (!mapLoaded) return;
-    
-    const container = document.querySelector('.map-container');
-    if (!container) return;
-    
-    const dataFlow = document.createElement('div');
-    dataFlow.className = 'data-flow';
-    container.appendChild(dataFlow);
-    
-    // Create random data streams
-    for (let i = 0; i < 20; i++) {
-      const stream = document.createElement('div');
-      stream.className = 'data-stream';
-      stream.style.left = `${Math.random() * 100}%`;
-      stream.style.animationDelay = `${Math.random() * 3}s`;
-      stream.style.height = `${30 + Math.random() * 70}px`;
-      dataFlow.appendChild(stream);
-    }
-    
-    return () => {
-      if (dataFlow.parentNode) {
-        dataFlow.parentNode.removeChild(dataFlow);
-      }
-    };
-  }, [mapLoaded]);
-
   return (
     <div className={cn("relative h-full w-full", className)}>
       <MapContainer 
-        routes={routes} 
+        routes={limitedRoutes} 
         isLoading={isLoading} 
         onMapLoaded={handleMapLoaded}
         onRouteClick={handleRouteClick}
         ref={mapContainerRef}
       />
       
-      {mapLoaded && routes.length > 0 && (
+      {mapLoaded && limitedRoutes.length > 0 && (
         <>
-          {/* Holographic shipment list */}
+          {/* Holographic shipment list - limited to 3 */}
           <ShipmentHologram 
-            shipments={routes}
+            shipments={limitedRoutes}
             onSelect={handleShipmentSelect}
-            className="absolute top-4 right-4 w-80"
+            className="absolute top-4 right-4 w-80 max-h-[250px]"
           />
           
           {/* Stats overlay */}
-          <StatsOverlay routesCount={routes.length} />
+          <StatsOverlay routesCount={limitedRoutes.length} />
           
           {/* 3D mode toggle */}
           <button

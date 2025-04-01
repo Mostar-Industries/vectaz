@@ -37,26 +37,26 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
   
   return (
     <div className={cn(
-      "system-status-card max-h-[500px] overflow-auto custom-scrollbar",
+      "system-status-card",
       className
     )}>
       {/* Holographic header */}
       <div className="system-status-header flex justify-between items-center">
         <div className="flex items-center">
           <Activity className="mr-2 h-5 w-5 text-blue-400" />
-          <span>Active Shipments</span>
+          <span>Recent Shipments</span>
         </div>
         <div className="text-xs text-blue-400/80">
           {shipments.length} shipments
         </div>
       </div>
       
-      {/* Shipment list */}
+      {/* Shipment list - now fixed to maximum 3 */}
       <div className="p-3 space-y-2">
         {shipments.map((shipment, index) => {
           const isHovered = hoveredIndex === index;
           const riskScore = generateRiskScore();
-          const statusColor = getStatusColor(shipment.deliveryStatus);
+          const statusColor = getStatusColor(shipment.deliveryStatus || 'Delivered');
           
           return (
             <GlassContainer
@@ -82,7 +82,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
                   </span>
                 </div>
                 <span className={cn("text-xs font-medium flex items-center", statusColor)}>
-                  {shipment.deliveryStatus}
+                  {shipment.deliveryStatus || 'Delivered'}
                 </span>
               </div>
               

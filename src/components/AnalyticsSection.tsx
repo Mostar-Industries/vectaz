@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
-import AnalyticsTabs from '@/components/analytics/AnalyticsTabs';
-import { DecisionEngine } from '@/core/engine'; // Update import path
+import { DecisionEngine } from '@/core/engine'; 
 import WarehouseAnalytics from './analytics/WarehouseAnalytics';
 import CountryAnalytics from './analytics/CountryAnalytics';
 import ForwarderAnalytics from './analytics/ForwarderAnalytics';
@@ -18,16 +17,8 @@ import {
   calculateCarrierPerformance
 } from '@/utils/analyticsUtils';
 
-// DeepCAL Spinner Component
-const DeepCALSpinner: React.FC = () => {
-  return (
-    <div className="relative flex items-center justify-center w-20 h-20">
-      <div className="absolute w-16 h-16 border-4 border-t-transparent border-[#00FFD1] rounded-full animate-spin"></div>
-      <div className="absolute w-12 h-12 border-4 border-t-transparent border-blue-400 rounded-full animate-spin-reverse"></div>
-      <div className="absolute text-xs font-bold text-white">DEEP</div>
-    </div>
-  );
-};
+// Import the DeepCALSpinner from its own file
+import DeepCALSpinner from './DeepCALSpinner';
 
 // Updated interface matching Core engine outputs
 interface CoreMetrics {
@@ -123,11 +114,11 @@ const AnalyticsSection: React.FC = () => {
 
   return (
     <div className="w-full h-full">
-      <AnalyticsLayout activeTab={activeTab} onTabChange={handleTabChange}>
+      <AnalyticsLayout onTabChange={handleTabChange}>
         {activeTab === 'overview' && coreMetrics && (
           <OverviewContent 
-            coreMetrics={coreMetrics}
-            trendData={trendData}
+            metrics={coreMetrics}
+            trends={trendData}
             forwarderCount={forwarders.length}
             routeCount={(new Set(shipmentData.map(s => `${s.origin_country}-${s.destination_country}`))).size}
             shipmentCount={shipmentData.length}

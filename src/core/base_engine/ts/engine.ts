@@ -1,5 +1,5 @@
 
-import { Shipment, ForwarderPerformance, RoutePerformance } from "@/types/deeptrack";
+import { Shipment, ForwarderPerformance, RoutePerformance } from "../types/deeptrack";
 
 // Interface for decision engine criteria weights
 export interface CriteriaWeights {

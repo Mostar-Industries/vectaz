@@ -1,0 +1,127 @@
+{
+    "decision_engine": {
+      "version": "2.3.1",
+      "methodology": "Neutrosophic AHP-TOPSIS",
+      "last_updated": "2024-03-31T14:30:00Z"
+    },
+  
+    "input_data": {
+      "alternatives": [
+        {"id": "A1", "label": "Alternative 1", "cost": 1200, "service": 92, "risk": 5},
+        {"id": "A2", "label": "Alternative 2", "cost": 1000, "service": 85, "risk": 9},
+        {"id": "A3", "label": "Alternative 3", "cost": 1300, "service": 97, "risk": 3},
+        {"id": "A4", "label": "Alternative 4", "cost": 1100, "service": 90, "risk": 4}
+      ],
+      "criteria": {
+        "cost": {"type": "min", "weight": 0.33},
+        "service": {"type": "max", "weight": 0.34},
+        "risk": {"type": "min", "weight": 0.33}
+      }
+    },
+  
+    "analysis": {
+      "normalization": {
+        "matrix": [
+          [0.519, 0.505, 0.437],
+          [0.433, 0.466, 0.786],
+          [0.563, 0.532, 0.262],
+          [0.476, 0.494, 0.349]
+        ],
+        "description": "Values scaled 0-1 using vector normalization"
+      },
+  
+      "weighted_matrix": {
+        "matrix": [
+          [0.173, 0.168, 0.145],
+          [0.144, 0.155, 0.262],
+          [0.188, 0.177, 0.087],
+          [0.159, 0.165, 0.116]
+        ],
+        "uncertainty_ranges": "±5% on weights, ±8% on values"
+      },
+  
+      "ideal_solutions": {
+        "positive": [0.144, 0.177, 0.087],
+        "negative": [0.188, 0.155, 0.262],
+        "description": "Best/worst values per criterion"
+      }
+    },
+  
+    "results": {
+      "closeness_coefficients": [
+        {"id": "A1", "score": 0.647, "rank": 3},
+        {"id": "A2", "score": 0.200, "rank": 4},
+        {"id": "A3", "score": 0.800, "rank": 2},
+        {"id": "A4", "score": 0.810, "rank": 1}
+      ],
+      
+      "score_breakdown": {
+        "A4": {
+          "cost": {"value": 7.8, "weight": 33},
+          "service": {"value": 9.0, "weight": 34},
+          "risk": {"value": 8.7, "weight": 33}
+        }
+      }
+    },
+  
+    "sensitivity_analysis": {
+      "weight_scenarios": [
+        {
+          "scenario": "Base Case",
+          "ranking": ["A4", "A3", "A1", "A2"]
+        },
+        {
+          "scenario": "+15% Cost Focus",
+          "ranking": ["A4", "A3", "A1", "A2"]
+        },
+        {
+          "scenario": "+15% Service Focus",
+          "ranking": ["A3", "A4", "A1", "A2"]
+        }
+      ]
+    },
+  
+    "recommendations": {
+      "primary": {
+        "choice": "A4",
+        "rationale": "Best balance: 8% cheaper than A3 with 90% service quality"
+      },
+      "contingencies": [
+        {
+          "scenario": "Critical Shipments",
+          "choice": "A3",
+          "reason": "Highest service quality (97/100)"
+        },
+        {
+          "scenario": "Low Budget",
+          "choice": "A2",
+          "warning": "High risk (9/10) - use only for non-essential items"
+        }
+      ]
+    },
+  
+    "visualization": {
+      "ranking_hologram": [
+        "1. ▰▰▰▰▰▰▰▰▰▰ 81.0% (A4)",
+        "2. ▰▰▰▰▰▰▰▰▰ 80.0% (A3)",
+        "3. ▰▰▰▰▰▰ 64.7% (A1)",
+        "4. ▰▰ 20.0% (A2)"
+      ],
+      "risk_heatmap": {
+        "A2": "🔴 High Risk", 
+        "A4": "🟢 Low Risk"
+      }
+    },
+  
+    "validation": {
+      "checksum": "sha256:abc123...",
+      "ci_cd_status": "Passed",
+      "data_integrity_check": true
+    },
+  
+    "metadata": {
+      "calculation_time": "2.8s",
+      "data_source": "deeptrack_3.csv",
+      "decision_model": "v2.3.1"
+    }
+  }

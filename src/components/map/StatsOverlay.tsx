@@ -1,13 +1,11 @@
-
 import React from 'react';
-
 interface StatsOverlayProps {
   routesCount: number;
 }
-
-const StatsOverlay: React.FC<StatsOverlayProps> = ({ routesCount }) => {
-  return (
-    <>
+const StatsOverlay: React.FC<StatsOverlayProps> = ({
+  routesCount
+}) => {
+  return <>
       {/* Map overlay with route count */}
       <div className="absolute bottom-4 left-4 pointer-events-none z-10">
         <div className="text-xs glassmorphism-card px-3 py-2 rounded-md shadow-sm border border-mostar-light-blue/30">
@@ -26,7 +24,7 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({ routesCount }) => {
       </div>
       
       {/* Floating stat cards */}
-      <div className="absolute top-4 left-4 space-y-3 z-10">
+      <div className="absolute top-4 left-4 space-y-3 z-10\n">
         <div className="glassmorphism-card p-3 rounded-md shadow-md border border-mostar-light-blue/30 max-w-xs">
           <h3 className="font-bold mb-2 text-sm text-cyber-blue">Active Shipments</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -63,8 +61,6 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({ routesCount }) => {
           </div>
         </div>
       </div>
-    </>
-  );
+    </>;
 };
-
 export default StatsOverlay;

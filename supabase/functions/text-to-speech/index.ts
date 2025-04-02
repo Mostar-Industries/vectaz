@@ -7,8 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// OpenAI API key from environment variables
-const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+// Rasa API key from environment variables
+const rasaApiKey = Deno.env.get('RASA_API_KEY');
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -25,25 +25,33 @@ serve(async (req) => {
     
     console.log(`Generating speech for text: "${text.substring(0, 50)}..."${text.length > 50 ? '...' : ''}`);
     
-    // Use OpenAI TTS API
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    // Use Rasa Voice API
+    const response = await fetch('https://api.rasa.com/v1/synthesize', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${rasaApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'tts-1',
-        input: text,
-        voice: voice, // Alloy is a neutral voice that works well
-        response_format: 'mp3',
+        text: text,
+        voice_id: isAfrican ? 'african_female' : voice, // Use African female voice if specified
+        output_format: 'mp3',
       }),
     });
     
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI TTS API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      // Attempt to parse error message
+      let errorMessage = "Error calling Rasa API";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || response.statusText;
+      } catch (e) {
+        // If can't parse JSON, use status text
+        errorMessage = response.statusText;
+      }
+      
+      console.error('Rasa Voice API error:', errorMessage);
+      throw new Error(`Rasa API error: ${errorMessage}`);
     }
     
     // Convert audio buffer to base64

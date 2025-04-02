@@ -72,12 +72,12 @@ export const useVoiceFunctions = () => {
         { auth: { persistSession: false } }
       );
       
-      // Use existing edge function to generate voice
+      // Use the Supabase edge function with Rasa API
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { 
           text, 
-          voice: 'alloy', // This would be a female voice from OpenAI's API
-          isAfrican: true // Signal to use an African female voice if available
+          voice: 'alloy', // Fallback voice 
+          isAfrican: true // Signal to use an African female voice
         }
       });
       

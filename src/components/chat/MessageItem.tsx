@@ -1,14 +1,15 @@
 
 import React from 'react';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useVoiceFunctions } from './useVoiceFunctions';
 
 export interface Message {
   id: string;
   text: string;
   sender: 'user' | 'ai';
   timestamp: Date;
-  personality?: string; // Added personality property as optional
+  personality?: string;
 }
 
 interface MessageItemProps {
@@ -16,6 +17,14 @@ interface MessageItemProps {
 }
 
 const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
+  const { speakResponse, isSpeaking } = useVoiceFunctions();
+  
+  const handleSpeakMessage = () => {
+    if (message.sender === 'ai') {
+      speakResponse(message.text);
+    }
+  };
+  
   return (
     <div 
       className={cn(
@@ -43,6 +52,20 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
             <span className="text-xs opacity-75 ml-1 bg-blue-500/20 px-1 rounded">
               {message.personality}
             </span>
+          )}
+          
+          {/* Add speak button for AI messages */}
+          {message.sender === 'ai' && (
+            <button 
+              onClick={handleSpeakMessage}
+              className={cn(
+                "ml-2 transition-colors",
+                isSpeaking ? "text-green-400 hover:text-green-300" : "text-cyan-400 hover:text-cyan-300"
+              )}
+              title="Speak this message"
+            >
+              <Volume2 className="h-3.5 w-3.5" />
+            </button>
           )}
         </div>
         <p className="text-sm whitespace-pre-line">{message.text}</p>

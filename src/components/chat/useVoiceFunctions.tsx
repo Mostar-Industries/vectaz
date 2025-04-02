@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@supabase/supabase-js';
 import { getHumorResponse } from './useDeepCalHumor';
+import { blobToBase64 } from '@/utils/audioUtils';
 
 export const useVoiceFunctions = () => {
   const { toast } = useToast();
@@ -81,6 +82,29 @@ export const useVoiceFunctions = () => {
     return currentPersonality; // Default to current personality
   };
   
+  // Determine message key based on text content
+  const determineMessageKey = (text: string): string | null => {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey')) {
+      return 'greet';
+    } else if (lowerText.includes('ranking') || lowerText.includes('performance') || lowerText.includes('forwarder')) {
+      return 'ranking';
+    } else if (lowerText.includes('encourage') || lowerText.includes('motivation')) {
+      return 'encourage';
+    } else if (lowerText.includes('explain') || lowerText.includes('why')) {
+      return 'explain';
+    } else if (lowerText.includes('joke') || lowerText.includes('funny')) {
+      return 'joke';
+    } else if (lowerText.includes('cheer') || lowerText.includes('sad')) {
+      return 'cheer_up';
+    } else if (lowerText.includes('disruption') || lowerText.includes('alert') || lowerText.includes('warning')) {
+      return 'disruption_clear';
+    }
+    
+    return null;
+  };
+  
   // Main function to speak a response
   const speakResponse = async (text: string) => {
     try {
@@ -93,7 +117,13 @@ export const useVoiceFunctions = () => {
       const personality = determinePersonality(enhancedText);
       setCurrentPersonality(personality);
       
+      // Determine if we have a predefined message key for this text
+      const messageKey = determineMessageKey(enhancedText);
+      
       console.log(`Using personality: ${personality} for speech`);
+      if (messageKey) {
+        console.log(`Identified message key: ${messageKey}`);
+      }
       
       // Create Supabase client using the environment variables or fallback to local development URL
       const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co'; 
@@ -105,13 +135,12 @@ export const useVoiceFunctions = () => {
         { auth: { persistSession: false } }
       );
       
-      // Use the Supabase edge function with Rasa API
+      // Use the Supabase edge function with ElevenLabs API
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { 
           text: enhancedText, 
-          voice: 'alloy', // Fallback voice 
-          isAfrican: true, // Signal to use an African female voice
-          personality: personality
+          personality: personality,
+          messageKey: messageKey
         }
       });
       
@@ -135,6 +164,15 @@ export const useVoiceFunctions = () => {
         playNextInQueue();
       }
       
+      // Show a toast notification for the first message
+      if (audioQueue.length === 0 && !isSpeaking) {
+        toast({
+          title: `DeepCAL ${personality} voice`,
+          description: "Speaking now...",
+          duration: 3000,
+        });
+      }
+      
       return true;
     } catch (error) {
       console.error("Speech synthesis error:", error);
@@ -145,7 +183,7 @@ export const useVoiceFunctions = () => {
       
       toast({
         title: "Voice Generation Issue",
-        description: "Using fallback voice. The African female voice service is currently unavailable.",
+        description: "Using fallback voice. The ElevenLabs voice service is currently unavailable.",
         variant: "default",
         duration: 3000,
       });
@@ -159,19 +197,19 @@ export const useVoiceFunctions = () => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       
-      // Try to find a female voice, preferably African if available
+      // Try to find a male voice
       const voices = window.speechSynthesis.getVoices();
-      const femaleVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('female') || 
-        voice.name.toLowerCase().includes('woman')
+      const maleVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('male') || 
+        voice.name.toLowerCase().includes('man')
       );
       
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
+      if (maleVoice) {
+        utterance.voice = maleVoice;
       }
       
       // Set other properties to make it sound more natural
-      utterance.pitch = 1.1;  // Slightly higher pitch for female voice
+      utterance.pitch = 0.9;  // Slightly lower pitch for male voice
       utterance.rate = 0.9;   // Slightly slower for clarity
       
       window.speechSynthesis.speak(utterance);

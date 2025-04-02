@@ -38,7 +38,8 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
     toggle3DMode,
     handleZoomIn,
     handleZoomOut,
-    handleResetView
+    handleResetView,
+    errorDisplay
   } = useMapVisualization(routes);
 
   // Memoize the content based on mapLoaded state
@@ -71,6 +72,9 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
         <MapLegend />
         
         <DestinationsCounter count={countryMarkers.length} />
+        
+        {/* Display any map errors */}
+        {errorDisplay}
       </>
     );
   }, [
@@ -82,7 +86,8 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
     toggle3DMode,
     handleZoomIn,
     handleZoomOut,
-    handleResetView
+    handleResetView,
+    errorDisplay
   ]);
 
   return (

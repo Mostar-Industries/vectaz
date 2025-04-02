@@ -7,9 +7,12 @@ import ShipmentHologram from './map/ShipmentHologram';
 import { Route } from '@/types/deeptrack';
 import './map/map-styles.css';
 import { useMapVisualization } from '@/hooks/useMapVisualization';
-import MapControls from './map/controls/MapControls';
-import MapLegend from './map/controls/MapLegend';
-import DestinationsCounter from './map/controls/DestinationsCounter';
+import { 
+  MapControls, 
+  MapLegend, 
+  DestinationsCounter,
+  ZoomControls 
+} from './map/controls';
 
 interface MapVisualizerProps {
   routes: Route[];
@@ -32,7 +35,10 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
     handleRouteClick,
     handleCountryClick,
     handleShipmentSelect,
-    toggle3DMode
+    toggle3DMode,
+    handleZoomIn,
+    handleZoomOut,
+    handleResetView
   } = useMapVisualization(routes);
 
   return (
@@ -62,6 +68,12 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
           <MapControls 
             is3DMode={is3DMode} 
             toggle3DMode={toggle3DMode} 
+          />
+          
+          <ZoomControls
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onReset={handleResetView}
           />
           
           <MapLegend />

@@ -1,27 +1,45 @@
 
 import React from 'react';
+import BaseControl from './BaseControl';
 
-const MapLegend: React.FC = () => {
+interface LegendItem {
+  color: string;
+  label: string;
+  hasAnimation?: boolean;
+}
+
+interface MapLegendProps {
+  title?: string;
+  items?: LegendItem[];
+  className?: string;
+}
+
+const defaultItems: LegendItem[] = [
+  { color: 'bg-green-400', label: 'On Time' },
+  { color: 'bg-amber-400', label: 'In Transit' },
+  { color: 'bg-red-400', label: 'Delayed', hasAnimation: true },
+  { color: 'bg-blue-400', label: 'Destination' }
+];
+
+const MapLegend: React.FC<MapLegendProps> = ({ 
+  title = 'Status Legend',
+  items = defaultItems,
+  className 
+}) => {
   return (
-    <div className="absolute bottom-4 left-4 glass-panel p-3 text-xs">
-      <div className="text-white mb-2 font-semibold">Status Legend</div>
-      <div className="flex items-center space-x-2 mb-1">
-        <span className="w-3 h-3 rounded-full bg-green-400"></span>
-        <span className="text-gray-200">On Time</span>
+    <BaseControl position="bottom-left" className={cn("p-3 text-xs", className)}>
+      <div className="text-white mb-2 font-semibold">{title}</div>
+      <div className="space-y-1">
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            <span 
+              className={`w-3 h-3 rounded-full ${item.color} ${item.hasAnimation ? 'error-flicker' : ''}`}
+            ></span>
+            <span className="text-gray-200">{item.label}</span>
+          </div>
+        ))}
       </div>
-      <div className="flex items-center space-x-2 mb-1">
-        <span className="w-3 h-3 rounded-full bg-amber-400"></span>
-        <span className="text-gray-200">In Transit</span>
-      </div>
-      <div className="flex items-center space-x-2 mb-1">
-        <span className="w-3 h-3 rounded-full bg-red-400 error-flicker"></span>
-        <span className="text-gray-200">Delayed</span>
-      </div>
-      <div className="flex items-center space-x-2">
-        <span className="w-3 h-3 rounded-full bg-blue-400"></span>
-        <span className="text-gray-200">Destination</span>
-      </div>
-    </div>
+    </BaseControl>
   );
 };
 

@@ -54,6 +54,40 @@ export const useMapVisualization = (routes: Route[]) => {
     });
   }, [toast]);
   
+  // New zoom control handlers
+  const handleZoomIn = useCallback(() => {
+    if (mapContainerRef.current?.mapRef?.current) {
+      const map = mapContainerRef.current.mapRef.current;
+      map.zoomIn({ duration: 500 });
+    }
+  }, []);
+  
+  const handleZoomOut = useCallback(() => {
+    if (mapContainerRef.current?.mapRef?.current) {
+      const map = mapContainerRef.current.mapRef.current;
+      map.zoomOut({ duration: 500 });
+    }
+  }, []);
+  
+  const handleResetView = useCallback(() => {
+    if (mapContainerRef.current?.mapRef?.current) {
+      const map = mapContainerRef.current.mapRef.current;
+      map.flyTo({
+        center: [0, 20],
+        zoom: 2,
+        pitch: 40,
+        bearing: 0,
+        duration: 1500
+      });
+      
+      toast({
+        title: "View Reset",
+        description: "Map view has been reset to the initial position.",
+        duration: 2000,
+      });
+    }
+  }, [toast]);
+  
   const showRouteInfoOnMap = useCallback((route: Route, index: number) => {
     const { origin, destination, weight, deliveryStatus } = route;
     
@@ -161,6 +195,9 @@ export const useMapVisualization = (routes: Route[]) => {
     handleRouteClick,
     handleCountryClick,
     handleShipmentSelect,
-    toggle3DMode
+    toggle3DMode,
+    handleZoomIn,
+    handleZoomOut,
+    handleResetView
   };
 };

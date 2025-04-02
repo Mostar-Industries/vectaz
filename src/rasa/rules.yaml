@@ -1,3 +1,4 @@
+
 version: "3.1"
 rules:
   - rule: Respond to greetings
@@ -43,21 +44,16 @@ rules:
   - rule: Explain decision
     steps:
       - intent: explain_decision
-      - action: utter_explain_decision
+      - action: action_explain_ranking
   - rule: Respond to rankings
     steps:
       - intent: get_rankings
-      - action: utter_get_rankings
+      - action: action_get_rankings
   - rule: Respond to deep sight alerts
     steps:
       - intent: deep_sight_alert
-      - action: utter_deep_sight_alert
-  - rule: Fallback
-    steps:
-      - intent: out_of_scope
-      - action: utter_fallback
+      - action: action_get_deep_sight_alerts
   - rule: Ask how I can help
     steps:
       - intent: ask_how_can_i_help
       - action: utter_ask_how_can_i_help
-  - rule: Ask for help

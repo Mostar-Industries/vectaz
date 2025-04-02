@@ -1,3 +1,4 @@
+
 version: "3.1"
 stories:
   - story: Greet and get rankings
@@ -35,3 +36,18 @@ stories:
       - intent: ask_how_is_your_day
       - action: utter_how_is_your_day
   - story: Ask how is your mood
+    steps:
+      - intent: ask_how_is_your_mood
+      - action: utter_how_is_your_mood
+  - story: Ask for a joke
+    steps:
+      - intent: ask_joke
+      - action: utter_joke
+  - story: Request KPI data
+    steps:
+      - intent: kpi_request
+      - action: utter_kpi_request
+  - story: Ask how DeepCAL can help
+    steps:
+      - intent: ask_how_can_i_help
+      - action: utter_ask_how_can_i_help

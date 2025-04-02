@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Check, FileDown, Mail, Loader2, Send, AlertTriangle } from 'lucide-react';
@@ -70,7 +71,8 @@ const SuccessView: React.FC<SuccessViewProps> = ({
         theme: 'grid'
       });
       
-      yPosition = doc.lastAutoTable.finalY + 10;
+      // Fix: Use type assertion for accessing lastAutoTable
+      yPosition = (doc as any).lastAutoTable.finalY + 10;
     }
     
     doc.setFontSize(12);
@@ -91,7 +93,8 @@ const SuccessView: React.FC<SuccessViewProps> = ({
       theme: 'grid'
     });
     
-    yPosition = doc.lastAutoTable.finalY + 10;
+    // Fix: Use type assertion for accessing lastAutoTable
+    yPosition = (doc as any).lastAutoTable.finalY + 10;
     
     if (rfqData.forwarders && rfqData.forwarders.length > 0) {
       doc.text('Selected Forwarders', 14, yPosition);
@@ -105,7 +108,8 @@ const SuccessView: React.FC<SuccessViewProps> = ({
         theme: 'grid'
       });
       
-      yPosition = doc.lastAutoTable.finalY + 15;
+      // Fix: Use type assertion for accessing lastAutoTable
+      yPosition = (doc as any).lastAutoTable.finalY + 15;
     } else {
       yPosition += 50;
     }

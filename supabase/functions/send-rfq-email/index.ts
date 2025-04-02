@@ -9,6 +9,7 @@ interface EmailRequest {
   rfqReference: string;
   subject?: string;
   testMode?: boolean;
+  emailService?: string; // Optional parameter to specify which email service to use
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -18,30 +19,60 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, pdfBase64, rfqReference, subject, testMode } = await req.json() as EmailRequest;
+    const { recipientEmail, pdfBase64, rfqReference, subject, testMode, emailService = 'gmail' } = await req.json() as EmailRequest;
 
     // Log more details for debugging
     console.log(`Email request received for: ${recipientEmail}`);
     console.log(`PDF size: ${pdfBase64.length} characters`);
     console.log(`RFQ Reference: ${rfqReference}`);
     console.log(`Test mode: ${testMode ? 'Yes' : 'No'}`);
+    console.log(`Email service: ${emailService}`);
 
-    // Create the SMTP client
-    const client = new SMTPClient({
-      connection: {
-        hostname: "smtp.gmail.com",
-        port: 465,
-        tls: true,
-        auth: {
-          username: "your-email@gmail.com", // Replace with your Gmail address
-          password: Deno.env.get("GMAIL_APP_PASSWORD") || "", // Use app password from environment variable
-        },
-      },
-    });
+    // Configure email service based on the requested service
+    let client;
+    let fromEmail;
+    let fromName;
+    
+    switch (emailService) {
+      case 'who':
+        // World Health Organization SMTP configuration (example)
+        client = new SMTPClient({
+          connection: {
+            hostname: Deno.env.get("WHO_SMTP_HOST") || "",
+            port: Number(Deno.env.get("WHO_SMTP_PORT")) || 465,
+            tls: true,
+            auth: {
+              username: Deno.env.get("WHO_EMAIL") || "",
+              password: Deno.env.get("WHO_EMAIL_PASSWORD") || "",
+            },
+          },
+        });
+        fromEmail = Deno.env.get("WHO_EMAIL") || "";
+        fromName = "WHO Operations";
+        break;
+      
+      case 'gmail':
+      default:
+        // Default to Gmail configuration
+        client = new SMTPClient({
+          connection: {
+            hostname: "smtp.gmail.com",
+            port: 465,
+            tls: true,
+            auth: {
+              username: Deno.env.get("GMAIL_EMAIL") || "",
+              password: Deno.env.get("GMAIL_APP_PASSWORD") || "",
+            },
+          },
+        });
+        fromEmail = Deno.env.get("GMAIL_EMAIL") || "";
+        fromName = "DeepCAL Operations";
+        break;
+    }
 
     // Create the email content
     const message = {
-      from: "DeepCAL Operations <your-email@gmail.com>", // Replace with your Gmail address
+      from: `${fromName} <${fromEmail}>`,
       to: recipientEmail,
       subject: subject || `Request for Quotation: ${rfqReference}`,
       html: `
@@ -49,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
           <body>
             <h1>Request for Quotation: ${rfqReference}</h1>
             <p>Please find attached the Request for Quotation document.</p>
-            <p>This is an automated message from DeepCAL Operations Center.</p>
+            <p>This is an automated message from ${fromName} Center.</p>
           </body>
         </html>
       `,
@@ -75,7 +106,8 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         message: `Email with RFQ ${rfqReference} ${testMode ? 'would be sent' : 'sent'} to ${recipientEmail}`,
-        testMode: testMode || false
+        testMode: testMode || false,
+        emailService
       }),
       {
         status: 200,

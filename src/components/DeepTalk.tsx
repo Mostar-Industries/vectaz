@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { BrainCircuit, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BrainCircuit, X, Volume2, VolumeX } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MessageList from './chat/MessageList';
@@ -39,8 +39,16 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     "How can we optimize our shipping costs?",
     "What are the trends in our logistics performance?"
   ]);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   
-  const { speakResponse } = useVoiceFunctions();
+  const { speakResponse, isSpeaking } = useVoiceFunctions();
+
+  // When the component mounts, speak the initial message
+  useEffect(() => {
+    if (voiceEnabled) {
+      speakResponse(initialMessage);
+    }
+  }, []);
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
@@ -82,8 +90,10 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         setMessages(prev => [...prev, aiMessage]);
         setIsProcessing(false);
         
-        // Speak the response using the African female voice
-        speakResponse(responseText);
+        // Speak the response using the African female voice if voice is enabled
+        if (voiceEnabled) {
+          speakResponse(responseText);
+        }
       }, 1000);
     } catch (error) {
       console.error('Error processing query:', error);
@@ -98,6 +108,11 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
       
       setMessages(prev => [...prev, errorMessage]);
       setIsProcessing(false);
+      
+      // Also speak the error message if voice is enabled
+      if (voiceEnabled) {
+        speakResponse(errorMessage.text);
+      }
     }
   };
 
@@ -154,6 +169,10 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
   const handlePromptClick = (prompt: string) => {
     setInput(prompt);
   };
+  
+  const toggleVoice = useCallback(() => {
+    setVoiceEnabled(prev => !prev);
+  }, []);
 
   return (
     <div className={cn("flex flex-col h-full overflow-hidden rounded-lg bg-black/60 backdrop-blur-md border border-blue-500/20", className)}>
@@ -163,16 +182,31 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
           <h3 className="text-sm font-medium text-white">DeepTalk Assistant</h3>
           <span className="ml-2 px-1.5 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded-sm">v2.0</span>
         </div>
-        {onClose && (
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={onClose}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleVoice}
             className="h-8 w-8 rounded-full bg-transparent hover:bg-blue-500/10 text-blue-400"
+            title={voiceEnabled ? "Mute voice" : "Enable voice"}
           >
-            <X className="h-4 w-4" />
+            {voiceEnabled ? (
+              <Volume2 className="h-4 w-4" />
+            ) : (
+              <VolumeX className="h-4 w-4" />
+            )}
           </Button>
-        )}
+          {onClose && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="h-8 w-8 rounded-full bg-transparent hover:bg-blue-500/10 text-blue-400"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
       
       <MessageList messages={messages} isProcessing={isProcessing} />
@@ -185,6 +219,13 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         handleSendMessage={handleSendMessage}
         isProcessing={isProcessing}
       />
+      
+      {/* Voice status indicator */}
+      {isSpeaking && (
+        <div className="absolute bottom-20 right-4 bg-cyan-500/20 border border-cyan-500/30 rounded-full px-3 py-1 text-xs text-cyan-400 animate-pulse">
+          Speaking...
+        </div>
+      )}
     </div>
   );
 };

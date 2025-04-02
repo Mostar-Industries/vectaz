@@ -8,6 +8,7 @@ export interface Message {
   text: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+  personality?: string; // Added personality property as optional
 }
 
 interface MessageItemProps {
@@ -38,6 +39,11 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
           <span className="text-xs opacity-75">
             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
+          {message.personality && (
+            <span className="text-xs opacity-75 ml-1 bg-blue-500/20 px-1 rounded">
+              {message.personality}
+            </span>
+          )}
         </div>
         <p className="text-sm whitespace-pre-line">{message.text}</p>
       </div>

@@ -2,11 +2,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@supabase/supabase-js';
+import { getHumorResponse } from './useDeepCalHumor';
 
 export const useVoiceFunctions = () => {
   const { toast } = useToast();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioQueue, setAudioQueue] = useState<string[]>([]);
+  const [currentPersonality, setCurrentPersonality] = useState<string>('sassy');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Create audio element on component mount
@@ -57,14 +59,45 @@ export const useVoiceFunctions = () => {
     }
   };
   
+  // Determine personality based on text content
+  const determinePersonality = (text: string): string => {
+    const lowerText = text.toLowerCase();
+    
+    if (lowerText.includes('error') || lowerText.includes('warning') || lowerText.includes('critical')) {
+      return 'formal';
+    } else if (lowerText.includes('analysis') || lowerText.includes('algorithm') || lowerText.includes('calculation')) {
+      return 'technical';
+    } else if (lowerText.includes('great') || lowerText.includes('excellent') || lowerText.includes('amazing')) {
+      return 'excited';
+    } else if (lowerText.includes('joke') || lowerText.includes('funny') || lowerText.includes('humor')) {
+      return 'casual';
+    }
+    
+    // Check if we should inject humor
+    if (Math.random() < 0.3) { // 30% chance of sassy humor
+      return 'sassy';
+    }
+    
+    return currentPersonality; // Default to current personality
+  };
+  
   // Main function to speak a response
   const speakResponse = async (text: string) => {
     try {
       console.log("Speaking response:", text.substring(0, 50) + "...");
       
+      // Check if we should inject humor
+      const enhancedText = getHumorResponse(text);
+      
+      // Determine the appropriate personality
+      const personality = determinePersonality(enhancedText);
+      setCurrentPersonality(personality);
+      
+      console.log(`Using personality: ${personality} for speech`);
+      
       // Create Supabase client using the environment variables or fallback to local development URL
-      const supabaseUrl = 'https://fakeprojectid.supabase.co'; // You'll need to replace with your actual project ID
-      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Replace with your actual anon key
+      const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co'; 
+      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb2dveHJ4Y255eGlxam1xdGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMDEwMjEsImV4cCI6MjA1ODc3NzAyMX0.9JA8cI1FYpyLJGn8VJGSQcUbnBmzNtMH_I_fkI-JMAE'; 
       
       const supabase = createClient(
         supabaseUrl,
@@ -75,9 +108,10 @@ export const useVoiceFunctions = () => {
       // Use the Supabase edge function with Rasa API
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { 
-          text, 
+          text: enhancedText, 
           voice: 'alloy', // Fallback voice 
-          isAfrican: true // Signal to use an African female voice
+          isAfrican: true, // Signal to use an African female voice
+          personality: personality
         }
       });
       
@@ -167,6 +201,7 @@ export const useVoiceFunctions = () => {
   return {
     speakResponse,
     isSpeaking,
+    currentPersonality
   };
 };
 

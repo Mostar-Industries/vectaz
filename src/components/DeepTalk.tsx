@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrainCircuit, X, Volume2, VolumeX } from 'lucide-react';
+import { BrainCircuit, X, Volume2, VolumeX, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MessageList from './chat/MessageList';
@@ -8,6 +8,8 @@ import PromptSuggestions from './chat/PromptSuggestions';
 import ChatInput from './chat/ChatInput';
 import { Message } from './chat/MessageItem';
 import { useVoiceFunctions } from './chat/useVoiceFunctions';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useDeepCalHumor } from './chat/useDeepCalHumor';
 
 interface DeepTalkProps {
   className?: string;
@@ -15,6 +17,14 @@ interface DeepTalkProps {
   onQueryData?: (query: string) => Promise<string>;
   onClose?: () => void;
 }
+
+const personalityEmojis: Record<string, string> = {
+  sassy: "😏",
+  formal: "🧐",
+  technical: "🤓",
+  excited: "🤩",
+  casual: "😊"
+};
 
 const DeepTalk: React.FC<DeepTalkProps> = ({ 
   className,
@@ -41,7 +51,8 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
   ]);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   
-  const { speakResponse, isSpeaking } = useVoiceFunctions();
+  const { speakResponse, isSpeaking, currentPersonality } = useVoiceFunctions();
+  const { getRandomQuip } = useDeepCalHumor();
 
   // When the component mounts, speak the initial message
   useEffect(() => {
@@ -84,7 +95,8 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
           id: (Date.now() + 1).toString(),
           text: responseText,
           sender: 'ai',
-          timestamp: new Date()
+          timestamp: new Date(),
+          personality: currentPersonality
         };
         
         setMessages(prev => [...prev, aiMessage]);
@@ -103,7 +115,8 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         id: (Date.now() + 1).toString(),
         text: "I'm sorry, I couldn't process that request. Please try again or verify that the data is loaded.",
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        personality: 'formal'
       };
       
       setMessages(prev => [...prev, errorMessage]);
@@ -181,6 +194,23 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
           <BrainCircuit className="h-5 w-5 text-cyan-400 mr-2" />
           <h3 className="text-sm font-medium text-white">DeepTalk Assistant</h3>
           <span className="ml-2 px-1.5 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded-sm">v2.0</span>
+          
+          {/* Personality Indicator */}
+          {currentPersonality && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-indigo-500/20 text-indigo-300 rounded-sm font-mono flex items-center">
+                    <span className="mr-1">{personalityEmojis[currentPersonality] || "🤖"}</span>
+                    {currentPersonality}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Current voice personality
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -222,8 +252,9 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
       
       {/* Voice status indicator */}
       {isSpeaking && (
-        <div className="absolute bottom-20 right-4 bg-cyan-500/20 border border-cyan-500/30 rounded-full px-3 py-1 text-xs text-cyan-400 animate-pulse">
-          Speaking...
+        <div className="absolute bottom-20 right-4 bg-cyan-500/20 border border-cyan-500/30 rounded-full px-3 py-1 text-xs flex items-center space-x-1 animate-pulse">
+          <span className="text-cyan-400">{personalityEmojis[currentPersonality] || "🤖"}</span>
+          <span className="text-cyan-400">Speaking...</span>
         </div>
       )}
     </div>

@@ -10,6 +10,15 @@ const corsHeaders = {
 // Rasa API key from environment variables
 const rasaApiKey = Deno.env.get('RASA_API_KEY');
 
+// Custom voice modifiers for DeepCAL's personality
+const personalityModifiers = {
+  formal: { pitch: 0, speed: 1.0 },
+  casual: { pitch: 1, speed: 1.1 },
+  excited: { pitch: 2, speed: 1.2 },
+  sassy: { pitch: 1, speed: 1.05 },
+  technical: { pitch: -1, speed: 0.95 }
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -17,13 +26,17 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voice = 'alloy', isAfrican = true } = await req.json();
+    const { text, voice = 'alloy', isAfrican = true, personality = 'sassy' } = await req.json();
     
     if (!text) {
       throw new Error('No text provided for speech synthesis');
     }
     
     console.log(`Generating speech for text: "${text.substring(0, 50)}..."${text.length > 50 ? '...' : ''}`);
+    console.log(`Using personality: ${personality}`);
+    
+    // Apply personality modifiers
+    const modifier = personalityModifiers[personality] || personalityModifiers.sassy;
     
     // Use Rasa Voice API
     const response = await fetch('https://api.rasa.com/v1/synthesize', {
@@ -34,8 +47,10 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         text: text,
-        voice_id: isAfrican ? 'african_female' : voice, // Use African female voice if specified
+        voice_id: isAfrican ? 'african_female' : voice,
         output_format: 'mp3',
+        speed: modifier.speed,
+        pitch: modifier.pitch,
       }),
     });
     
@@ -65,7 +80,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         audioContent: base64Audio,
-        format: 'mp3' 
+        format: 'mp3',
+        personality: personality 
       }),
       { 
         headers: { 

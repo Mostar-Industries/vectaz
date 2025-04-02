@@ -45,11 +45,15 @@ const FormsPage = () => {
   ];
 
   return (
-    <div className="h-screen w-full overflow-x-hidden relative">
-      {/* Background from loading page */}
-      <AnimatedBackground />
+    <div className="h-screen w-full overflow-x-hidden relative bg-[#0A1A2F]">
+      {/* Full page background color */}
+      <div className="absolute inset-0 bg-[#0A1A2F] z-0"></div>
       
-      {/* Particles background from loading page */}
+      {/* Animated background elements */}
+      <div className="tech-grid absolute inset-0 z-0"></div>
+      <div className="network-lines absolute inset-0 z-0"></div>
+      
+      {/* Particles background with reduced opacity */}
       <Particles
         particleColors={particleColors}
         particleCount={200}
@@ -62,6 +66,7 @@ const FormsPage = () => {
         sizeRandomness={0.8}
         cameraDistance={25}
         disableRotation={false}
+        className="opacity-40" // Reduced opacity for particles
       />
       
       {/* App name in top right */}

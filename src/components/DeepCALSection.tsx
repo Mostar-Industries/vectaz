@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -39,7 +38,6 @@ const DeepCALSection: React.FC = () => {
   const [showResults, setShowResults] = useState<boolean>(false);
   const [activeResultTab, setActiveResultTab] = useState<string>('recommendation');
   
-  // Weight factors for ranking calculation
   const [weightFactors, setWeightFactors] = useState({
     cost: 0.4,
     time: 0.3,
@@ -81,13 +79,10 @@ const DeepCALSection: React.FC = () => {
   const analyzeQuotes = () => {
     setLoading(true);
     
-    // Simulate API call to DeepCAL engine
     setTimeout(() => {
       try {
-        // Use the real service to get rankings based on weight factors
         const rankings = getForwarderRankings(weightFactors);
         
-        // Filter to only include forwarders in the quotes
         const filteredRankings = rankings
           .filter(r => quotes.some(q => q.forwarder.toLowerCase().includes(r.forwarder.toLowerCase()) || 
                                     r.forwarder.toLowerCase().includes(q.forwarder.toLowerCase())))
@@ -312,37 +307,37 @@ const DeepCALSection: React.FC = () => {
                 
                 <TabsContent value="recommendation">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Card className="bg-gradient-to-br from-indigo-50 to-cyan-50 dark:from-indigo-950/30 dark:to-cyan-950/30 shadow-lg border-0">
+                    <Card className="bg-gradient-to-br from-[#0A1A2F]/90 to-[#0A1A2F]/70 shadow-lg border border-[#00FFD1]/20">
                       <CardHeader>
-                        <CardTitle className="text-xl text-gradient-primary">Top Recommendation</CardTitle>
-                        <CardDescription>Based on your preferences</CardDescription>
+                        <CardTitle className="text-xl text-[#00FFD1]">Top Recommendation</CardTitle>
+                        <CardDescription className="text-gray-300">Based on your preferences</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="text-center space-y-4">
-                          <div className="text-4xl font-bold text-gradient-primary">
+                          <div className="text-4xl font-bold text-[#00FFD1]">
                             {results[0]?.forwarder || "No recommendation available"}
                           </div>
                           
-                          <div className="text-2xl">
+                          <div className="text-2xl text-white">
                             DeepScore™: {Math.round((results[0]?.score || 0) * 100)}
                           </div>
                           
                           <div className="grid grid-cols-3 gap-4 mt-6">
                             <div className="text-center">
-                              <div className="text-sm text-muted-foreground">Cost</div>
-                              <div className="text-xl font-semibold">
+                              <div className="text-sm text-gray-400">Cost</div>
+                              <div className="text-xl font-semibold text-white">
                                 {Math.round((results[0]?.costPerformance || 0) * 100)}%
                               </div>
                             </div>
                             <div className="text-center">
-                              <div className="text-sm text-muted-foreground">Time</div>
-                              <div className="text-xl font-semibold">
+                              <div className="text-sm text-gray-400">Time</div>
+                              <div className="text-xl font-semibold text-white">
                                 {Math.round((results[0]?.timePerformance || 0) * 100)}%
                               </div>
                             </div>
                             <div className="text-center">
-                              <div className="text-sm text-muted-foreground">Reliability</div>
-                              <div className="text-xl font-semibold">
+                              <div className="text-sm text-gray-400">Reliability</div>
+                              <div className="text-xl font-semibold text-white">
                                 {Math.round((results[0]?.reliabilityPerformance || 0) * 100)}%
                               </div>
                             </div>
@@ -352,10 +347,10 @@ const DeepCALSection: React.FC = () => {
                     </Card>
                     
                     <div>
-                      <h3 className="text-lg font-medium mb-4">Decision Explanation</h3>
-                      <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm space-y-3">
+                      <h3 className="text-lg font-medium mb-4 text-[#00FFD1]">Decision Explanation</h3>
+                      <div className="p-4 bg-[#0A1A2F]/60 border border-[#00FFD1]/10 rounded-lg text-sm space-y-3 text-gray-300">
                         <p>
-                          <strong>{results[0]?.forwarder}</strong> is recommended as the optimal choice for your shipment based on a comprehensive analysis that considers cost, time efficiency, and reliability factors.
+                          <strong className="text-white">{results[0]?.forwarder}</strong> is recommended as the optimal choice for your shipment based on a comprehensive analysis that considers cost, time efficiency, and reliability factors.
                         </p>
                         <p>
                           This forwarder demonstrates excellent {results[0]?.reliabilityPerformance > 0.8 ? "reliability" : "cost-effectiveness"} on the {source}-{destination} route, with historical data showing consistently strong performance across similar shipments.
@@ -370,41 +365,42 @@ const DeepCALSection: React.FC = () => {
                 
                 <TabsContent value="comparison">
                   <div className="space-y-8">
-                    <Card>
+                    <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
                       <CardHeader>
-                        <CardTitle>ForwarderScore™ Comparison</CardTitle>
+                        <CardTitle className="text-[#00FFD1]">ForwarderScore™ Comparison</CardTitle>
                       </CardHeader>
                       <CardContent className="h-96">
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={results} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis type="number" domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
-                            <YAxis dataKey="forwarder" type="category" width={150} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
+                            <XAxis type="number" domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} stroke="#94A3B8" />
+                            <YAxis dataKey="forwarder" type="category" width={150} stroke="#94A3B8" />
                             <Tooltip 
                               formatter={(value: any) => [`${(value * 100).toFixed(1)}%`, 'DeepScore™']}
+                              contentStyle={{ background: '#0A1A2F', border: '1px solid #00FFD1', borderRadius: '0.375rem' }}
                             />
                             <Legend />
-                            <Bar dataKey="score" name="DeepScore™" fill="#6366f1" />
+                            <Bar dataKey="score" name="DeepScore™" fill="#00FFD1" />
                           </BarChart>
                         </ResponsiveContainer>
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
                       <CardHeader>
-                        <CardTitle>Multi-Dimensional Analysis</CardTitle>
+                        <CardTitle className="text-[#00FFD1]">Multi-Dimensional Analysis</CardTitle>
                       </CardHeader>
                       <CardContent className="h-96">
                         <ResponsiveContainer width="100%" height="100%">
                           <RadarChart outerRadius={150} data={results}>
-                            <PolarGrid />
-                            <PolarAngleAxis dataKey="forwarder" />
-                            <PolarRadiusAxis angle={30} domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} />
+                            <PolarGrid stroke="#1E293B" />
+                            <PolarAngleAxis dataKey="forwarder" stroke="#94A3B8" />
+                            <PolarRadiusAxis angle={30} domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} stroke="#94A3B8" />
                             <Radar 
                               name="Cost" 
                               dataKey="costPerformance" 
-                              stroke="#22c55e" 
-                              fill="#22c55e" 
+                              stroke="#00FFD1" 
+                              fill="#00FFD1" 
                               fillOpacity={0.5} 
                             />
                             <Radar 
@@ -422,7 +418,9 @@ const DeepCALSection: React.FC = () => {
                               fillOpacity={0.5} 
                             />
                             <Legend />
-                            <Tooltip formatter={(value: any) => [`${(value * 100).toFixed(1)}%`, '']} />
+                            <Tooltip formatter={(value: any) => [`${(value * 100).toFixed(1)}%`, '']} 
+                              contentStyle={{ background: '#0A1A2F', border: '1px solid #00FFD1', borderRadius: '0.375rem' }}
+                            />
                           </RadarChart>
                         </ResponsiveContainer>
                       </CardContent>
@@ -432,14 +430,14 @@ const DeepCALSection: React.FC = () => {
                 
                 <TabsContent value="detailed">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Card>
+                    <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
                       <CardHeader>
-                        <CardTitle className="text-lg">Calculated Metrics</CardTitle>
+                        <CardTitle className="text-lg text-[#00FFD1]">Calculated Metrics</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <table className="w-full border-collapse">
+                        <table className="w-full border-collapse text-gray-300">
                           <thead>
-                            <tr className="border-b">
+                            <tr className="border-b border-[#00FFD1]/20">
                               <th className="text-left py-2">Forwarder</th>
                               <th className="text-left py-2">DeepScore™</th>
                               <th className="text-left py-2">Cost</th>
@@ -449,8 +447,8 @@ const DeepCALSection: React.FC = () => {
                           </thead>
                           <tbody>
                             {results.map((result, index) => (
-                              <tr key={index} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td className="py-2 font-medium">{result.forwarder}</td>
+                              <tr key={index} className="border-b border-[#00FFD1]/10 hover:bg-[#00FFD1]/5">
+                                <td className="py-2 font-medium text-white">{result.forwarder}</td>
                                 <td className="py-2">{(result.score * 100).toFixed(1)}%</td>
                                 <td className="py-2">{(result.costPerformance * 100).toFixed(1)}%</td>
                                 <td className="py-2">{(result.timePerformance * 100).toFixed(1)}%</td>
@@ -462,35 +460,35 @@ const DeepCALSection: React.FC = () => {
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
                       <CardHeader>
-                        <CardTitle className="text-lg">Applied Methodology</CardTitle>
+                        <CardTitle className="text-lg text-[#00FFD1]">Applied Methodology</CardTitle>
                       </CardHeader>
-                      <CardContent className="text-sm space-y-4">
+                      <CardContent className="text-sm space-y-4 text-gray-300">
                         <div>
-                          <h4 className="font-medium">Neutrosophic AHP-TOPSIS</h4>
-                          <p className="text-muted-foreground mt-1">
+                          <h4 className="font-medium text-white">Neutrosophic AHP-TOPSIS</h4>
+                          <p className="mt-1">
                             DeepCAL™ uses a hybrid Neutrosophic AHP-TOPSIS methodology that combines multi-criteria decision-making with neutrosophic logic to handle uncertainty and subjectivity.
                           </p>
                         </div>
                         
                         <div>
-                          <h4 className="font-medium">Weight Derivation</h4>
-                          <p className="text-muted-foreground mt-1">
+                          <h4 className="font-medium text-white">Weight Derivation</h4>
+                          <p className="mt-1">
                             Your preference weights were processed through a pairwise comparison matrix to derive consistent priority weights: Cost ({Math.round(weightFactors.cost * 100)}%), Time ({Math.round(weightFactors.time * 100)}%), Reliability ({Math.round(weightFactors.reliability * 100)}%).
                           </p>
                         </div>
                         
                         <div>
-                          <h4 className="font-medium">Historical Performance Analysis</h4>
-                          <p className="text-muted-foreground mt-1">
+                          <h4 className="font-medium text-white">Historical Performance Analysis</h4>
+                          <p className="mt-1">
                             Deep engine analyzed {shipmentData.length} historical shipments to evaluate forwarder performance patterns in similar contexts to your current shipment.
                           </p>
                         </div>
                         
                         <div>
-                          <h4 className="font-medium">Forwarder Score Calculation</h4>
-                          <p className="text-muted-foreground mt-1">
+                          <h4 className="font-medium text-white">Forwarder Score Calculation</h4>
+                          <p className="mt-1">
                             DeepScore™ represents the closeness coefficient to the ideal solution, with higher values indicating better overall performance across all weighted criteria.
                           </p>
                         </div>

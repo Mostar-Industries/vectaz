@@ -11,7 +11,7 @@ import Particles from '@/components/Particles';
 import AnimatedBackground from '@/components/home/AnimatedBackground';
 import DeepCALSection from '@/components/DeepCALSection';
 import { Button } from '@/components/ui/button';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const FormsPage = () => {
@@ -21,6 +21,7 @@ const FormsPage = () => {
   const [activeFormTab, setActiveFormTab] = useState("rfq");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voicePersonality, setVoicePersonality] = useState('sassy');
+  const [useElevenLabs, setUseElevenLabs] = useState(true);
   
   const demoForwarders = [
     { id: '1', name: 'Kenya Airways', reliability: 0.92 },
@@ -46,6 +47,20 @@ const FormsPage = () => {
       description: voiceEnabled ? "DeepCAL voice has been turned off." : "DeepCAL voice has been turned on.",
       duration: 3000
     });
+  };
+
+  const toggleVoiceService = () => {
+    setUseElevenLabs(!useElevenLabs);
+    toast({
+      title: useElevenLabs ? "Token-Saving Mode Enabled" : "Premium Voice Enabled",
+      description: useElevenLabs ? 
+        "Using browser's speech synthesis to save ElevenLabs tokens." : 
+        "Using ElevenLabs premium voice service.",
+      duration: 3000
+    });
+    
+    // Save the setting to localStorage
+    localStorage.setItem('deepcal-use-elevenlabs', String(!useElevenLabs));
   };
 
   const handleVoicePersonalityChange = (personality: string) => {
@@ -95,6 +110,7 @@ const FormsPage = () => {
   React.useEffect(() => {
     const savedPersonality = localStorage.getItem('deepcal-voice-personality');
     const savedEnabled = localStorage.getItem('deepcal-voice-enabled');
+    const savedUseElevenLabs = localStorage.getItem('deepcal-use-elevenlabs');
     
     if (savedPersonality) {
       setVoicePersonality(savedPersonality);
@@ -102,6 +118,10 @@ const FormsPage = () => {
     
     if (savedEnabled !== null) {
       setVoiceEnabled(savedEnabled === 'true');
+    }
+    
+    if (savedUseElevenLabs !== null) {
+      setUseElevenLabs(savedUseElevenLabs !== 'false');
     }
   }, []);
 
@@ -147,6 +167,18 @@ const FormsPage = () => {
           >
             {voiceEnabled ? <Volume2 className="h-5 w-5 text-[#00FFD1]" /> : <VolumeX className="h-5 w-5 text-gray-400" />}
           </Button>
+          
+          {voiceEnabled && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleVoiceService}
+              className="h-10 w-10 rounded-full bg-[#0A1A2F]/80 backdrop-blur-md border border-[#00FFD1]/30 hover:bg-[#00FFD1]/10"
+              title={useElevenLabs ? "Enable token-saving voice mode" : "Use premium ElevenLabs voice"}
+            >
+              <DollarSign className={`h-5 w-5 ${useElevenLabs ? "text-yellow-400" : "text-gray-400"}`} />
+            </Button>
+          )}
           
           <select 
             className="h-10 bg-[#0A1A2F]/80 backdrop-blur-md text-sm border border-[#00FFD1]/30 rounded-lg px-3 text-[#00FFD1] focus:outline-none focus:ring-1 focus:ring-[#00FFD1]/50"
@@ -198,7 +230,11 @@ const FormsPage = () => {
             </TabsContent>
             
             <TabsContent value="calculator">
-              <DeepCALSection voicePersonality={voicePersonality} voiceEnabled={voiceEnabled} />
+              <DeepCALSection 
+                voicePersonality={voicePersonality} 
+                voiceEnabled={voiceEnabled} 
+                useElevenLabs={useElevenLabs} 
+              />
             </TabsContent>
           </Tabs>
         </div>

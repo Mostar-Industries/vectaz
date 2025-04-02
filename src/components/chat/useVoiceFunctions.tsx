@@ -69,6 +69,88 @@ export const useVoiceFunctions = () => {
     }
   };
   
+  // Get voice settings from localStorage
+  const getVoiceSettings = (): {personality: string, useElevenLabs: boolean} => {
+    return {
+      personality: localStorage.getItem('deepcal-voice-personality') || 'sassy',
+      useElevenLabs: localStorage.getItem('deepcal-use-elevenlabs') !== 'false'
+    };
+  };
+  
+  // Browser's built-in speech synthesis as a fallback or token-saving option
+  const useBrowserSpeech = (text: string, personality: string): void => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Try to find a female voice, preferably for consistency
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Find an appropriate voice
+      let selectedVoice;
+      if (personality === 'nigerian') {
+        // Try to find an African or Nigerian voice if available
+        selectedVoice = voices.find(voice => 
+          voice.name.toLowerCase().includes('nigerian') || 
+          voice.name.toLowerCase().includes('african') ||
+          voice.name.toLowerCase().includes('zulu') ||
+          voice.name.toLowerCase().includes('swahili')
+        );
+      }
+      
+      // If no specialized voice found, try to find a female voice
+      if (!selectedVoice) {
+        selectedVoice = voices.find(voice => 
+          voice.name.toLowerCase().includes('female') || 
+          voice.name.toLowerCase().includes('woman')
+        );
+      }
+      
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+      
+      // Adjust settings based on personality
+      if (personality === 'nigerian') {
+        utterance.pitch = 1.2;  // Slightly higher pitch
+        utterance.rate = 0.9;   // Slightly slower for the accent
+      } else if (personality === 'sassy') {
+        utterance.pitch = 1.1;  // Slightly higher pitch
+        utterance.rate = 1.1;   // Slightly faster
+      } else if (personality === 'formal') {
+        utterance.pitch = 1.0;  // Normal pitch
+        utterance.rate = 0.9;   // Slightly slower for formality
+      } else if (personality === 'technical') {
+        utterance.pitch = 0.9;  // Slightly lower pitch
+        utterance.rate = 1.0;   // Normal speed
+      } else if (personality === 'excited') {
+        utterance.pitch = 1.2;  // Higher pitch
+        utterance.rate = 1.2;   // Faster
+      } else if (personality === 'casual') {
+        utterance.pitch = 1.0;  // Normal pitch
+        utterance.rate = 1.0;   // Normal speed
+      }
+      
+      setIsSpeaking(true);
+      
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setCurrentMessageId(null);
+      };
+      
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setCurrentMessageId(null);
+        toast({
+          title: "Voice Error",
+          description: "Could not play the voice response using browser speech synthesis.",
+          variant: "destructive",
+        });
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+  
   // Determine personality based on text content
   const determinePersonality = (text: string): string => {
     const lowerText = text.toLowerCase();
@@ -88,7 +170,9 @@ export const useVoiceFunctions = () => {
       return 'sassy';
     }
     
-    return currentPersonality; // Default to current personality
+    // Get saved personality from localStorage
+    const { personality } = getVoiceSettings();
+    return personality; // Default to saved personality
   };
   
   // Determine which ElevenLabs model to use based on the content
@@ -135,7 +219,19 @@ export const useVoiceFunctions = () => {
       const model = forcedModel || determineModel(enhancedText);
       setCurrentModel(model);
       
-      console.log(`Using personality: ${personality}, model: ${model} for speech`);
+      // Get ElevenLabs usage setting
+      const { useElevenLabs } = getVoiceSettings();
+      
+      console.log(`Using personality: ${personality}, model: ${model} for speech, ElevenLabs: ${useElevenLabs}`);
+      
+      // If token-saving mode is enabled, use browser's speech synthesis
+      if (!useElevenLabs) {
+        if (messageId) {
+          setCurrentMessageId(messageId);
+        }
+        useBrowserSpeech(enhancedText, personality);
+        return true;
+      }
       
       // Create Supabase client using the environment variables or fallback to local development URL
       const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co'; 
@@ -152,12 +248,22 @@ export const useVoiceFunctions = () => {
         body: { 
           text: enhancedText, 
           personality: personality,
-          model: model
+          model: model,
+          useElevenLabs: useElevenLabs
         }
       });
       
       if (error) {
         throw new Error(`Error generating speech: ${error.message}`);
+      }
+      
+      // If in token-saving mode, the function won't return audio content
+      if (data?.useElevenLabs === false) {
+        if (messageId) {
+          setCurrentMessageId(messageId);
+        }
+        useBrowserSpeech(enhancedText, personality);
+        return true;
       }
       
       if (!data?.audioContent) {
@@ -183,7 +289,10 @@ export const useVoiceFunctions = () => {
       setCurrentMessageId(null);
       
       // Fall back to browser's speech synthesis
-      fallbackSpeakResponse(text);
+      if (messageId) {
+        setCurrentMessageId(messageId);
+      }
+      useBrowserSpeech(text, forcedPersonality || 'sassy');
       
       toast({
         title: "Voice Generation Issue",
@@ -192,31 +301,7 @@ export const useVoiceFunctions = () => {
         duration: 3000,
       });
       
-      return false;
-    }
-  };
-  
-  // Fallback to browser's speech synthesis if the API fails
-  const fallbackSpeakResponse = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Try to find a female voice, preferably African if available
-      const voices = window.speechSynthesis.getVoices();
-      const femaleVoice = voices.find(voice => 
-        voice.name.toLowerCase().includes('female') || 
-        voice.name.toLowerCase().includes('woman')
-      );
-      
-      if (femaleVoice) {
-        utterance.voice = femaleVoice;
-      }
-      
-      // Set other properties to make it sound more natural
-      utterance.pitch = 1.1;  // Slightly higher pitch for female voice
-      utterance.rate = 0.9;   // Slightly slower for clarity
-      
-      window.speechSynthesis.speak(utterance);
+      return true; // Still succeeded with fallback
     }
   };
   
@@ -246,7 +331,8 @@ export const useVoiceFunctions = () => {
     isSpeaking,
     currentPersonality,
     currentModel,
-    currentMessageId
+    currentMessageId,
+    useBrowserSpeech
   };
 };
 

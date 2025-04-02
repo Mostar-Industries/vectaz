@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrainCircuit, X, Volume2, VolumeX, Settings } from 'lucide-react';
+import { BrainCircuit, X, Volume2, VolumeX, DollarSign } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import MessageList from './chat/MessageList';
@@ -15,6 +16,7 @@ interface DeepTalkProps {
   initialMessage?: string;
   onQueryData?: (query: string) => Promise<string>;
   onClose?: () => void;
+  useElevenLabs?: boolean;
 }
 
 const personalityEmojis: Record<string, string> = {
@@ -22,20 +24,23 @@ const personalityEmojis: Record<string, string> = {
   formal: "🧐",
   technical: "🤓",
   excited: "🤩",
-  casual: "😊"
+  casual: "😊",
+  nigerian: "🇳🇬"
 };
 
 const modelEmojis: Record<string, string> = {
   eleven_multilingual_v2: "🌐",
   eleven_turbo_v2: "⚡",
-  eleven_turbo_v2_5: "⚡"
+  eleven_turbo_v2_5: "⚡",
+  browser: "🔊"
 };
 
 const DeepTalk: React.FC<DeepTalkProps> = ({ 
   className,
   initialMessage = "How can I assist with your logistics decisions today? You can ask me about routes, forwarders, costs, or risk analytics.",
   onQueryData,
-  onClose 
+  onClose,
+  useElevenLabs = true
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -55,12 +60,22 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     "What are the trends in our logistics performance?"
   ]);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [localUseElevenLabs, setLocalUseElevenLabs] = useState(useElevenLabs);
+  
+  // Update localUseElevenLabs when prop changes
+  useEffect(() => {
+    setLocalUseElevenLabs(useElevenLabs);
+  }, [useElevenLabs]);
   
   const { speakResponse, isSpeaking, currentPersonality, currentModel } = useVoiceFunctions();
   const { getRandomQuip } = useDeepCalHumor();
 
   useEffect(() => {
     if (voiceEnabled) {
+      // Load the voice settings from localStorage
+      const savedUseElevenLabs = localStorage.getItem('deepcal-use-elevenlabs');
+      const useEleven = savedUseElevenLabs !== null ? savedUseElevenLabs !== 'false' : localUseElevenLabs;
+      
       speakResponse(initialMessage);
     }
   }, []);
@@ -182,6 +197,12 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
   const toggleVoice = useCallback(() => {
     setVoiceEnabled(prev => !prev);
   }, []);
+  
+  const toggleVoiceService = useCallback(() => {
+    const newValue = !localUseElevenLabs;
+    setLocalUseElevenLabs(newValue);
+    localStorage.setItem('deepcal-use-elevenlabs', String(newValue));
+  }, [localUseElevenLabs]);
 
   return (
     <div className={cn("flex flex-col h-full overflow-hidden rounded-lg bg-black/60 backdrop-blur-md border border-blue-500/20", className)}>
@@ -212,12 +233,12 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="ml-2 px-1.5 py-0.5 text-xs bg-purple-500/20 text-purple-300 rounded-sm font-mono flex items-center">
-                    <span className="mr-1">{modelEmojis[currentModel] || "🔊"}</span>
-                    {currentModel.replace('eleven_', '')}
+                    <span className="mr-1">{!localUseElevenLabs ? "🔊" : (modelEmojis[currentModel] || "🔊")}</span>
+                    {!localUseElevenLabs ? "browser" : currentModel.replace('eleven_', '')}
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
-                  Voice model
+                  {!localUseElevenLabs ? "Browser speech synthesis" : "ElevenLabs voice model"}
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -237,6 +258,19 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
               <VolumeX className="h-4 w-4" />
             )}
           </Button>
+          
+          {voiceEnabled && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleVoiceService}
+              className="h-8 w-8 rounded-full bg-transparent hover:bg-blue-500/10 text-blue-400"
+              title={localUseElevenLabs ? "Use browser voice (save tokens)" : "Use ElevenLabs voice"}
+            >
+              <DollarSign className={`h-4 w-4 ${localUseElevenLabs ? "text-yellow-400" : "text-gray-400"}`} />
+            </Button>
+          )}
+          
           {onClose && (
             <Button 
               variant="ghost" 
@@ -265,6 +299,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         <div className="absolute bottom-20 right-4 bg-cyan-500/20 border border-cyan-500/30 rounded-full px-3 py-1 text-xs flex items-center space-x-1 animate-pulse">
           <span className="text-cyan-400">{personalityEmojis[currentPersonality] || "🤖"}</span>
           <span className="text-cyan-400">Speaking...</span>
+          {!localUseElevenLabs && <span className="text-gray-400 text-[10px]">(browser)</span>}
         </div>
       )}
     </div>

@@ -10,9 +10,46 @@ export const useVoiceProcessor = () => {
   const { toast } = useToast();
   const { shipmentData } = useBaseDataStore();
   
-  // Get voice personality from localStorage or default to 'sassy'
-  const getVoicePersonality = (): string => {
-    return localStorage.getItem('deepcal-voice-personality') || 'sassy';
+  // Get voice personality and settings from localStorage
+  const getVoiceSettings = (): {personality: string, useElevenLabs: boolean} => {
+    return {
+      personality: localStorage.getItem('deepcal-voice-personality') || 'sassy',
+      useElevenLabs: localStorage.getItem('deepcal-use-elevenlabs') !== 'false'
+    };
+  };
+
+  // Browser's built-in speech synthesis as a fallback
+  const useBrowserSpeech = (text: string, personality: string): void => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Try to find a female voice for consistency with ElevenLabs
+      const femaleVoice = voices.find(voice => 
+        voice.name.toLowerCase().includes('female') || 
+        voice.name.toLowerCase().includes('woman')
+      );
+      
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+      
+      // Adjust settings based on personality
+      if (personality === 'nigerian') {
+        utterance.pitch = 1.2;  // Slightly higher pitch
+        utterance.rate = 0.9;   // Slightly slower for the accent
+      } else if (personality === 'sassy') {
+        utterance.pitch = 1.1;  // Slightly higher pitch
+        utterance.rate = 1.1;   // Slightly faster
+      } else if (personality === 'formal') {
+        utterance.pitch = 1.0;  // Normal pitch
+        utterance.rate = 0.9;   // Slightly slower for formality
+      }
+      
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   const processVoiceQuery = async (audioBlob: Blob): Promise<string> => {
@@ -43,10 +80,18 @@ export const useVoiceProcessor = () => {
       
       let data = await response.json();
       
+      // Get current settings
+      const { personality, useElevenLabs } = getVoiceSettings();
+      
       // Check if we should enhance with Nigerian expressions
-      const personality = getVoicePersonality();
       if (personality === 'nigerian') {
         data.response = enhanceWithNigerianExpressions(data.response, 0.4);
+      }
+      
+      // If we're using the browser's speech synthesis and not ElevenLabs,
+      // trigger speech here (this won't be used for response text)
+      if (!useElevenLabs) {
+        useBrowserSpeech(data.response, personality);
       }
       
       return data.response;
@@ -59,7 +104,7 @@ export const useVoiceProcessor = () => {
       });
       
       // Add Nigerian expression to error message if Nigerian personality is selected
-      const personality = getVoicePersonality();
+      const { personality } = getVoiceSettings();
       let errorMsg = "I'm sorry, I encountered an error processing your voice query. Please try again or type your question.";
       
       if (personality === 'nigerian') {
@@ -74,7 +119,8 @@ export const useVoiceProcessor = () => {
 
   return {
     processVoiceQuery,
-    isProcessing
+    isProcessing,
+    useBrowserSpeech
   };
 };
 

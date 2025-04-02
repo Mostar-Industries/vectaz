@@ -106,3 +106,42 @@ export const base64ToBlob = (base64: string, mimeType: string): Blob => {
   
   return new Blob(byteArrays, { type: mimeType });
 };
+
+/**
+ * Records audio from the user's microphone
+ */
+export const recordAudio = (): Promise<{ start: () => void, stop: () => Promise<Blob> }> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const audioChunks: Blob[] = [];
+      
+      mediaRecorder.addEventListener('dataavailable', (event) => {
+        audioChunks.push(event.data);
+      });
+      
+      const start = () => {
+        mediaRecorder.start();
+      };
+      
+      const stop = () => {
+        return new Promise<Blob>((resolveBlob) => {
+          mediaRecorder.addEventListener('stop', () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            resolveBlob(audioBlob);
+            
+            // Stop all tracks in the stream when done
+            stream.getTracks().forEach(track => track.stop());
+          });
+          
+          mediaRecorder.stop();
+        });
+      };
+      
+      resolve({ start, stop });
+    } catch (error) {
+      reject(error);
+    }
+  });
+};

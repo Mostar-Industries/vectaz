@@ -3,6 +3,7 @@ import React from 'react';
 import { ZoomIn, ZoomOut, Compass } from 'lucide-react';
 import BaseControl from './BaseControl';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface ZoomControlsProps {
   onZoomIn: () => void;

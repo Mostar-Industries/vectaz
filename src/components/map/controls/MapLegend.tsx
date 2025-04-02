@@ -1,6 +1,7 @@
 
 import React from 'react';
 import BaseControl from './BaseControl';
+import { cn } from '@/lib/utils';
 
 interface LegendItem {
   color: string;

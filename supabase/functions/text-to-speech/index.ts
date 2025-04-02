@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -16,7 +15,8 @@ const personalityModifiers = {
   casual: { stability: 0.5, similarity_boost: 0.6 },
   excited: { stability: 0.3, similarity_boost: 0.7 },
   sassy: { stability: 0.4, similarity_boost: 0.6 },
-  technical: { stability: 0.8, similarity_boost: 0.2 }
+  technical: { stability: 0.8, similarity_boost: 0.2 },
+  nigerian: { stability: 0.45, similarity_boost: 0.7 } // Added Nigerian personality
 };
 
 // Model descriptions for logging and debugging
@@ -24,6 +24,50 @@ const modelDescriptions = {
   eleven_multilingual_v2: "High quality, 29 languages",
   eleven_turbo_v2_5: "Fast, 32 languages",
   eleven_turbo_v2: "Fast, English only" 
+};
+
+// Nigerian phrases to occasionally add to responses
+const nigerianExpressions = [
+  "Ah ah!",
+  "Oya now!",
+  "No wahala!",
+  "Chai!",
+  "I tell you!",
+  "You dey mad?",
+  "Wetin dey?",
+  "As I dey talk so!",
+  "Abeg!",
+  "Na wa o!",
+  "Walahi!",
+  "Make we go!",
+  "E go better!"
+];
+
+// Function to add Nigerian expressions
+const enhanceWithNigerianExpressions = (text: string, personality: string): string => {
+  if (personality !== 'nigerian') return text;
+  
+  // Only add expressions ~20% of the time to keep it natural
+  if (Math.random() > 0.2) return text;
+  
+  const expression = nigerianExpressions[Math.floor(Math.random() * nigerianExpressions.length)];
+  
+  // Add at beginning, middle, or end
+  const position = Math.floor(Math.random() * 3);
+  
+  if (position === 0) {
+    return `${expression} ${text}`;
+  } else if (position === 1) {
+    const sentences = text.split('.');
+    if (sentences.length > 1) {
+      const insertPos = Math.floor(sentences.length / 2);
+      sentences.splice(insertPos, 0, ` ${expression}`);
+      return sentences.join('.');
+    }
+    return text;
+  } else {
+    return `${text} ${expression}`;
+  }
 };
 
 serve(async (req) => {
@@ -62,12 +106,18 @@ serve(async (req) => {
     // Apply personality modifiers - use default if not found
     const modifier = personalityModifiers[personality] || personalityModifiers.sassy;
     
+    // Enhance text with Nigerian expressions if Nigerian personality
+    const enhancedText = enhanceWithNigerianExpressions(text, personality);
+    
     // Use ElevenLabs API - set timeout to 20 seconds for longer text
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20000);
     
     try {
-      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/r9DosIwaFvTjhC7gp1d2', {
+      // Using the specified voice ID for all personalities
+      const voiceId = 'r9DosIwaFvTjhC7gp1d2'; // As specified by user
+      
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
         method: 'POST',
         headers: {
           'Accept': 'audio/mpeg',
@@ -75,7 +125,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: text,
+          text: enhancedText,
           model_id: model,
           voice_settings: {
             stability: modifier.stability,

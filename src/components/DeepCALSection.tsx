@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +12,8 @@ import { getForwarderRankings } from '@/services/deepEngine';
 import DeepCALSpinner from './DeepCALSpinner';
 import forwarders from '@/core/base_reference/forwarders.json';
 import carriers from '@/core/base_reference/carrier.json';
+import { createClient } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
 
 interface QuoteData {
   forwarder: string;
@@ -26,8 +29,17 @@ interface ForwarderScore {
   reliabilityPerformance: number;
 }
 
-const DeepCALSection: React.FC = () => {
+interface DeepCALSectionProps {
+  voicePersonality?: string;
+  voiceEnabled?: boolean;
+}
+
+const DeepCALSection: React.FC<DeepCALSectionProps> = ({ 
+  voicePersonality = 'sassy',
+  voiceEnabled = true 
+}) => {
   const { shipmentData } = useBaseDataStore();
+  const { toast } = useToast();
   const [quotes, setQuotes] = useState<QuoteData[]>(forwarders.slice(0, 3).map(name => ({ forwarder: name, quote: 0 })));
   const [weightKg, setWeightKg] = useState<number>(20000);
   const [source, setSource] = useState<string>('Kenya');
@@ -43,6 +55,93 @@ const DeepCALSection: React.FC = () => {
     time: 0.3,
     reliability: 0.3
   });
+
+  // Function to speak text using ElevenLabs
+  const speakText = async (text: string) => {
+    if (!voiceEnabled) return;
+    
+    try {
+      // Create Supabase client
+      const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co'; 
+      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb2dveHJ4Y255eGlxam1xdGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMDEwMjEsImV4cCI6MjA1ODc3NzAyMX0.9JA8cI1FYpyLJGn8VJGSQcUbnBmzNtMH_I_fkI-JMAE'; 
+      
+      const supabase = createClient(
+        supabaseUrl,
+        supabaseAnonKey,
+        { auth: { persistSession: false } }
+      );
+      
+      // Add Nigerian expressions if using Nigerian personality
+      let finalText = text;
+      if (voicePersonality === 'nigerian') {
+        const nigerianExpressions = [
+          "Ah ah!",
+          "Oya now!",
+          "No wahala!",
+          "Chai!",
+          "I tell you!",
+          "As I dey talk so!",
+          "Abeg!",
+          "Na wa o!",
+          "Walahi!"
+        ];
+        
+        // 30% chance to add Nigerian expression
+        if (Math.random() < 0.3) {
+          const expression = nigerianExpressions[Math.floor(Math.random() * nigerianExpressions.length)];
+          finalText = `${expression} ${text}`;
+        }
+      }
+      
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { 
+          text: finalText, 
+          personality: voicePersonality,
+          model: 'eleven_multilingual_v2'
+        }
+      });
+      
+      if (error) {
+        console.error("Error generating speech:", error);
+        return;
+      }
+      
+      if (!data?.audioContent) {
+        console.error("No audio content returned");
+        return;
+      }
+      
+      // Play the audio
+      const audioBlob = base64ToBlob(data.audioContent, 'audio/mp3');
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audio.play();
+      
+    } catch (error) {
+      console.error("Failed to generate or play speech:", error);
+    }
+  };
+  
+  // Helper to convert base64 to blob
+  const base64ToBlob = (base64: string, mimeType: string) => {
+    const byteCharacters = atob(base64);
+    const byteArrays = [];
+    
+    for (let i = 0; i < byteCharacters.length; i += 512) {
+      const slice = byteCharacters.slice(i, i + 512);
+      
+      const byteNumbers = new Array(slice.length);
+      for (let j = 0; j < slice.length; j++) {
+        byteNumbers[j] = slice.charCodeAt(j);
+      }
+      
+      const byteArray = new Uint8Array(byteNumbers);
+      byteArrays.push(byteArray);
+    }
+    
+    return new Blob(byteArrays, { type: mimeType });
+  };
 
   const handleQuoteChange = (index: number, value: string) => {
     const newQuotes = [...quotes];
@@ -91,12 +190,32 @@ const DeepCALSection: React.FC = () => {
         setResults(filteredRankings);
         setShowResults(true);
         setLoading(false);
+        
+        // Speak a success message when analysis is complete
+        if (results.length > 0) {
+          const topForwarder = filteredRankings[0]?.forwarder || "Unknown";
+          speakText(`I have completed my analysis. Based on your preferences, ${topForwarder} is the optimal choice for your shipment from ${source} to ${destination}.`);
+        } else {
+          speakText("Analysis complete. I couldn't find a perfect match, but I've ranked the options based on your criteria.");
+        }
+        
       } catch (error) {
         console.error("Error calculating rankings:", error);
         setLoading(false);
+        
+        // Speak an error message
+        speakText("I encountered an error while analyzing the quotes. Please try again or check your input data.");
       }
     }, 2000);
   };
+
+  // Speak welcome message on component mount
+  useEffect(() => {
+    if (voiceEnabled) {
+      const welcomeMessage = "Welcome to DeepCAL Optimizer. Enter your freight quotes, and I'll analyze them for the best logistics options.";
+      speakText(welcomeMessage);
+    }
+  }, [voiceEnabled, voicePersonality]);
 
   return (
     <div className="container mx-auto py-8 max-w-7xl relative z-20">

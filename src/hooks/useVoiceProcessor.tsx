@@ -3,12 +3,17 @@ import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useBaseDataStore } from '@/store/baseState';
 import { analyzeShipmentData } from '@/utils/analyticsUtils';
-import { blobToBase64 } from '@/utils/audioUtils';
+import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils';
 
 export const useVoiceProcessor = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { shipmentData } = useBaseDataStore();
+  
+  // Get voice personality from localStorage or default to 'sassy'
+  const getVoicePersonality = (): string => {
+    return localStorage.getItem('deepcal-voice-personality') || 'sassy';
+  };
 
   const processVoiceQuery = async (audioBlob: Blob): Promise<string> => {
     try {
@@ -36,7 +41,14 @@ export const useVoiceProcessor = () => {
         throw new Error('Voice processing failed');
       }
       
-      const data = await response.json();
+      let data = await response.json();
+      
+      // Check if we should enhance with Nigerian expressions
+      const personality = getVoicePersonality();
+      if (personality === 'nigerian') {
+        data.response = enhanceWithNigerianExpressions(data.response, 0.4);
+      }
+      
       return data.response;
     } catch (error) {
       console.error("Error processing voice query:", error);
@@ -45,7 +57,16 @@ export const useVoiceProcessor = () => {
         description: "Failed to process your voice query. Please try again.",
         variant: "destructive",
       });
-      return "I'm sorry, I encountered an error processing your voice query. Please try again or type your question.";
+      
+      // Add Nigerian expression to error message if Nigerian personality is selected
+      const personality = getVoicePersonality();
+      let errorMsg = "I'm sorry, I encountered an error processing your voice query. Please try again or type your question.";
+      
+      if (personality === 'nigerian') {
+        errorMsg = "Chai! I'm sorry, I get problem to process your voice query. Abeg, try again or type your question.";
+      }
+      
+      return errorMsg;
     } finally {
       setIsProcessing(false);
     }

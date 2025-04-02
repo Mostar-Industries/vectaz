@@ -12,8 +12,9 @@ const elevenLabsApiKey = Deno.env.get('ELEVEN_LABS_API_KEY');
 
 // Voice IDs for ElevenLabs
 const VOICE_IDS = {
-  AFRICAN_MALE: "pNInz6obpgDQGcFmaJgB", // Example African male voice ID
-  GEORGE: "JBFqnCBsd6RMkjVDRZzb"        // George voice ID from the documentation
+  AFRICAN_MALE: "pNInz6obpgDQGcFmaJgB",  // Example African male voice ID
+  GEORGE: "JBFqnCBsd6RMkjVDRZzb",        // George voice ID from the documentation
+  CUSTOM_VOICE: "r9DosIwaFvTjhC7gp1d2"    // Custom voice ID provided by the user
 };
 
 // Custom voice modifiers for DeepCAL's personality
@@ -81,8 +82,8 @@ serve(async (req) => {
     // Apply personality modifiers
     const voiceSettings = personalityModifiers[personality] || personalityModifiers.sassy;
     
-    // Use ElevenLabs API
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_IDS.GEORGE}`, {
+    // Use ElevenLabs API with the custom voice ID
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_IDS.CUSTOM_VOICE}`, {
       method: 'POST',
       headers: {
         'xi-api-key': elevenLabsApiKey,

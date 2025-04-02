@@ -13,6 +13,7 @@ import ContentRouter from '@/components/home/ContentRouter';
 import KonamiCodeEasterEgg from '@/components/home/KonamiCodeEasterEgg';
 import NotificationHandler from '@/components/home/NotificationHandler';
 import useRouteProcessor from '@/hooks/useRouteProcessor';
+import IconNavigation from '@/components/IconNavigation';
 
 const Index = () => {
   const { isDataLoaded } = useBaseDataStore();
@@ -52,6 +53,11 @@ const Index = () => {
         
         {/* Navigation tabs (at the top) */}
         <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30">
+        <IconNavigation />
       </div>
 
       {/* Non-visual components */}

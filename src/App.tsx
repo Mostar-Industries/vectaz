@@ -12,7 +12,6 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
-import { ThemeProvider } from "./ThemeProvider";
 import FloatingDeepTalk from "./components/FloatingDeepTalk";
 
 // Create a client
@@ -92,32 +91,30 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark">
-        <TooltipProvider>
-          {isLoading ? (
-            <LoadingScreen />
-          ) : (
-            <>
-              {/* Router for navigation */}
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/forms" element={<FormsPage />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                
-                {/* Floating DeepTalk appears on every page */}
-                <FloatingDeepTalk />
-              </BrowserRouter>
-          
-              {/* UI Components for notifications */}
-              <Toaster />
-              <Sonner />
-            </>
-          )}
-        </TooltipProvider>
-      </ThemeProvider>
+      <TooltipProvider>
+        {isLoading ? (
+          <LoadingScreen />
+        ) : (
+          <>
+            {/* Router for navigation */}
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/forms" element={<FormsPage />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              
+              {/* Floating DeepTalk appears on every page */}
+              <FloatingDeepTalk />
+            </BrowserRouter>
+        
+            {/* UI Components for notifications */}
+            <Toaster />
+            <Sonner />
+          </>
+        )}
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };

@@ -39,7 +39,7 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const countryMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
-  const spinIntervalRef = useRef<number | null>(null);
+  const spinIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({

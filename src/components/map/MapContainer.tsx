@@ -100,7 +100,12 @@ const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({
 
   // Combine all errors for display
   const displayError = useMemo(() => {
-    return initError || errorState?.message || (interactionError ? interactionError.message : null);
+    // Extract error messages as strings from the different error sources
+    const initErrorMessage = initError?.message || null;
+    const errorStateMessage = errorState?.message || null;
+    const interactionErrorMessage = interactionError?.message || null;
+    
+    return initErrorMessage || errorStateMessage || interactionErrorMessage;
   }, [initError, errorState, interactionError]);
 
   return (

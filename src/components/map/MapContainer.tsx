@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
 import { Loader } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -37,9 +37,9 @@ const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({
     jumpToLocation,
     toggleTerrain,
     showInfoAtLocation
-  }));
+  }), [jumpToLocation, toggleTerrain, showInfoAtLocation]);
 
-  // Initialize map
+  // Initialize map - with performance optimization
   useEffect(() => {
     if (!mapContainerRef.current || isLoading || mapRef.current) return;
     
@@ -90,4 +90,5 @@ const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({
 
 MapContainer.displayName = 'MapContainer';
 
-export default MapContainer;
+// Memoize the component to prevent unnecessary rerenders
+export default React.memo(MapContainer);

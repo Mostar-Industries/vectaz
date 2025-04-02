@@ -5,7 +5,7 @@ import mapboxgl from 'mapbox-gl';
 export const useMapRef = () => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   
-  // Method to jump to a specific location on the map
+  // Method to jump to a specific location on the map with useCallback
   const jumpToLocation = useCallback((lat: number, lng: number, name: string) => {
     console.log(`Jumping to location: ${name} at [${lat}, ${lng}]`);
     if (mapRef.current) {
@@ -21,7 +21,7 @@ export const useMapRef = () => {
     }
   }, []);
   
-  // Method to toggle terrain
+  // Method to toggle terrain with useCallback
   const toggleTerrain = useCallback((show3D: boolean) => {
     if (mapRef.current) {
       if (show3D) {
@@ -32,7 +32,7 @@ export const useMapRef = () => {
     }
   }, []);
   
-  // Method to show info at a location
+  // Method to show info at a location with useCallback
   const showInfoAtLocation = useCallback((lat: number, lng: number, content: string) => {
     if (mapRef.current) {
       const popup = new mapboxgl.Popup({

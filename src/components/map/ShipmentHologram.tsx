@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo, useCallback } from 'react';
 import { Activity, Shield, Zap, MapPin, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Route } from '@/types/deeptrack';
 import { GlassContainer, GlassIconContainer } from '@/components/ui/glass-effects';
+
 interface ShipmentHologramProps {
   shipments: Route[];
   onSelect: (shipment: Route, index: number) => void;
   className?: string;
 }
 
-// Randomly generate a risk score between 1-10
+// Memoized functions for generating data
 const generateRiskScore = (): number => {
   return Math.floor(Math.random() * 10) + 1;
 };
@@ -25,6 +27,7 @@ const getStatusColor = (status: string): string => {
       return 'text-red-400';
   }
 };
+
 const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
   shipments,
   onSelect,
@@ -32,9 +35,29 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Limit to only 3 most recent shipments
-  const recentShipments = shipments.slice(0, 3);
-  return <div className={cn("system-status-card max-h-[320px] overflow-hidden", className)}>
+  // Memoize the limited shipments to prevent recreation on each render
+  const recentShipments = useMemo(() => shipments.slice(0, 3), [shipments]);
+  
+  // Memoize handlers to prevent recreation
+  const handleMouseEnter = useCallback((index: number) => {
+    setHoveredIndex(index);
+  }, []);
+  
+  const handleMouseLeave = useCallback(() => {
+    setHoveredIndex(null);
+  }, []);
+  
+  const handleClick = useCallback((shipment: Route, index: number) => {
+    onSelect(shipment, index);
+  }, [onSelect]);
+  
+  const handleJumpClick = useCallback((e: React.MouseEvent, shipment: Route, index: number) => {
+    e.stopPropagation();
+    onSelect(shipment, index);
+  }, [onSelect]);
+
+  return (
+    <div className={cn("system-status-card max-h-[320px] overflow-hidden", className)}>
       {/* Holographic header */}
       <div className="system-status-header flex justify-between items-center">
         <div className="flex items-center">
@@ -49,10 +72,19 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
       {/* Shipment list - fixed to maximum 3 */}
       <div className="p-3 space-y-2">
         {recentShipments.map((shipment, index) => {
-        const isHovered = hoveredIndex === index;
-        const riskScore = generateRiskScore();
-        const statusColor = getStatusColor(shipment.deliveryStatus || 'Delivered');
-        return <GlassContainer key={index} variant={isHovered ? 'blue' : 'default'} onMouseEnter={() => setHoveredIndex(index)} onMouseLeave={() => setHoveredIndex(null)} onClick={() => onSelect(shipment, index)} className="">
+          const isHovered = hoveredIndex === index;
+          const riskScore = generateRiskScore();
+          const statusColor = getStatusColor(shipment.deliveryStatus || 'Delivered');
+          
+          return (
+            <GlassContainer 
+              key={index} 
+              variant={isHovered ? 'blue' : 'default'} 
+              onMouseEnter={() => handleMouseEnter(index)} 
+              onMouseLeave={handleMouseLeave} 
+              onClick={() => handleClick(shipment, index)} 
+              className=""
+            >
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="font-medium text-sm flex items-center">
@@ -84,17 +116,21 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
                   </span>
                 </div>
                 <div className="col-span-2 text-right mt-1">
-                  <button className="text-blue-400 hover:text-blue-300 transition-colors text-xs underline-offset-2 hover:underline" onClick={e => {
-                e.stopPropagation();
-                onSelect(shipment, index);
-              }}>
+                  <button 
+                    className="text-blue-400 hover:text-blue-300 transition-colors text-xs underline-offset-2 hover:underline" 
+                    onClick={(e) => handleJumpClick(e, shipment, index)}
+                  >
                     Jump to location
                   </button>
                 </div>
               </div>
-            </GlassContainer>;
-      })}
+            </GlassContainer>
+          );
+        })}
       </div>
-    </div>;
+    </div>
+  );
 };
-export default ShipmentHologram;
+
+// Memoize the component to prevent unnecessary rerenders
+export default React.memo(ShipmentHologram);

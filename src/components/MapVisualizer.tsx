@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import MapContainer from './map/MapContainer';
 import StatsOverlay from './map/StatsOverlay';
@@ -41,6 +41,50 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
     handleResetView
   } = useMapVisualization(routes);
 
+  // Memoize the content based on mapLoaded state
+  const mapContent = useMemo(() => {
+    if (!mapLoaded) return null;
+    
+    return (
+      <>
+        {limitedRoutes.length > 0 && (
+          <ShipmentHologram 
+            shipments={limitedRoutes}
+            onSelect={handleShipmentSelect}
+            className="absolute top-1/2 right-4 transform -translate-y-1/2 w-80 max-h-[320px]"
+          />
+        )}
+        
+        <StatsOverlay routesCount={limitedRoutes.length} />
+        
+        <MapControls 
+          is3DMode={is3DMode} 
+          toggle3DMode={toggle3DMode} 
+        />
+        
+        <ZoomControls
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onReset={handleResetView}
+        />
+        
+        <MapLegend />
+        
+        <DestinationsCounter count={countryMarkers.length} />
+      </>
+    );
+  }, [
+    mapLoaded, 
+    limitedRoutes, 
+    countryMarkers.length,
+    is3DMode,
+    handleShipmentSelect,
+    toggle3DMode,
+    handleZoomIn,
+    handleZoomOut,
+    handleResetView
+  ]);
+
   return (
     <div className={cn("relative h-full w-full", className)}>
       <MapContainer 
@@ -53,36 +97,10 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
         ref={mapContainerRef}
       />
       
-      {mapLoaded && (
-        <>
-          {limitedRoutes.length > 0 && (
-            <ShipmentHologram 
-              shipments={limitedRoutes}
-              onSelect={handleShipmentSelect}
-              className="absolute top-1/2 right-4 transform -translate-y-1/2 w-80 max-h-[320px]"
-            />
-          )}
-          
-          <StatsOverlay routesCount={limitedRoutes.length} />
-          
-          <MapControls 
-            is3DMode={is3DMode} 
-            toggle3DMode={toggle3DMode} 
-          />
-          
-          <ZoomControls
-            onZoomIn={handleZoomIn}
-            onZoomOut={handleZoomOut}
-            onReset={handleResetView}
-          />
-          
-          <MapLegend />
-          
-          <DestinationsCounter count={countryMarkers.length} />
-        </>
-      )}
+      {mapContent}
     </div>
   );
 };
 
-export default MapVisualizer;
+// Memoize the component to prevent unnecessary rerenders
+export default React.memo(MapVisualizer);

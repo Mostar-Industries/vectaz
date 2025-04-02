@@ -43,4 +43,5 @@ const MapControls: React.FC<MapControlsProps> = ({
   );
 };
 
-export default MapControls;
+// Memoize the component to prevent unnecessary rerenders
+export default React.memo(MapControls);

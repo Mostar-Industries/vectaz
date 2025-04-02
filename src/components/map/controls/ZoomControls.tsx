@@ -48,4 +48,5 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   );
 };
 
-export default ZoomControls;
+// Memoize the component to prevent unnecessary rerenders
+export default React.memo(ZoomControls);

@@ -1,5 +1,5 @@
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Route } from '@/types/deeptrack';
 import { getDestinationMarkers, getRandomStatus } from '@/utils/mapUtils';
@@ -16,17 +16,20 @@ export const useMapVisualization = (routes: Route[]) => {
   const mapContainerRef = useRef<any>(null);
   const { toast } = useToast();
   
-  // Initialize country markers
+  // Memoize country markers initialization to avoid recalculation
   useEffect(() => {
-    const markers = getDestinationMarkers().map(country => ({
-      ...country,
-      status: getRandomStatus()
-    }));
+    const markers = useMemo(() => 
+      getDestinationMarkers().map(country => ({
+        ...country,
+        status: getRandomStatus()
+      }))
+    , []);
+    
     setCountryMarkers(markers);
   }, []);
 
-  // Limit routes to 3 most recent for performance
-  const limitedRoutes = routes.slice(0, 3);
+  // Limit routes to 3 most recent for performance - memoized
+  const limitedRoutes = useMemo(() => routes.slice(0, 3), [routes]);
 
   const handleMapLoaded = useCallback(() => {
     setMapLoaded(true);
@@ -54,7 +57,7 @@ export const useMapVisualization = (routes: Route[]) => {
     });
   }, [toast]);
   
-  // New zoom control handlers
+  // Zoom control handlers with useCallback
   const handleZoomIn = useCallback(() => {
     if (mapContainerRef.current?.mapRef?.current) {
       const map = mapContainerRef.current.mapRef.current;
@@ -88,6 +91,7 @@ export const useMapVisualization = (routes: Route[]) => {
     }
   }, [toast]);
   
+  // Memoize the showRouteInfoOnMap function to prevent recreation on each render
   const showRouteInfoOnMap = useCallback((route: Route, index: number) => {
     const { origin, destination, weight, deliveryStatus } = route;
     

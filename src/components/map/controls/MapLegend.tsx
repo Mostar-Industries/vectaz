@@ -44,4 +44,5 @@ const MapLegend: React.FC<MapLegendProps> = ({
   );
 };
 
-export default MapLegend;
+// Memoize the component to prevent unnecessary rerenders
+export default React.memo(MapLegend);

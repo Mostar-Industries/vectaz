@@ -23,4 +23,5 @@ const DestinationsCounter: React.FC<DestinationsCounterProps> = ({
   );
 };
 
-export default DestinationsCounter;
+// Memoize the component to prevent unnecessary rerenders
+export default React.memo(DestinationsCounter);

@@ -9,10 +9,12 @@ import { AppSection } from '@/types/deeptrack';
 import { useNavigate } from 'react-router-dom';
 import Particles from '@/components/Particles';
 import AnimatedBackground from '@/components/home/AnimatedBackground';
+import DeepCALSection from '@/components/DeepCALSection';
 
 const FormsPage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<AppSection>('forms');
+  const [activeFormTab, setActiveFormTab] = useState("rfq");
   
   const demoForwarders = [
     { id: '1', name: 'Kenya Airways', reliability: 0.92 },
@@ -79,13 +81,16 @@ const FormsPage = () => {
             </p>
           </GlassContainer>
           
-          <Tabs defaultValue="rfq" className="w-full">
-            <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6">
+          <Tabs defaultValue={activeFormTab} onValueChange={setActiveFormTab} className="w-full">
+            <TabsList className="grid grid-cols-3 w-full max-w-md mx-auto mb-6">
               <TabsTrigger value="rfq" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">
                 Request For Quotation
               </TabsTrigger>
               <TabsTrigger value="shipment" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">
                 New Shipment
+              </TabsTrigger>
+              <TabsTrigger value="calculator" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">
+                DeepCAL
               </TabsTrigger>
             </TabsList>
             
@@ -95,6 +100,10 @@ const FormsPage = () => {
             
             <TabsContent value="shipment">
               <NewShipmentForm />
+            </TabsContent>
+            
+            <TabsContent value="calculator">
+              <DeepCALSection />
             </TabsContent>
           </Tabs>
         </div>

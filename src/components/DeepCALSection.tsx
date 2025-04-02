@@ -104,52 +104,52 @@ const DeepCALSection: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto py-8 max-w-7xl">
+    <div className="container mx-auto py-8 max-w-7xl relative z-20">
       {!showResults ? (
-        <Card className="max-w-4xl mx-auto">
+        <Card className="max-w-4xl mx-auto border border-[#00FFD1]/20 bg-[#0A1A2F]/80 backdrop-blur-md text-white shadow-[0_0_15px_rgba(0,255,209,0.1)]">
           <CardHeader>
-            <CardTitle className="text-2xl text-center text-gradient-primary">DeepCAL™ Quote Optimizer</CardTitle>
-            <CardDescription className="text-center">
+            <CardTitle className="text-2xl text-center text-[#00FFD1]">DeepCAL™ Quote Optimizer</CardTitle>
+            <CardDescription className="text-center text-gray-300">
               Enter your freight quotes to receive AI-powered logistics recommendations
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
-                <Label htmlFor="source">Source Country</Label>
+                <Label htmlFor="source" className="text-gray-300">Source Country</Label>
                 <Input 
                   id="source" 
                   value={source} 
                   onChange={(e) => setSource(e.target.value)} 
-                  className="mt-1"
+                  className="mt-1 bg-[#0A1A2F]/50 border-[#00FFD1]/30 text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="destination">Destination Country</Label>
+                <Label htmlFor="destination" className="text-gray-300">Destination Country</Label>
                 <Input 
                   id="destination" 
                   value={destination} 
                   onChange={(e) => setDestination(e.target.value)} 
-                  className="mt-1"
+                  className="mt-1 bg-[#0A1A2F]/50 border-[#00FFD1]/30 text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="weight">Shipment Weight (kg)</Label>
+                <Label htmlFor="weight" className="text-gray-300">Shipment Weight (kg)</Label>
                 <Input 
                   id="weight" 
                   type="number"
                   value={weightKg} 
                   onChange={(e) => setWeightKg(Number(e.target.value) || 0)} 
-                  className="mt-1"
+                  className="mt-1 bg-[#0A1A2F]/50 border-[#00FFD1]/30 text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="mode">Mode of Shipment</Label>
+                <Label htmlFor="mode" className="text-gray-300">Mode of Shipment</Label>
                 <select 
                   id="mode" 
                   value={mode} 
                   onChange={(e) => setMode(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                  className="flex h-10 w-full rounded-md border border-[#00FFD1]/30 bg-[#0A1A2F]/50 px-3 py-2 text-sm text-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00FFD1]/50 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                 >
                   <option>Air</option>
                   <option>Sea</option>
@@ -158,16 +158,17 @@ const DeepCALSection: React.FC = () => {
               </div>
             </div>
 
-            <Separator className="my-8" />
+            <Separator className="my-8 bg-[#00FFD1]/20" />
             
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">Forwarder Quotes</h3>
+                <h3 className="text-lg font-medium text-[#00FFD1]">Forwarder Quotes</h3>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={handleAddForwarder}
                   disabled={quotes.length >= forwarders.length}
+                  className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10"
                 >
                   Add Forwarder
                 </Button>
@@ -183,7 +184,7 @@ const DeepCALSection: React.FC = () => {
                         newQuotes[index].forwarder = e.target.value;
                         setQuotes(newQuotes);
                       }}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="flex h-10 w-full rounded-md border border-[#00FFD1]/30 bg-[#0A1A2F]/50 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00FFD1]/50 focus-visible:ring-offset-2"
                     >
                       {forwarders.map((name) => (
                         <option key={name} value={name}>{name}</option>
@@ -192,12 +193,13 @@ const DeepCALSection: React.FC = () => {
                   </div>
                   <div className="flex-grow">
                     <div className="flex items-center">
-                      <span className="mr-2">$</span>
+                      <span className="mr-2 text-white">$</span>
                       <Input 
                         type="number"
                         value={quote.quote}
                         onChange={(e) => handleQuoteChange(index, e.target.value)}
                         placeholder="Quote amount"
+                        className="bg-[#0A1A2F]/50 border-[#00FFD1]/30 text-white"
                       />
                     </div>
                   </div>
@@ -207,6 +209,7 @@ const DeepCALSection: React.FC = () => {
                       size="sm"
                       onClick={() => handleRemoveForwarder(index)}
                       disabled={quotes.length <= 1}
+                      className="text-gray-300 hover:text-white hover:bg-[#00FFD1]/10"
                     >
                       Remove
                     </Button>
@@ -215,13 +218,13 @@ const DeepCALSection: React.FC = () => {
               ))}
             </div>
             
-            <Separator className="my-8" />
+            <Separator className="my-8 bg-[#00FFD1]/20" />
 
             <div>
-              <h3 className="text-lg font-medium mb-4">Weight Factor Adjustment</h3>
+              <h3 className="text-lg font-medium mb-4 text-[#00FFD1]">Weight Factor Adjustment</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <Label htmlFor="cost-factor">Cost ({Math.round(weightFactors.cost * 100)}%)</Label>
+                  <Label htmlFor="cost-factor" className="text-gray-300">Cost ({Math.round(weightFactors.cost * 100)}%)</Label>
                   <Input 
                     id="cost-factor"
                     type="range"
@@ -230,11 +233,11 @@ const DeepCALSection: React.FC = () => {
                     step="0.1"
                     value={weightFactors.cost}
                     onChange={(e) => handleWeightChange('cost', parseFloat(e.target.value))}
-                    className="mt-1"
+                    className="mt-1 accent-[#00FFD1]"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="time-factor">Time ({Math.round(weightFactors.time * 100)}%)</Label>
+                  <Label htmlFor="time-factor" className="text-gray-300">Time ({Math.round(weightFactors.time * 100)}%)</Label>
                   <Input 
                     id="time-factor"
                     type="range"
@@ -243,11 +246,11 @@ const DeepCALSection: React.FC = () => {
                     step="0.1"
                     value={weightFactors.time}
                     onChange={(e) => handleWeightChange('time', parseFloat(e.target.value))}
-                    className="mt-1"
+                    className="mt-1 accent-[#00FFD1]"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="reliability-factor">Reliability ({Math.round(weightFactors.reliability * 100)}%)</Label>
+                  <Label htmlFor="reliability-factor" className="text-gray-300">Reliability ({Math.round(weightFactors.reliability * 100)}%)</Label>
                   <Input 
                     id="reliability-factor"
                     type="range"
@@ -256,7 +259,7 @@ const DeepCALSection: React.FC = () => {
                     step="0.1"
                     value={weightFactors.reliability}
                     onChange={(e) => handleWeightChange('reliability', parseFloat(e.target.value))}
-                    className="mt-1"
+                    className="mt-1 accent-[#00FFD1]"
                   />
                 </div>
               </div>
@@ -265,7 +268,7 @@ const DeepCALSection: React.FC = () => {
             <div className="flex justify-center mt-10">
               <Button 
                 size="lg" 
-                className="px-10 py-6 text-lg bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-500 hover:to-blue-600 transition-all"
+                className="px-10 py-6 text-lg bg-gradient-to-r from-[#00FFD1]/80 to-[#00FFD1] hover:from-[#00FFD1] hover:to-[#00FFD1]/80 text-[#0A1A2F] font-bold transition-all"
                 onClick={analyzeQuotes}
                 disabled={loading || quotes.some(q => q.quote <= 0)}
               >
@@ -283,27 +286,28 @@ const DeepCALSection: React.FC = () => {
         </Card>
       ) : (
         <div className="space-y-8">
-          <Card>
+          <Card className="border border-[#00FFD1]/20 bg-[#0A1A2F]/80 backdrop-blur-md text-white shadow-[0_0_15px_rgba(0,255,209,0.1)]">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-2xl text-gradient-primary">DeepCAL™ Analysis Results</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-2xl text-[#00FFD1]">DeepCAL™ Analysis Results</CardTitle>
+                <CardDescription className="text-gray-300">
                   {source} to {destination} | {weightKg} kg | {mode}
                 </CardDescription>
               </div>
               <Button 
                 variant="outline" 
                 onClick={() => setShowResults(false)}
+                className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10"
               >
                 New Analysis
               </Button>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue={activeResultTab} onValueChange={setActiveResultTab}>
-                <TabsList className="grid w-full grid-cols-3 mb-8">
-                  <TabsTrigger value="recommendation">Recommendation</TabsTrigger>
-                  <TabsTrigger value="comparison">Comparison</TabsTrigger>
-                  <TabsTrigger value="detailed">Detailed Analysis</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 mb-8 bg-[#0A1A2F]/60 border border-[#00FFD1]/20">
+                  <TabsTrigger value="recommendation" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Recommendation</TabsTrigger>
+                  <TabsTrigger value="comparison" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Comparison</TabsTrigger>
+                  <TabsTrigger value="detailed" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Detailed Analysis</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="recommendation">

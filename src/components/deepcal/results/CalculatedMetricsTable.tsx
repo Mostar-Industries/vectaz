@@ -10,11 +10,11 @@ interface CalculatedMetricsTableProps {
 const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results }) => {
   return (
     <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
-      <CardHeader>
-        <CardTitle className="text-lg text-[#00FFD1]">Calculated Metrics</CardTitle>
+      <CardHeader className="p-3 sm:p-4">
+        <CardTitle className="text-sm sm:text-base md:text-lg text-[#00FFD1]">Calculated Metrics</CardTitle>
       </CardHeader>
-      <CardContent>
-        <table className="w-full border-collapse text-gray-300">
+      <CardContent className="p-3 sm:p-4 overflow-x-auto">
+        <table className="w-full border-collapse text-gray-300 text-xs sm:text-sm">
           <thead>
             <tr className="border-b border-[#00FFD1]/20">
               <th className="text-left py-2">Forwarder</th>
@@ -27,7 +27,7 @@ const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results
           <tbody>
             {results.map((result, index) => (
               <tr key={index} className="border-b border-[#00FFD1]/10 hover:bg-[#00FFD1]/5">
-                <td className="py-2 font-medium text-white">{result.forwarder}</td>
+                <td className="py-2 font-medium text-white whitespace-nowrap">{result.forwarder}</td>
                 <td className="py-2">{(result.score * 100).toFixed(1)}%</td>
                 <td className="py-2">{(result.costPerformance * 100).toFixed(1)}%</td>
                 <td className="py-2">{(result.timePerformance * 100).toFixed(1)}%</td>

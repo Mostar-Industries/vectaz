@@ -34,27 +34,27 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onPlayVoice }) => {
     >
       <div 
         className={cn(
-          "max-w-[90%] md:max-w-[80%] rounded-lg px-4 py-2 relative",
+          "max-w-[95%] sm:max-w-[90%] md:max-w-[80%] rounded-lg px-3 py-2 sm:px-4 sm:py-2 relative",
           message.sender === 'user' 
             ? "bg-blue-500 text-white"
             : "bg-black/40 border border-blue-500/10 text-white"
         )}
       >
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
           {message.sender === 'ai' 
-            ? <Bot className="h-4 w-4 text-cyan-400" /> 
-            : <User className="h-4 w-4" />
+            ? <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-cyan-400" /> 
+            : <User className="h-3 w-3 sm:h-4 sm:w-4" />
           }
-          <span className="text-xs opacity-75">
+          <span className="text-[10px] sm:text-xs opacity-75">
             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
           {message.personality && (
-            <span className="text-xs opacity-75 ml-1 bg-blue-500/20 px-1 rounded">
+            <span className="text-[10px] sm:text-xs opacity-75 ml-1 bg-blue-500/20 px-1 rounded">
               {message.personality}
             </span>
           )}
           {message.model && (
-            <span className="text-xs opacity-75 ml-1 bg-purple-500/20 px-1 rounded">
+            <span className="text-[10px] sm:text-xs opacity-75 ml-1 bg-purple-500/20 px-1 rounded">
               {message.model.replace('eleven_', '')}
             </span>
           )}
@@ -67,16 +67,16 @@ const MessageItem: React.FC<MessageItemProps> = ({ message, onPlayVoice }) => {
               aria-label={message.isPlaying ? "Currently speaking" : "Play voice"}
             >
               {message.isPlaying 
-                ? <Volume2 className="h-4 w-4 animate-pulse" /> 
-                : <Volume2 className="h-4 w-4" />
+                ? <Volume2 className="h-3 w-3 sm:h-4 sm:w-4 animate-pulse" /> 
+                : <Volume2 className="h-3 w-3 sm:h-4 sm:w-4" />
               }
             </button>
           )}
         </div>
-        <p className="text-sm whitespace-pre-line">{message.text}</p>
+        <p className="text-xs sm:text-sm whitespace-pre-line">{message.text}</p>
         
         {message.isPlaying && (
-          <div className="absolute bottom-1 right-1 w-8 h-1">
+          <div className="absolute bottom-1 right-1 w-6 sm:w-8 h-1">
             <div className="h-full bg-cyan-400/30 rounded-full overflow-hidden">
               <div className="h-full w-1/2 bg-cyan-400 rounded-full animate-pulse"></div>
             </div>

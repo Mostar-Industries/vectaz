@@ -15,7 +15,12 @@ interface QuoteInputFormProps {
 }
 
 const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) => {
-  const [quotes, setQuotes] = useState<QuoteData[]>(forwarders.slice(0, 3).map(name => ({ forwarder: name, quote: 0 })));
+  // Prefill with sample data for quick testing
+  const [quotes, setQuotes] = useState<QuoteData[]>([
+    { forwarder: 'Kenya Airways', quote: 2500 },
+    { forwarder: 'DHL', quote: 2700 },
+    { forwarder: 'Kuehne Nagel', quote: 2600 }
+  ]);
   const [weightKg, setWeightKg] = useState<number>(20000);
   const [source, setSource] = useState<string>('Kenya');
   const [destination, setDestination] = useState<string>('Zimbabwe');
@@ -133,8 +138,8 @@ const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) =
           </div>
           
           {quotes.map((quote, index) => (
-            <div key={index} className="flex items-center gap-4">
-              <div className="w-1/3">
+            <div key={index} className="flex items-center gap-4 flex-wrap md:flex-nowrap">
+              <div className="w-full md:w-1/3">
                 <select 
                   value={quote.forwarder}
                   onChange={(e) => {

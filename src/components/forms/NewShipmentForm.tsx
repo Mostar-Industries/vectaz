@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { GlassContainer } from '@/components/ui/glass-effects';
@@ -22,15 +21,21 @@ interface NewShipmentFormProps {
 const NewShipmentForm: React.FC<NewShipmentFormProps> = ({ onSuccess }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [collectionDate, setCollectionDate] = useState<Date | undefined>(new Date());
-  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  
+  // Prefill dates with test data
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  
+  const [collectionDate, setCollectionDate] = useState<Date | undefined>(today);
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(nextWeek);
   const [shipmentData, setShipmentData] = useState<any>(null);
   const { toast } = useToast();
 
-  // Form state
+  // Prefill form data with test data
   const [formData, setFormData] = useState({
     reference: `SHIP-${Date.now().toString().slice(-8)}`,
-    description: '',
+    description: 'Medical supplies shipment for Nairobi General Hospital',
     category: 'Medical Supplies',
     origin: 'Nairobi, Kenya',
     originCountry: 'Kenya',

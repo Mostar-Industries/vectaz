@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useToast } from "@/hooks/use-toast";
@@ -27,29 +26,33 @@ interface EnhancedRFQFormProps {
 const EnhancedRFQForm: React.FC<EnhancedRFQFormProps> = ({
   availableForwarders
 }) => {
-  const [selectedForwarders, setSelectedForwarders] = useState<string[]>([]);
-  const [deadline, setDeadline] = useState<Date | undefined>(
-    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Default: 7 days from now
-  );
+  // Prefill with selected forwarders for testing
+  const [selectedForwarders, setSelectedForwarders] = useState<string[]>(['1', '3', '5']);
+  
+  // Set deadline to 7 days from now
+  const defaultDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const [deadline, setDeadline] = useState<Date | undefined>(defaultDeadline);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { toast } = useToast();
 
+  // Prefill form with test data
   const form = useForm({
     defaultValues: {
       companyName: "Nairobi Hub",
       requesterName: "Jane Doe",
       email: "jane.doe@nairobihub.com",
       phone: "+254 712 345 678",
-      returnDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10),
+      returnDate: defaultDeadline.toISOString().substring(0, 10),
       origin: "Nairobi, Kenya",
       destination: "Mombasa, Kenya",
       weight: "500",
       volume: "10",
       category: "Medical Supplies",
-      description: "",
-      goals: "",
-      background: ""
+      description: "Urgent medical supplies including PPE, vaccines, and medicine for Mombasa General Hospital",
+      goals: "Looking for reliable and cost-effective shipping solution with temperature control capabilities",
+      background: "Part of ongoing COVID-19 response program. This shipment requires special handling and temperature control."
     }
   });
 
@@ -100,7 +103,7 @@ const EnhancedRFQForm: React.FC<EnhancedRFQFormProps> = ({
   const handleCreateAnother = () => {
     setSubmitted(false);
     setSelectedForwarders([]);
-    setDeadline(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    setDeadline(defaultDeadline);
     form.reset();
   };
 

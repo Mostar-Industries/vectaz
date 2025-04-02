@@ -22,7 +22,7 @@ const DecisionExplanation: React.FC<DecisionExplanationProps> = ({
   return (
     <div>
       <h3 className="text-lg font-medium mb-4 text-[#00FFD1]">Decision Explanation</h3>
-      <div className="p-4 bg-[#0A1A2F]/60 border border-[#00FFD1]/10 rounded-lg text-sm space-y-3 text-gray-300">
+      <div className="p-4 bg-[#0A1A2F]/60 border border-[#00FFD1]/10 rounded-lg text-xs sm:text-sm space-y-3 text-gray-300">
         <p>
           <strong className="text-white">{topResult?.forwarder}</strong> is recommended as the optimal choice for your shipment based on a comprehensive analysis that considers cost, time efficiency, and reliability factors.
         </p>

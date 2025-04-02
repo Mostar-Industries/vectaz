@@ -1,0 +1,39 @@
+
+version: "3.1"
+stories:
+  - story: Greet and get rankings
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: get_rankings
+      - action: action_get_rankings
+
+  - story: Explain a ranking
+    steps:
+      - intent: explain_decision
+      - action: action_explain_ranking
+
+  - story: Show disruption alert
+    steps:
+      - intent: deep_sight_alert
+      - action: action_get_deep_sight_alerts
+
+  - story: Cheer user up
+    steps:
+      - intent: encourage_continue
+      - action: utter_cheer_up
+
+  - story: Ask fun fact
+    steps:
+      - intent: ask_fun_fact
+      - action: utter_ask_fun_fact
+
+  - story: Ask who DeepCAL is
+    steps:
+      - intent: ask_who_are_you
+      - action: utter_deepcal_identity
+
+  - story: Handle fallback
+    steps:
+      - intent: out_of_scope
+      - action: utter_fallback

@@ -1,0 +1,16 @@
+
+version: "3.1"
+stories:
+  - story: test happy path get rankings
+    steps:
+      - user: |
+          show me the top forwarders
+        intent: get_rankings
+      - action: action_get_rankings
+
+  - story: test explain decision
+    steps:
+      - user: |
+          why did DeepCAL pick A?
+        intent: explain_decision
+      - action: action_explain_ranking

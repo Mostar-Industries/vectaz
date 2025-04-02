@@ -1,6 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
 
 interface EmailRequest {
   recipientEmail: string;
@@ -25,17 +26,55 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`RFQ Reference: ${rfqReference}`);
     console.log(`Test mode: ${testMode ? 'Yes' : 'No'}`);
 
-    // In a real implementation, you would use an email service like Resend or SendGrid
-    // For this demo, we'll log the request and simulate success
-    
-    // Simulate sending delay (shorter in test mode)
-    await new Promise(resolve => setTimeout(resolve, testMode ? 500 : 1500));
+    // Create the SMTP client
+    const client = new SMTPClient({
+      connection: {
+        hostname: "smtp.gmail.com",
+        port: 465,
+        tls: true,
+        auth: {
+          username: "your-email@gmail.com", // Replace with your Gmail address
+          password: Deno.env.get("GMAIL_APP_PASSWORD") || "", // Use app password from environment variable
+        },
+      },
+    });
+
+    // Create the email content
+    const message = {
+      from: "DeepCAL Operations <your-email@gmail.com>", // Replace with your Gmail address
+      to: recipientEmail,
+      subject: subject || `Request for Quotation: ${rfqReference}`,
+      html: `
+        <html>
+          <body>
+            <h1>Request for Quotation: ${rfqReference}</h1>
+            <p>Please find attached the Request for Quotation document.</p>
+            <p>This is an automated message from DeepCAL Operations Center.</p>
+          </body>
+        </html>
+      `,
+      attachments: [
+        {
+          filename: `RFQ-${rfqReference}.pdf`,
+          content: pdfBase64,
+          encoding: "base64",
+        },
+      ],
+    };
+
+    // Skip actual sending in test mode
+    if (!testMode) {
+      await client.send(message);
+      console.log("Email sent successfully to:", recipientEmail);
+    } else {
+      console.log("Test mode: Email would be sent to:", recipientEmail);
+    }
 
     // Return success response
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Email with RFQ ${rfqReference} sent to ${recipientEmail}`,
+        message: `Email with RFQ ${rfqReference} ${testMode ? 'would be sent' : 'sent'} to ${recipientEmail}`,
         testMode: testMode || false
       }),
       {

@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Check, FileDown, Mail, Loader2, Database } from 'lucide-react';
+import { Check, FileDown, Mail, Loader2, Database, AlertTriangle } from 'lucide-react';
 import { GlassContainer } from '@/components/ui/glass-effects';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ShipmentSuccessViewProps {
   onCreateAnother: () => void;
@@ -23,6 +24,7 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailResponse, setEmailResponse] = useState<any>(null);
 
   const handleDownloadPDF = () => {
     // In a real implementation, this would generate and download a PDF using jsPDF
@@ -35,6 +37,7 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({
 
   const handleOpenEmailDialog = () => {
     setIsEmailDialogOpen(true);
+    setEmailResponse(null);
   };
 
   const handleSendEmail = async () => {
@@ -52,18 +55,29 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({
     setIsSendingEmail(true);
     
     try {
-      // Simulate sending
+      // Simulate sending 
       await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Set a success response for demo purposes
+      setEmailResponse({
+        success: true,
+        message: `The shipment details have been sent to ${recipientEmail}`
+      });
       
       toast({
         title: "Email Sent",
         description: `The shipment details have been sent to ${recipientEmail}`
       });
       
-      setIsEmailDialogOpen(false);
-      setRecipientEmail('');
+      // We don't automatically close the dialog now so the user can see the response
     } catch (error) {
       console.error('Error sending email:', error);
+      
+      setEmailResponse({
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to send the email. Please try again later."
+      });
+      
       toast({
         title: "Error",
         description: "Failed to send the email. Please try again later.",
@@ -94,10 +108,10 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({
               Synced with database
             </div>
           </div>
-          <div className="mt-6 flex justify-center space-x-4">
+          <div className="mt-6 flex flex-wrap justify-center space-x-4">
             <Button 
               variant="outline" 
-              className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10"
+              className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10 mb-2"
               onClick={handleDownloadPDF}
             >
               <FileDown className="mr-2 h-4 w-4" />
@@ -105,7 +119,7 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({
             </Button>
             <Button 
               variant="outline" 
-              className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10"
+              className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10 mb-2"
               onClick={handleOpenEmailDialog}
             >
               <Mail className="mr-2 h-4 w-4" />
@@ -113,7 +127,7 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({
             </Button>
             <Button 
               variant="outline" 
-              className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10"
+              className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10 mb-2"
               onClick={onCreateAnother}
             >
               Create Another Shipment
@@ -137,14 +151,33 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({
               value={recipientEmail}
               onChange={(e) => setRecipientEmail(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground mt-2">
+              Note: Make sure to check your spam folder if you don't see the email.
+            </p>
           </div>
+          
+          {emailResponse && (
+            <Alert variant={emailResponse.success ? "default" : "destructive"} className="my-2">
+              <AlertTitle className="flex items-center">
+                {emailResponse.success 
+                  ? <><Check className="h-4 w-4 mr-2" /> Email Status</> 
+                  : <><AlertTriangle className="h-4 w-4 mr-2" /> Email Error</>}
+              </AlertTitle>
+              <AlertDescription>
+                {emailResponse.success 
+                  ? emailResponse.message || "Email sent successfully" 
+                  : emailResponse.error || "Failed to send email"}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <DialogFooter>
             <Button 
               variant="secondary" 
               onClick={() => setIsEmailDialogOpen(false)}
               disabled={isSendingEmail}
             >
-              Cancel
+              Close
             </Button>
             <Button 
               onClick={handleSendEmail}

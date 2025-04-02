@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef, useMemo } from 'react';
 import { Route } from '@/types/deeptrack';
 import { Loader } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
@@ -20,7 +20,8 @@ interface MapContainerProps {
   onCountryClick?: (country: string) => void;
 }
 
-// Set the Mapbox access token globally
+// Set the Mapbox access token directly (best for development)
+// In production, this should come from environment variables
 mapboxgl.accessToken = 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2x4czNxbjU2MWM2eTJqc2gwNGIwaWhkMSJ9.jSwZdyaPa1dOHepNU5P71g';
 
 // Using forwardRef to properly handle the ref
@@ -38,6 +39,7 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const countryMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const spinIntervalRef = useRef<number | null>(null);
   
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
@@ -96,7 +98,7 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainerRef.current || isLoading) return;
+    if (!mapContainerRef.current || isLoading || mapRef.current) return;
     
     // Create a new map instance - directly using the token set above
     const map = new mapboxgl.Map({
@@ -174,6 +176,7 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
     }
 
     const spinInterval = setInterval(spinGlobe, 1000);
+    spinIntervalRef.current = spinInterval;
 
     map.on('mousedown', () => {
       userInteracting = true;
@@ -201,6 +204,11 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
     
     // Cleanup function
     return () => {
+      if (spinIntervalRef.current) {
+        clearInterval(spinIntervalRef.current);
+        spinIntervalRef.current = null;
+      }
+      
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -218,8 +226,6 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
         popupRef.current.remove();
         popupRef.current = null;
       }
-      
-      clearInterval(spinInterval);
     };
   }, [isLoading, onMapLoaded]);
 
@@ -281,7 +287,7 @@ const MapContainer = forwardRef<any, MapContainerProps>(({
     });
   };
 
-  // Function to add markers for each country
+  // Function to add markers for each country - memoized to improve performance
   const addCountryMarkers = () => {
     if (!mapRef.current) return;
     

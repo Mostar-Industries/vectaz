@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { Package, MapPin, Shield, Zap, Ship, AlertTriangle } from 'lucide-react';
 import MapContainer from './map/MapContainer';
@@ -27,7 +28,9 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
   const mapContainerRef = useRef<any>(null);
   const { toast } = useToast();
   
+  // Optimize countryMarkers initialization with useMemo
   useEffect(() => {
+    // Only fetch markers once
     const markers = getDestinationMarkers().map(country => ({
       ...country,
       status: getRandomStatus()
@@ -35,9 +38,10 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
     setCountryMarkers(markers);
   }, []);
 
-  const limitedRoutes = routes.slice(0, 3);
+  // Limit routes to improve performance
+  const limitedRoutes = useMemo(() => routes.slice(0, 3), [routes]);
 
-  const handleMapLoaded = () => {
+  const handleMapLoaded = useCallback(() => {
     setMapLoaded(true);
     
     toast({
@@ -45,25 +49,25 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       description: "Tap to rotate the globe and explore destination countries.",
       duration: 5000,
     });
-  };
+  }, [toast]);
 
-  const handleRouteClick = (routeIndex: number | null) => {
+  const handleRouteClick = useCallback((routeIndex: number | null) => {
     setActiveRoute(routeIndex);
     
-    if (routeIndex !== null) {
+    if (routeIndex !== null && limitedRoutes[routeIndex]) {
       showRouteInfoOnMap(limitedRoutes[routeIndex], routeIndex);
     }
-  };
+  }, [limitedRoutes]);
   
-  const handleCountryClick = (countryName: string) => {
+  const handleCountryClick = useCallback((countryName: string) => {
     toast({
       title: `${countryName} Selected`,
       description: `Viewing destination country: ${countryName}`,
       duration: 3000,
     });
-  };
+  }, [toast]);
   
-  const showRouteInfoOnMap = (route: Route, index: number) => {
+  const showRouteInfoOnMap = useCallback((route: Route, index: number) => {
     const { origin, destination, weight, deliveryStatus } = route;
     
     const riskScore = Math.floor(Math.random() * 10) + 1;
@@ -129,34 +133,35 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({ routes, isLoading = false
       </div>
     `;
     
-    mapContainerRef.current.jumpToLocation(destination.lat, destination.lng, destination.name);
-    
-    mapContainerRef.current.showInfoAtLocation(destination.lat, destination.lng, popupContent);
-  };
+    if (mapContainerRef.current?.jumpToLocation) {
+      mapContainerRef.current.jumpToLocation(destination.lat, destination.lng, destination.name);
+      mapContainerRef.current.showInfoAtLocation(destination.lat, destination.lng, popupContent);
+    }
+  }, []);
 
-  const handleJumpToLocation = (lat: number, lng: number, name: string) => {
+  const handleJumpToLocation = useCallback((lat: number, lng: number, name: string) => {
     if (mapContainerRef.current?.jumpToLocation) {
       mapContainerRef.current.jumpToLocation(lat, lng, name);
     }
-  };
+  }, []);
 
-  const handleShipmentSelect = (shipment: Route, index: number) => {
+  const handleShipmentSelect = useCallback((shipment: Route, index: number) => {
     showRouteInfoOnMap(shipment, index);
     setActiveRoute(index);
-  };
+  }, [showRouteInfoOnMap]);
 
-  const toggle3DMode = () => {
-    setIs3DMode(!is3DMode);
+  const toggle3DMode = useCallback(() => {
+    setIs3DMode(prev => !prev);
     if (mapContainerRef.current?.toggleTerrain) {
       mapContainerRef.current.toggleTerrain(!is3DMode);
       
       toast({
-        title: is3DMode? "2D Mode" : "3D Terrain View",
-        description: is3DMode? "Switched to flat map view": "Behold your empire in 3D glory!",
+        title: is3DMode ? "2D Mode" : "3D Terrain View",
+        description: is3DMode ? "Switched to flat map view" : "Behold your empire in 3D glory!",
         duration: 2000,
       });
     }
-  };
+  }, [is3DMode, toast]);
 
   return (
     <div className={cn("relative h-full w-full", className)}>

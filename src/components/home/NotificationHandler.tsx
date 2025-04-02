@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface NotificationHandlerProps {
@@ -8,10 +8,14 @@ interface NotificationHandlerProps {
 
 const NotificationHandler: React.FC<NotificationHandlerProps> = ({ isDataLoaded }) => {
   const { toast } = useToast();
+  const hasNotified = useRef<boolean>(false);
 
   useEffect(() => {
-    if (isDataLoaded) {
-      // Enhanced notification with sound effect
+    // Only notify once when data is loaded
+    if (isDataLoaded && !hasNotified.current) {
+      hasNotified.current = true;
+      
+      // Create audio element only when needed
       const notificationSound = new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...'); // Base64 audio would go here
       notificationSound.volume = 0.5;
       try {

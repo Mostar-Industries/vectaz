@@ -3,13 +3,15 @@ import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@supabase/supabase-js';
 import { getHumorResponse } from './useDeepCalHumor';
+import { Message } from './MessageItem';
 
 export const useVoiceFunctions = () => {
   const { toast } = useToast();
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [audioQueue, setAudioQueue] = useState<string[]>([]);
+  const [audioQueue, setAudioQueue] = useState<{ url: string, messageId?: string }[]>([]);
   const [currentPersonality, setCurrentPersonality] = useState<string>('sassy');
   const [currentModel, setCurrentModel] = useState<string>('eleven_multilingual_v2');
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Create audio element on component mount
@@ -19,12 +21,14 @@ export const useVoiceFunctions = () => {
     // Set up event listeners
     audioRef.current.onended = () => {
       setIsSpeaking(false);
+      setCurrentMessageId(null);
       playNextInQueue();
     };
     
     audioRef.current.onerror = (e) => {
       console.error("Audio playback error:", e);
       setIsSpeaking(false);
+      setCurrentMessageId(null);
       toast({
         title: "Voice Error",
         description: "Could not play the voice response. Please try again.",
@@ -47,12 +51,17 @@ export const useVoiceFunctions = () => {
       const nextAudio = audioQueue[0];
       setAudioQueue(prev => prev.slice(1));
       
-      audioRef.current.src = nextAudio;
+      if (nextAudio.messageId) {
+        setCurrentMessageId(nextAudio.messageId);
+      }
+      
+      audioRef.current.src = nextAudio.url;
       audioRef.current.play()
         .then(() => setIsSpeaking(true))
         .catch(error => {
           console.error("Failed to play audio:", error);
           setIsSpeaking(false);
+          setCurrentMessageId(null);
           
           // Try next in queue if this one fails
           playNextInQueue();
@@ -95,20 +104,35 @@ export const useVoiceFunctions = () => {
     return currentModel;
   };
   
+  // Play audio for a specific message
+  const playMessageAudio = (message: Message) => {
+    if (!message.text) return false;
+    
+    // Already speaking this message
+    if (isSpeaking && currentMessageId === message.id) {
+      return true;
+    }
+    
+    // Use cached personality and model if available
+    const personality = message.personality || determinePersonality(message.text);
+    const model = message.model || determineModel(message.text);
+    
+    return speakResponse(message.text, message.id, personality, model);
+  };
+  
   // Main function to speak a response
-  const speakResponse = async (text: string) => {
+  const speakResponse = async (text: string, messageId?: string, forcedPersonality?: string, forcedModel?: string) => {
     try {
       console.log("Speaking response:", text.substring(0, 50) + "...");
       
       // Check if we should inject humor
       const enhancedText = getHumorResponse(text);
       
-      // Determine the appropriate personality
-      const personality = determinePersonality(enhancedText);
+      // Determine the appropriate personality and model
+      const personality = forcedPersonality || determinePersonality(enhancedText);
       setCurrentPersonality(personality);
       
-      // Determine the appropriate model
-      const model = determineModel(enhancedText);
+      const model = forcedModel || determineModel(enhancedText);
       setCurrentModel(model);
       
       console.log(`Using personality: ${personality}, model: ${model} for speech`);
@@ -145,7 +169,7 @@ export const useVoiceFunctions = () => {
       const audioUrl = URL.createObjectURL(audioBlob);
       
       // Add to queue
-      setAudioQueue(prev => [...prev, audioUrl]);
+      setAudioQueue(prev => [...prev, { url: audioUrl, messageId }]);
       
       // If nothing is playing, start playing
       if (!isSpeaking) {
@@ -156,6 +180,7 @@ export const useVoiceFunctions = () => {
     } catch (error) {
       console.error("Speech synthesis error:", error);
       setIsSpeaking(false);
+      setCurrentMessageId(null);
       
       // Fall back to browser's speech synthesis
       fallbackSpeakResponse(text);
@@ -217,9 +242,11 @@ export const useVoiceFunctions = () => {
 
   return {
     speakResponse,
+    playMessageAudio,
     isSpeaking,
     currentPersonality,
-    currentModel
+    currentModel,
+    currentMessageId
   };
 };
 

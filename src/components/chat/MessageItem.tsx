@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, Volume2, VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface Message {
@@ -9,14 +9,22 @@ export interface Message {
   sender: 'user' | 'ai';
   timestamp: Date;
   personality?: string; // Personality property
-  model?: string; // Added model property
+  model?: string; // Model property
+  isPlaying?: boolean; // Added to track if this message is currently being spoken
 }
 
 interface MessageItemProps {
   message: Message;
+  onPlayVoice?: (messageText: string) => void;
 }
 
-const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
+const MessageItem: React.FC<MessageItemProps> = ({ message, onPlayVoice }) => {
+  const handlePlayClick = () => {
+    if (onPlayVoice && message.sender === 'ai') {
+      onPlayVoice(message.text);
+    }
+  };
+
   return (
     <div 
       className={cn(
@@ -26,7 +34,7 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
     >
       <div 
         className={cn(
-          "max-w-[90%] md:max-w-[80%] rounded-lg px-4 py-2",
+          "max-w-[90%] md:max-w-[80%] rounded-lg px-4 py-2 relative",
           message.sender === 'user' 
             ? "bg-blue-500 text-white"
             : "bg-black/40 border border-blue-500/10 text-white"
@@ -50,8 +58,30 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
               {message.model.replace('eleven_', '')}
             </span>
           )}
+          
+          {/* Play button for AI messages */}
+          {message.sender === 'ai' && onPlayVoice && (
+            <button 
+              onClick={handlePlayClick}
+              className="ml-auto text-cyan-400 hover:text-cyan-300 transition-colors"
+              aria-label={message.isPlaying ? "Currently speaking" : "Play voice"}
+            >
+              {message.isPlaying 
+                ? <Volume2 className="h-4 w-4 animate-pulse" /> 
+                : <Volume2 className="h-4 w-4" />
+              }
+            </button>
+          )}
         </div>
         <p className="text-sm whitespace-pre-line">{message.text}</p>
+        
+        {message.isPlaying && (
+          <div className="absolute bottom-1 right-1 w-8 h-1">
+            <div className="h-full bg-cyan-400/30 rounded-full overflow-hidden">
+              <div className="h-full w-1/2 bg-cyan-400 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

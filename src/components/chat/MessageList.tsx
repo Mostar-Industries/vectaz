@@ -2,6 +2,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Loader2, Bot } from 'lucide-react';
 import MessageItem, { Message } from './MessageItem';
+import { useVoiceFunctions } from './useVoiceFunctions';
 
 interface MessageListProps {
   messages: Message[];
@@ -10,16 +11,27 @@ interface MessageListProps {
 
 const MessageList: React.FC<MessageListProps> = ({ messages, isProcessing }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { playMessageAudio, currentMessageId } = useVoiceFunctions();
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isProcessing]);
 
+  // Apply isPlaying flag to messages based on currentMessageId
+  const messagesWithPlayingState = messages.map(message => ({
+    ...message,
+    isPlaying: currentMessageId === message.id
+  }));
+
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
-      {messages.map(message => (
-        <MessageItem key={message.id} message={message} />
+      {messagesWithPlayingState.map(message => (
+        <MessageItem 
+          key={message.id} 
+          message={message} 
+          onPlayVoice={() => playMessageAudio(message)}
+        />
       ))}
       
       {isProcessing && (

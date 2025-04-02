@@ -26,7 +26,7 @@ const CargoDetailsSection: React.FC<CargoDetailsSectionProps> = ({
             id="weight" 
             type="number" 
             min={0}
-            value={weight}
+            value={weight || 0}
             onChange={(e) => onWeightChange(parseFloat(e.target.value) || 0)}
           />
         </div>
@@ -38,7 +38,7 @@ const CargoDetailsSection: React.FC<CargoDetailsSectionProps> = ({
             type="number" 
             min={0}
             step={0.1}
-            value={volume}
+            value={volume || 0}
             onChange={(e) => onVolumeChange(parseFloat(e.target.value) || 0)}
           />
         </div>

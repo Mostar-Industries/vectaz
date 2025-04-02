@@ -7,6 +7,7 @@ interface EmailRequest {
   pdfBase64: string;
   rfqReference: string;
   subject?: string;
+  testMode?: boolean;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -16,22 +17,26 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, pdfBase64, rfqReference, subject } = await req.json() as EmailRequest;
+    const { recipientEmail, pdfBase64, rfqReference, subject, testMode } = await req.json() as EmailRequest;
 
-    // In a real implementation, you would use an email service like Resend or SendGrid
-    // For this demo, we'll log the request and simulate success
+    // Log more details for debugging
     console.log(`Email request received for: ${recipientEmail}`);
     console.log(`PDF size: ${pdfBase64.length} characters`);
     console.log(`RFQ Reference: ${rfqReference}`);
+    console.log(`Test mode: ${testMode ? 'Yes' : 'No'}`);
 
-    // Simulate sending delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // In a real implementation, you would use an email service like Resend or SendGrid
+    // For this demo, we'll log the request and simulate success
+    
+    // Simulate sending delay (shorter in test mode)
+    await new Promise(resolve => setTimeout(resolve, testMode ? 500 : 1500));
 
     // Return success response
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Email with RFQ ${rfqReference} sent to ${recipientEmail}` 
+        message: `Email with RFQ ${rfqReference} sent to ${recipientEmail}`,
+        testMode: testMode || false
       }),
       {
         status: 200,

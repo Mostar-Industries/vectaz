@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EnhancedRFQForm from '@/components/forms/EnhancedRFQForm';
 import NewShipmentForm from '@/components/forms/NewShipmentForm';
@@ -13,6 +12,11 @@ import DeepCALSection from '@/components/DeepCALSection';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+interface DeepCALSectionProps {
+  voicePersonality: string;
+  voiceEnabled: boolean;
+}
 
 const FormsPage = () => {
   const navigate = useNavigate();
@@ -233,7 +237,6 @@ const FormsPage = () => {
               <DeepCALSection 
                 voicePersonality={voicePersonality} 
                 voiceEnabled={voiceEnabled} 
-                useElevenLabs={useElevenLabs} 
               />
             </TabsContent>
           </Tabs>

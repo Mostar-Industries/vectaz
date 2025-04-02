@@ -16,17 +16,18 @@ export const useMapVisualization = (routes: Route[]) => {
   const mapContainerRef = useRef<any>(null);
   const { toast } = useToast();
   
-  // Memoize country markers initialization to avoid recalculation
+  // Move useMemo outside useEffect to properly follow React Hooks rules
+  const markers = useMemo(() => 
+    getDestinationMarkers().map(country => ({
+      ...country,
+      status: getRandomStatus()
+    }))
+  , []);
+  
+  // Set country markers using the memoized value
   useEffect(() => {
-    const markers = useMemo(() => 
-      getDestinationMarkers().map(country => ({
-        ...country,
-        status: getRandomStatus()
-      }))
-    , []);
-    
     setCountryMarkers(markers);
-  }, []);
+  }, [markers]);
 
   // Limit routes to 3 most recent for performance - memoized
   const limitedRoutes = useMemo(() => routes.slice(0, 3), [routes]);

@@ -9,6 +9,7 @@ export const useVoiceFunctions = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioQueue, setAudioQueue] = useState<string[]>([]);
   const [currentPersonality, setCurrentPersonality] = useState<string>('sassy');
+  const [currentModel, setCurrentModel] = useState<string>('eleven_multilingual_v2');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Create audio element on component mount
@@ -81,6 +82,19 @@ export const useVoiceFunctions = () => {
     return currentPersonality; // Default to current personality
   };
   
+  // Determine which ElevenLabs model to use based on the content
+  const determineModel = (text: string): string => {
+    // For most cases, use the multilingual model for best quality
+    if (text.length > 200) {
+      return 'eleven_multilingual_v2'; // Best for longer content
+    } else if (text.includes('urgent') || text.includes('quick')) {
+      return 'eleven_turbo_v2.5'; // Faster response for urgent messages
+    }
+    
+    // Default to current model
+    return currentModel;
+  };
+  
   // Main function to speak a response
   const speakResponse = async (text: string) => {
     try {
@@ -93,7 +107,11 @@ export const useVoiceFunctions = () => {
       const personality = determinePersonality(enhancedText);
       setCurrentPersonality(personality);
       
-      console.log(`Using personality: ${personality} for speech`);
+      // Determine the appropriate model
+      const model = determineModel(enhancedText);
+      setCurrentModel(model);
+      
+      console.log(`Using personality: ${personality}, model: ${model} for speech`);
       
       // Create Supabase client using the environment variables or fallback to local development URL
       const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co'; 
@@ -105,13 +123,12 @@ export const useVoiceFunctions = () => {
         { auth: { persistSession: false } }
       );
       
-      // Use the Supabase edge function with Rasa API
+      // Use the Supabase edge function with ElevenLabs API
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { 
           text: enhancedText, 
-          voice: 'alloy', // Fallback voice 
-          isAfrican: true, // Signal to use an African female voice
-          personality: personality
+          personality: personality,
+          model: model
         }
       });
       
@@ -145,7 +162,7 @@ export const useVoiceFunctions = () => {
       
       toast({
         title: "Voice Generation Issue",
-        description: "Using fallback voice. The African female voice service is currently unavailable.",
+        description: "Using fallback voice. The ElevenLabs voice service is currently unavailable.",
         variant: "default",
         duration: 3000,
       });
@@ -201,7 +218,8 @@ export const useVoiceFunctions = () => {
   return {
     speakResponse,
     isSpeaking,
-    currentPersonality
+    currentPersonality,
+    currentModel
   };
 };
 

@@ -7,16 +7,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Rasa API key from environment variables
-const rasaApiKey = Deno.env.get('RASA_API_KEY');
+// ElevenLabs API key from environment variables
+const elevenLabsApiKey = Deno.env.get('ELEVEN_LABS_API_KEY');
 
 // Custom voice modifiers for DeepCAL's personality
 const personalityModifiers = {
-  formal: { pitch: 0, speed: 1.0 },
-  casual: { pitch: 1, speed: 1.1 },
-  excited: { pitch: 2, speed: 1.2 },
-  sassy: { pitch: 1, speed: 1.05 },
-  technical: { pitch: -1, speed: 0.95 }
+  formal: { stability: 0.7, similarity_boost: 0.3 },
+  casual: { stability: 0.5, similarity_boost: 0.6 },
+  excited: { stability: 0.3, similarity_boost: 0.7 },
+  sassy: { stability: 0.4, similarity_boost: 0.6 },
+  technical: { stability: 0.8, similarity_boost: 0.2 }
 };
 
 serve(async (req) => {
@@ -26,47 +26,49 @@ serve(async (req) => {
   }
 
   try {
-    const { text, voice = 'alloy', isAfrican = true, personality = 'sassy' } = await req.json();
+    const { text, personality = 'sassy', model = 'eleven_multilingual_v2' } = await req.json();
     
     if (!text) {
       throw new Error('No text provided for speech synthesis');
     }
     
     console.log(`Generating speech for text: "${text.substring(0, 50)}..."${text.length > 50 ? '...' : ''}`);
-    console.log(`Using personality: ${personality}`);
+    console.log(`Using personality: ${personality}, model: ${model}`);
     
     // Apply personality modifiers
     const modifier = personalityModifiers[personality] || personalityModifiers.sassy;
     
-    // Use Rasa Voice API
-    const response = await fetch('https://api.rasa.com/v1/synthesize', {
+    // Use ElevenLabs API
+    const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/r9DosIwaFvTjhC7gp1d2', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${rasaApiKey}`,
+        'Accept': 'audio/mpeg',
+        'xi-api-key': elevenLabsApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         text: text,
-        voice_id: isAfrican ? 'african_female' : voice,
-        output_format: 'mp3',
-        speed: modifier.speed,
-        pitch: modifier.pitch,
+        model_id: model,
+        voice_settings: {
+          stability: modifier.stability,
+          similarity_boost: modifier.similarity_boost,
+        }
       }),
     });
     
     if (!response.ok) {
       // Attempt to parse error message
-      let errorMessage = "Error calling Rasa API";
+      let errorMessage = "Error calling ElevenLabs API";
       try {
         const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || response.statusText;
+        errorMessage = errorData.detail || errorData.message || response.statusText;
       } catch (e) {
         // If can't parse JSON, use status text
         errorMessage = response.statusText;
       }
       
-      console.error('Rasa Voice API error:', errorMessage);
-      throw new Error(`Rasa API error: ${errorMessage}`);
+      console.error('ElevenLabs API error:', errorMessage);
+      throw new Error(`ElevenLabs API error: ${errorMessage}`);
     }
     
     // Convert audio buffer to base64

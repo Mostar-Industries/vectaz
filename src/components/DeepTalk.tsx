@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrainCircuit, X, Volume2, VolumeX, Settings } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -26,6 +25,12 @@ const personalityEmojis: Record<string, string> = {
   casual: "😊"
 };
 
+const modelEmojis: Record<string, string> = {
+  eleven_multilingual_v2: "🌐",
+  eleven_turbo_v2: "⚡",
+  eleven_turbo_v2_5: "⚡"
+};
+
 const DeepTalk: React.FC<DeepTalkProps> = ({ 
   className,
   initialMessage = "How can I assist with your logistics decisions today? You can ask me about routes, forwarders, costs, or risk analytics.",
@@ -51,10 +56,9 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
   ]);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   
-  const { speakResponse, isSpeaking, currentPersonality } = useVoiceFunctions();
+  const { speakResponse, isSpeaking, currentPersonality, currentModel } = useVoiceFunctions();
   const { getRandomQuip } = useDeepCalHumor();
 
-  // When the component mounts, speak the initial message
   useEffect(() => {
     if (voiceEnabled) {
       speakResponse(initialMessage);
@@ -76,33 +80,29 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     setIsProcessing(true);
     
     try {
-      // Call the NLU processor via the provided callback
       let responseText = "I'm analyzing the logistics data now...";
       
       if (onQueryData) {
         responseText = await onQueryData(input);
       } else {
-        // Mock responses if no handler is provided
         responseText = "I don't have access to the logistics data right now. Please ensure the DeepTalk handler is properly connected.";
       }
       
-      // Generate new prompt ideas based on the current conversation context
       generateNewPromptIdeas(input, responseText);
       
-      // Add AI response after a short delay to simulate thinking
       setTimeout(() => {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           text: responseText,
           sender: 'ai',
           timestamp: new Date(),
-          personality: currentPersonality
+          personality: currentPersonality,
+          model: currentModel
         };
         
         setMessages(prev => [...prev, aiMessage]);
         setIsProcessing(false);
         
-        // Speak the response using the African female voice if voice is enabled
         if (voiceEnabled) {
           speakResponse(responseText);
         }
@@ -110,31 +110,28 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
     } catch (error) {
       console.error('Error processing query:', error);
       
-      // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: "I'm sorry, I couldn't process that request. Please try again or verify that the data is loaded.",
         sender: 'ai',
         timestamp: new Date(),
-        personality: 'formal'
+        personality: 'formal',
+        model: currentModel
       };
       
       setMessages(prev => [...prev, errorMessage]);
       setIsProcessing(false);
       
-      // Also speak the error message if voice is enabled
       if (voiceEnabled) {
         speakResponse(errorMessage.text);
       }
     }
   };
 
-  // Generate new prompt ideas based on conversation context
   const generateNewPromptIdeas = (userQuery: string, aiResponse: string) => {
     const lowerQuery = userQuery.toLowerCase();
     const lowerResponse = aiResponse.toLowerCase();
     
-    // Contextual prompt suggestions based on the conversation flow
     if (lowerQuery.includes('risk') || lowerQuery.includes('disruption')) {
       setPromptIdeas([
         "How can we reduce disruption risk?",
@@ -168,7 +165,6 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         "Are there alternative strategies we should consider?"
       ]);
     } else {
-      // General follow-up questions
       setPromptIdeas([
         "Why is that happening?",
         "How does that compare to industry benchmarks?",
@@ -195,7 +191,6 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
           <h3 className="text-sm font-medium text-white">DeepTalk Assistant</h3>
           <span className="ml-2 px-1.5 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded-sm">v2.0</span>
           
-          {/* Personality Indicator */}
           {currentPersonality && (
             <TooltipProvider>
               <Tooltip>
@@ -207,6 +202,22 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
                   Current voice personality
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+          
+          {currentModel && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-purple-500/20 text-purple-300 rounded-sm font-mono flex items-center">
+                    <span className="mr-1">{modelEmojis[currentModel] || "🔊"}</span>
+                    {currentModel.replace('eleven_', '')}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Voice model
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -250,7 +261,6 @@ const DeepTalk: React.FC<DeepTalkProps> = ({
         isProcessing={isProcessing}
       />
       
-      {/* Voice status indicator */}
       {isSpeaking && (
         <div className="absolute bottom-20 right-4 bg-cyan-500/20 border border-cyan-500/30 rounded-full px-3 py-1 text-xs flex items-center space-x-1 animate-pulse">
           <span className="text-cyan-400">{personalityEmojis[currentPersonality] || "🤖"}</span>

@@ -8,7 +8,8 @@ export interface Message {
   text: string;
   sender: 'user' | 'ai';
   timestamp: Date;
-  personality?: string; // Added personality property as optional
+  personality?: string; // Personality property
+  model?: string; // Added model property
 }
 
 interface MessageItemProps {
@@ -42,6 +43,11 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
           {message.personality && (
             <span className="text-xs opacity-75 ml-1 bg-blue-500/20 px-1 rounded">
               {message.personality}
+            </span>
+          )}
+          {message.model && (
+            <span className="text-xs opacity-75 ml-1 bg-purple-500/20 px-1 rounded">
+              {message.model.replace('eleven_', '')}
             </span>
           )}
         </div>

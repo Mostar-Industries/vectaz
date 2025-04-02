@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { GlassContainer } from '@/components/ui/glass-effects';
+import { supabase } from '@/integrations/supabase/client';
 
 // Import refactored components
 import ShipmentHeader from './shipment/ShipmentHeader';
@@ -23,7 +24,27 @@ const NewShipmentForm: React.FC<NewShipmentFormProps> = ({ onSuccess }) => {
   const [submitted, setSubmitted] = useState(false);
   const [collectionDate, setCollectionDate] = useState<Date | undefined>(new Date());
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const [shipmentData, setShipmentData] = useState<any>(null);
   const { toast } = useToast();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    reference: `SHIP-${Date.now().toString().slice(-8)}`,
+    description: '',
+    category: 'Medical Supplies',
+    origin: 'Nairobi, Kenya',
+    originCountry: 'Kenya',
+    destination: 'Mombasa, Kenya',
+    destinationCountry: 'Kenya',
+    weight: 500,
+    volume: 10,
+    mode: 'road',
+    priority: 'standard'
+  });
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,12 +61,40 @@ const NewShipmentForm: React.FC<NewShipmentFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
     
     try {
-      // Simulate submission
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Format data for Supabase according to shipment schema
+      const shipmentRecord = {
+        id: formData.reference,
+        origin_country: formData.originCountry,
+        destination_country: formData.destinationCountry,
+        mode_of_shipment: formData.mode,
+        weight_kg: formData.weight,
+        volume_cbm: formData.volume,
+        item_category: formData.category,
+        cargo_description: formData.description,
+        date_of_collection: collectionDate.toISOString(),
+        date_of_arrival_destination: deliveryDate.toISOString(),
+        delivery_status: 'pending',
+        priority: formData.priority
+      };
+      
+      // Send to Supabase
+      const { data, error } = await supabase
+        .from('shipments')
+        .insert(shipmentRecord)
+        .select();
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      setShipmentData({
+        id: formData.reference,
+        reference: formData.reference
+      });
       
       toast({
         title: "Shipment Created",
-        description: "Your new shipment has been created successfully",
+        description: "Your new shipment has been created and saved to the database",
       });
       
       setSubmitted(true);
@@ -56,7 +105,7 @@ const NewShipmentForm: React.FC<NewShipmentFormProps> = ({ onSuccess }) => {
       console.error('Error creating shipment:', error);
       toast({
         title: "Submission Failed",
-        description: "There was an error creating your shipment.",
+        description: error instanceof Error ? error.message : "There was an error creating your shipment.",
         variant: "destructive"
       });
     } finally {
@@ -68,10 +117,17 @@ const NewShipmentForm: React.FC<NewShipmentFormProps> = ({ onSuccess }) => {
     setSubmitted(false);
     setCollectionDate(new Date());
     setDeliveryDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    setFormData({
+      ...formData,
+      reference: `SHIP-${Date.now().toString().slice(-8)}`
+    });
   };
 
   if (submitted) {
-    return <ShipmentSuccessView onCreateAnother={handleCreateAnother} />;
+    return <ShipmentSuccessView 
+      onCreateAnother={handleCreateAnother} 
+      shipmentData={shipmentData}
+    />;
   }
 
   return (
@@ -81,10 +137,31 @@ const NewShipmentForm: React.FC<NewShipmentFormProps> = ({ onSuccess }) => {
       <form onSubmit={handleSubmit}>
         <div className="space-y-8">
           {/* Basic Info Section */}
-          <BasicInfoSection />
+          <BasicInfoSection 
+            reference={formData.reference}
+            description={formData.description}
+            category={formData.category}
+            onDescriptionChange={(value) => handleInputChange('description', value)}
+            onCategoryChange={(value) => handleInputChange('category', value)}
+          />
           
           {/* Origin & Destination */}
-          <OriginDestinationSection />
+          <OriginDestinationSection 
+            origin={formData.origin}
+            destination={formData.destination}
+            onOriginChange={(value) => {
+              handleInputChange('origin', value);
+              // Extract country from location string
+              const country = value.split(',').pop()?.trim() || 'Unknown';
+              handleInputChange('originCountry', country);
+            }}
+            onDestinationChange={(value) => {
+              handleInputChange('destination', value);
+              // Extract country from location string
+              const country = value.split(',').pop()?.trim() || 'Unknown';
+              handleInputChange('destinationCountry', country);
+            }}
+          />
           
           {/* Timing */}
           <TimingSection 
@@ -95,10 +172,20 @@ const NewShipmentForm: React.FC<NewShipmentFormProps> = ({ onSuccess }) => {
           />
           
           {/* Cargo Details */}
-          <CargoDetailsSection />
+          <CargoDetailsSection 
+            weight={formData.weight}
+            volume={formData.volume}
+            onWeightChange={(value) => handleInputChange('weight', value)}
+            onVolumeChange={(value) => handleInputChange('volume', value)}
+          />
           
           {/* Shipping Mode */}
-          <ShippingPreferencesSection />
+          <ShippingPreferencesSection 
+            mode={formData.mode}
+            priority={formData.priority}
+            onModeChange={(value) => handleInputChange('mode', value)}
+            onPriorityChange={(value) => handleInputChange('priority', value)}
+          />
           
           {/* Additional Information */}
           <AdditionalInfoSection />

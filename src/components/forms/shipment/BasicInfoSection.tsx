@@ -2,89 +2,70 @@
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { PackagePlus } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { format } from 'date-fns';
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface BasicInfoSectionProps {
-  defaultValues?: {
-    requestor?: string;
-    email?: string;
-    department?: string;
-    priority?: string;
-  };
+  reference: string;
+  description: string;
+  category: string;
+  onDescriptionChange: (value: string) => void;
+  onCategoryChange: (value: string) => void;
 }
 
-const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ defaultValues = {} }) => {
-  const randomId = Math.floor(Math.random() * 1000);
-  const shipmentRef = `SR_${format(new Date(), 'yyyyMMdd')}-${randomId}`;
+const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
+  reference,
+  description,
+  category,
+  onDescriptionChange,
+  onCategoryChange
+}) => {
+  const categories = [
+    "Medical Supplies",
+    "Electronics",
+    "Automotive Parts",
+    "Agricultural Products",
+    "Construction Materials",
+    "Chemicals",
+    "Textiles",
+    "Food & Beverages",
+    "Consumer Goods",
+    "Other"
+  ];
 
   return (
     <div>
-      <h3 className="text-lg font-medium text-[#00FFD1] mb-4 flex items-center">
-        <PackagePlus className="h-5 w-5 mr-2" />
-        BASIC INFORMATION
-      </h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="md:col-span-2">
-          <Label htmlFor="reference">SHIPMENT REFERENCE</Label>
-          <Input 
-            id="reference" 
-            className="border-[#00FFD1]/20 focus-visible:ring-[#00FFD1]/30 bg-background/50"
-            defaultValue={shipmentRef}
-            readOnly
-          />
-        </div>
+      <h4 className="font-medium text-sm text-muted-foreground mb-4">BASIC INFORMATION</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <Label htmlFor="requestor">REQUESTOR NAME</Label>
-          <Input 
-            id="requestor" 
-            className="border-[#00FFD1]/20 focus-visible:ring-[#00FFD1]/30 bg-background/50"
-            placeholder="Enter requestor name"
-            defaultValue={defaultValues.requestor}
-            required
-          />
+          <Label htmlFor="reference">Reference Number</Label>
+          <Input id="reference" value={reference} readOnly />
+          <p className="text-xs text-muted-foreground mt-1">Auto-generated shipment reference</p>
         </div>
+        
         <div>
-          <Label htmlFor="email">EMAIL</Label>
-          <Input 
-            id="email" 
-            type="email"
-            className="border-[#00FFD1]/20 focus-visible:ring-[#00FFD1]/30 bg-background/50"
-            placeholder="Enter email address"
-            defaultValue={defaultValues.email}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="department">DEPARTMENT</Label>
-          <Input 
-            id="department" 
-            className="border-[#00FFD1]/20 focus-visible:ring-[#00FFD1]/30 bg-background/50"
-            placeholder="Enter department"
-            defaultValue={defaultValues.department}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="priority">PRIORITY</Label>
-          <Select defaultValue={defaultValues.priority || "normal"}>
-            <SelectTrigger className="border-[#00FFD1]/20 focus-visible:ring-[#00FFD1]/30 bg-background/50">
-              <SelectValue placeholder="Select priority" />
+          <Label htmlFor="category">Category</Label>
+          <Select value={category} onValueChange={onCategoryChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="low">Low</SelectItem>
-              <SelectItem value="normal">Normal</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="urgent">Urgent</SelectItem>
+              {categories.map(cat => (
+                <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
+        </div>
+        
+        <div className="md:col-span-2">
+          <Label htmlFor="description">Cargo Description</Label>
+          <Textarea 
+            id="description" 
+            placeholder="Provide details about the cargo" 
+            className="h-24 resize-none"
+            value={description}
+            onChange={(e) => onDescriptionChange(e.target.value)}
+          />
         </div>
       </div>
     </div>

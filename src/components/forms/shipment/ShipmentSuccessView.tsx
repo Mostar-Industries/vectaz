@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Check, FileDown, Mail, Loader2 } from 'lucide-react';
+import { Check, FileDown, Mail, Loader2, Database } from 'lucide-react';
 import { GlassContainer } from '@/components/ui/glass-effects';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -10,9 +10,16 @@ import { toast } from '@/hooks/use-toast';
 
 interface ShipmentSuccessViewProps {
   onCreateAnother: () => void;
+  shipmentData?: {
+    id?: string;
+    reference?: string;
+  };
 }
 
-const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({ onCreateAnother }) => {
+const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({ 
+  onCreateAnother,
+  shipmentData = {}
+}) => {
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -67,6 +74,8 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({ onCreateAnoth
     }
   };
 
+  const shipmentRef = shipmentData.reference || shipmentData.id || 'New Shipment';
+
   return (
     <>
       <GlassContainer className="max-w-4xl mx-auto p-8 mt-8">
@@ -76,9 +85,15 @@ const ShipmentSuccessView: React.FC<ShipmentSuccessViewProps> = ({ onCreateAnoth
           </div>
           <h3 className="mt-4 text-xl font-medium text-[#00FFD1]">Shipment Successfully Created</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your new shipment has been registered in the system.
+            Your new shipment has been registered in the system and saved to the database.
             You can track its progress in the Map view.
           </p>
+          <div className="mt-3 flex justify-center">
+            <div className="bg-blue-500/10 text-blue-400 rounded-full px-4 py-1 text-sm flex items-center">
+              <Database className="h-3.5 w-3.5 mr-1.5" />
+              Synced with database
+            </div>
+          </div>
           <div className="mt-6 flex justify-center space-x-4">
             <Button 
               variant="outline" 

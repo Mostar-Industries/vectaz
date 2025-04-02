@@ -104,11 +104,31 @@ const EnhancedRFQForm: React.FC<EnhancedRFQFormProps> = ({
     form.reset();
   };
 
+  // Prepare RFQ data for PDF generation and email
+  const formValues = form.getValues();
+  const rfqData = {
+    reference: `RFQ-${Date.now().toString().slice(-6)}`,
+    requesterName: formValues.requesterName,
+    companyName: formValues.companyName,
+    origin: formValues.origin,
+    destination: formValues.destination,
+    weight: formValues.weight,
+    volume: formValues.volume,
+    category: formValues.category,
+    description: formValues.description,
+    deadline: deadline,
+    forwarders: selectedForwarders.map(id => {
+      const forwarder = availableForwarders.find(f => f.id === id);
+      return { id, name: forwarder?.name || id };
+    })
+  };
+
   if (submitted) {
     return (
       <SuccessView 
         selectedForwardersCount={selectedForwarders.length} 
         onCreateAnother={handleCreateAnother}
+        rfqData={rfqData}
       />
     );
   }

@@ -7,6 +7,8 @@ import { GlassContainer } from '@/components/ui/glass-effects';
 import AppTabs from '@/components/AppTabs';
 import { AppSection } from '@/types/deeptrack';
 import { useNavigate } from 'react-router-dom';
+import Particles from '@/components/Particles';
+import AnimatedBackground from '@/components/home/AnimatedBackground';
 
 const FormsPage = () => {
   const navigate = useNavigate();
@@ -29,11 +31,36 @@ const FormsPage = () => {
     }
   };
 
+  // Define the same particle colors as in the loading page
+  const particleColors = [
+    "#FF5E8F", // Pink
+    "#5EFF8F", // Green
+    "#5E8FFF", // Blue
+    "#FF5E5E", // Red
+    "#5EFFFF", // Cyan
+    "#FF5EDF", // Magenta
+    "#FFFF5E"  // Yellow
+  ];
+
   return (
-    <div className="h-screen w-full overflow-x-hidden relative tech-bg">
-      <div className="absolute inset-0 bg-[#0A1A2F] z-0"></div>
-      <div className="tech-grid absolute inset-0 z-0"></div>
-      <div className="network-lines absolute inset-0 z-0"></div>
+    <div className="h-screen w-full overflow-x-hidden relative">
+      {/* Background from loading page */}
+      <AnimatedBackground />
+      
+      {/* Particles background from loading page */}
+      <Particles
+        particleColors={particleColors}
+        particleCount={200}
+        particleSpread={12}
+        speed={0.05}
+        particleBaseSize={80}
+        moveParticlesOnHover={false}
+        particleHoverFactor={0.5}
+        alphaParticles={true}
+        sizeRandomness={0.8}
+        cameraDistance={25}
+        disableRotation={false}
+      />
       
       {/* App name in top right */}
       <div className="app-logo absolute top-4 right-4 bg-[#0A1A2F]/80 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-[#00FFD1]/30 shadow-[0_0_15px_rgba(0,255,209,0.2)]">

@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 import { Route } from '@/types/deeptrack';
 import { useMapMarkers } from './map/useMapMarkers';
 import { useMapControls } from './map/useMapControls';
@@ -17,11 +17,12 @@ export const useMapVisualization = (routes: Route[]) => {
     mapLoaded, 
     activeRoute, 
     handleMapLoaded, 
+    handleRouteClick: baseHandleRouteClick,
     handleCountryClick 
   } = useEventHandlers();
   
   const { 
-    handleRouteClick, 
+    handleRouteClick: interactionHandleRouteClick, 
     handleJumpToLocation, 
     handleShipmentSelect 
   } = useRouteInteractions({ 
@@ -39,21 +40,22 @@ export const useMapVisualization = (routes: Route[]) => {
     is3DMode 
   });
   
-  // Toggle 3D mode state
-  const handleToggle3DMode = () => {
+  // Toggle 3D mode state with useCallback
+  const handleToggle3DMode = useCallback(() => {
     setIs3DMode(prev => !prev);
     toggle3DMode();
-  };
+  }, [toggle3DMode]);
   
-  // Combined handleRouteClick that updates state and shows info
-  const combinedRouteClick = (routeIndex: number | null) => {
-    handleRouteClick(routeIndex);
+  // Combined handleRouteClick that updates state and shows info with useCallback
+  const combinedRouteClick = useCallback((routeIndex: number | null) => {
+    baseHandleRouteClick(routeIndex);
     if (routeIndex !== null) {
-      handleRouteClick(routeIndex);
+      interactionHandleRouteClick(routeIndex);
     }
-  };
+  }, [baseHandleRouteClick, interactionHandleRouteClick]);
 
-  return {
+  // Memoize the return value to prevent unnecessary object creation
+  return useMemo(() => ({
     mapLoaded,
     activeRoute,
     is3DMode,
@@ -68,5 +70,19 @@ export const useMapVisualization = (routes: Route[]) => {
     handleZoomIn,
     handleZoomOut,
     handleResetView
-  };
+  }), [
+    mapLoaded,
+    activeRoute,
+    is3DMode,
+    countryMarkers,
+    limitedRoutes,
+    handleMapLoaded,
+    combinedRouteClick,
+    handleCountryClick,
+    handleShipmentSelect,
+    handleToggle3DMode,
+    handleZoomIn,
+    handleZoomOut,
+    handleResetView
+  ]);
 };

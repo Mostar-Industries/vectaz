@@ -1,5 +1,5 @@
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Route } from '@/types/deeptrack';
 
 interface RouteInteractionsProps {
@@ -8,18 +8,30 @@ interface RouteInteractionsProps {
 }
 
 export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteInteractionsProps) => {
+  // Memoize styling options to avoid recreating on each render
+  const popupStyles = useMemo(() => ({
+    delivered: 'text-green-400',
+    inTransit: 'text-amber-400',
+    delayed: 'text-red-400'
+  }), []);
+  
   // Memoize the showRouteInfoOnMap function to prevent recreation on each render
   const showRouteInfoOnMap = useCallback((route: Route, index: number) => {
     const { origin, destination, weight, deliveryStatus } = route;
     
+    // Calculate once and reuse
     const riskScore = Math.floor(Math.random() * 10) + 1;
     const resilienceScore = Math.floor(Math.random() * 30) + 70;
     
     let statusComment = '';
+    let statusColorClass = popupStyles.delayed;
+    
     if (deliveryStatus === 'Delivered') {
       statusComment = 'Right on schedule. Someone deserves a raise.';
+      statusColorClass = popupStyles.delivered;
     } else if (deliveryStatus === 'In Transit') {
       statusComment = 'Somewhere between here and there. Probably.';
+      statusColorClass = popupStyles.inTransit;
     } else {
       statusComment = 'This package has seen more countries than Anthony Bourdain. Status: Lost in transit.';
     }
@@ -30,10 +42,7 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
           <h3 class="font-bold text-[#00FFD1] flex items-center">
             <span>Route Details</span>
           </h3>
-          <span class="${
-            deliveryStatus === 'Delivered' ? 'text-green-400' : 
-            deliveryStatus === 'In Transit' ? 'text-amber-400' : 'text-red-400'
-          } text-xs font-medium flex items-center">
+          <span class="${statusColorClass} text-xs font-medium flex items-center">
             <span class="mr-1">${deliveryStatus}</span>
             ${deliveryStatus !== 'Delivered' ? '<span class="error-flicker">●</span>' : ''}
           </span>
@@ -79,7 +88,7 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
       mapContainerRef.current.jumpToLocation(destination.lat, destination.lng, destination.name);
       mapContainerRef.current.showInfoAtLocation(destination.lat, destination.lng, popupContent);
     }
-  }, [mapContainerRef]);
+  }, [mapContainerRef, popupStyles]);
 
   const handleRouteClick = useCallback((routeIndex: number | null) => {
     if (routeIndex !== null && limitedRoutes[routeIndex]) {

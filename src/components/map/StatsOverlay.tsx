@@ -56,7 +56,7 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
               <span className="text-mostar-green">91% On-Time</span>
             </div>
             <div className="flex justify-between">
-              <span>Kenya Airways</span>
+              <span>Scan Global logistics</span>
               <span className="text-amber-500">86% On-Time</span>
             </div>
           </div>

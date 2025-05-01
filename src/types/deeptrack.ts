@@ -1,4 +1,5 @@
 export interface Shipment {
+  id: string;
   date_of_collection: string;
   request_reference: string;
   cargo_description: string;
@@ -16,9 +17,13 @@ export interface Shipment {
   final_quote_awarded_freight_forwader_Carrier: string;
   comments: string;
   date_of_arrival_destination: string | null;
+  expected_delivery_date: string | null;
   delivery_status: string;
   mode_of_shipment: string;
   forwarder_quotes: Record<string, number>;
+  created_at: string;
+  updated_at: string;
+  status: 'pending' | 'in_transit' | 'delivered';
 }
 
 export interface ForwarderPerformance {

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
 import DeepCALPage from "./pages/DeepCALPage";
+import FreightCalculatorPage from "./pages/FreightCalculatorPage";
 import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
@@ -36,7 +36,7 @@ const App = () => {
       }
 
       // Generate 105 sample shipments for accurate data representation
-      const sampleData: Shipment[] = Array(105).fill(0).map((_, i) => ({
+      const deeptrack_3: Shipment[] = Array(  105).fill(0).map((_, i) => ({
         request_reference: `SR_24-${i.toString().padStart(3, '0')}_NBO`,
         origin_country: ['Kenya', 'South Africa', 'Ethiopia', 'Nigeria', 'Egypt'][i % 5],
         origin_latitude: 1.2404475 + (i * 0.01),
@@ -71,7 +71,7 @@ const App = () => {
         console.log("Boot completed successfully");
         
         // Store the data in the global state
-        setShipmentData(sampleData, 'internal', 'v1.0', 'sample-hash');
+        setShipmentData(deeptrack_3, 'internal', 'v1.0', 'sample-hash');
       } catch (error) {
         console.error("Boot failed:", error);
       } finally {

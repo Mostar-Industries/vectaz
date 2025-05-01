@@ -15,6 +15,50 @@ import { logAuditTrail } from './auditLogger';
 import { explainDecision, summarizeRankings } from './deepExplain';
 import { loadBaseData, validateDataset } from './dataIntake';
 
+// Utility function to normalize scores deterministically
+function normalizeScore(value: number, min: number, max: number, outMin: number, outMax: number): number {
+  if (value <= min) return outMin;
+  if (value >= max) return outMax;
+  return outMin + (value - min) * (outMax - outMin) / (max - min);
+}
+
+// Interface to Python calculation validator module
+async function snapshotDecision(matrix: number[][], weights: Record<string, number>, scores: number[], forwarders: string[], metadata: any = {}): Promise<void> {
+  try {
+    console.log('📸 Creating decision snapshot for audit trail...');
+    
+    // Prepare payload for Python bridge
+    const payload = {
+      matrix,
+      weights,
+      scores,
+      forwarders,
+      metadata: {
+        ...metadata,
+        timestamp: new Date().toISOString(),
+        engine: 'Neutrosophic AHP-TOPSIS',
+        environment: process.env.NODE_ENV || 'development'
+      }
+    };
+    
+    // In production, this would make a request to the Python service
+    // For now, we'll log the snapshot payload for demo purposes
+    console.log('✅ Decision snapshot created:', JSON.stringify(payload));
+    
+    // Store the snapshot in localStorage for demo purposes
+    if (typeof window !== 'undefined') {
+      const snapshots = JSON.parse(localStorage.getItem('deepcal_snapshots') || '[]');
+      snapshots.push(payload);
+      localStorage.setItem('deepcal_snapshots', JSON.stringify(snapshots));
+    }
+    
+    return;
+  } catch (error) {
+    console.error('❌ Failed to create decision snapshot:', error);
+    throw new Error('Failed to create audit snapshot');
+  }
+}
+
 // This simulates loading data from the canonical CSV
 const shipmentData: Shipment[] = [];
 
@@ -71,6 +115,7 @@ export const loadAndValidateData = (data: any[]): boolean => {
           final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier,
           comments: item.comments,
           date_of_arrival_destination: item.date_of_arrival_destination,
+          expected_delivery_date: item.expected_delivery_date || null,
           delivery_status: item.delivery_status,
           mode_of_shipment: item.mode_of_shipment,
           forwarder_quotes: forwarderQuotes
@@ -209,9 +254,16 @@ export const getTopRoutes = (limit: number = 5): RoutePerformance[] => {
       ? transitTimes.reduce((sum, days) => sum + days, 0) / transitTimes.length 
       : 0;
     
-    // For this example, we're using a simple disruption score calculation
-    // In a real system, this would involve more complex analysis
-    const disruptionScore = Math.random() * 0.5; // Simplified for demo
+    // Calculate disruption score based on percentage of delayed shipments
+    const delayedShipments = shipments.filter(s => 
+      s.delivery_status === 'Delayed' || (s.date_of_arrival_destination && 
+      new Date(s.date_of_arrival_destination) > new Date(s.expected_delivery_date || ''))
+    );
+    
+    // Deterministic disruption score based on delayed percentage
+    const disruptionScore = shipments.length > 0 ? 
+      Math.min(0.5, (delayedShipments.length / shipments.length)) : 
+      0
     
     // Calculate reliability based on completed shipments ratio
     const reliabilityScore = completedShipments.length / totalShipments;
@@ -265,6 +317,39 @@ export const getRankedAlternatives = async (version: string = "latest") => {
     // Apply TOPSIS to generate rankings
     const rankings = applyTOPSIS(decisionMatrix, weights);
     
+    // Extract raw matrix for snapshot
+    const rawMatrix = decisionMatrix.map(row => [
+      row.cost || 0, 
+      row.time || 0, 
+      row.reliability || 0
+    ]);
+    
+    // Extract scores for snapshot
+    const scores = rankings.map(r => r.Ci);
+    
+    // Extract forwarder names for snapshot
+    const forwarderNames = rankings.map(r => r.forwarder);
+    
+    // Create weights dictionary for snapshot
+    const weightsDict = {
+      cost: weights.cost,
+      time: weights.time,
+      reliability: weights.reliability
+    };
+    
+    // 🔒 CRITICAL: Enforce snapshot_decision for all ranked outputs
+    await snapshotDecision(
+      rawMatrix,
+      weightsDict,
+      scores,
+      forwarderNames,
+      {
+        version,
+        hash,
+        computation_timestamp: new Date().toISOString()
+      }
+    );
+    
     // Add explanations and result information
     const results = rankings.map(entry => ({
       forwarder: entry.forwarder,
@@ -281,7 +366,8 @@ export const getRankedAlternatives = async (version: string = "latest") => {
       data_version: version,
       hash: hash,
       explanation_ready: results.every(r => r.explanation),
-      computation_timestamp: new Date().toISOString()
+      computation_timestamp: new Date().toISOString(),
+      snapshot_created: true // Track that a snapshot was created
     };
     
     // Log the operation in audit trail
@@ -289,7 +375,7 @@ export const getRankedAlternatives = async (version: string = "latest") => {
       'getRankedAlternatives',
       { version, forwarderCount: forwarderPerformance.length },
       { rankingsCount: results.length },
-      { weights },
+      { weights, snapshot: true },
       version,
       hash
     );
@@ -399,12 +485,17 @@ export const getForwarderRankings = (
   
   // Convert to the expected output format
   return rankings.map(ranking => {
+    // Get the actual forwarder data
+    const forwarderInfo = forwarderData.find(f => f.name === ranking.forwarder);
+    
+    // Calculate deterministic performance metrics
     const breakdown = ranking.sourceRows.length > 0 
       ? ranking 
       : { 
-          costPerformance: Math.random() * 0.3 + 0.6, 
-          timePerformance: Math.random() * 0.3 + 0.6,
-          reliabilityPerformance: Math.random() * 0.3 + 0.6
+          // Use deterministic values based on the normalized scores
+          costPerformance: forwarderInfo ? normalizeScore(forwarderInfo.avgCostPerKg, 0, 20, 0.6, 0.9) : 0.6,
+          timePerformance: forwarderInfo ? normalizeScore(forwarderInfo.avgTransitDays, 0, 30, 0.6, 0.9) : 0.7,
+          reliabilityPerformance: forwarderInfo ? forwarderInfo.reliabilityScore * 0.9 + 0.1 : 0.8
         };
     
     return {

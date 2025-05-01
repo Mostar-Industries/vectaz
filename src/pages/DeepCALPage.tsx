@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import DeepCALSection from '@/components/DeepCALSection';
 import { useBaseDataStore } from '@/store/baseState';
 import DeepCALSpinner from '@/components/DeepCALSpinner';
-import IconNavigation from '@/components/IconNavigation';
 
 const DeepCALPage = () => {
   const [loadingVoice, setLoadingVoice] = useState(true);
@@ -59,11 +57,6 @@ const DeepCALPage = () => {
           ) : (
             <DeepCALSection voicePersonality={voicePersonality} voiceEnabled={voiceEnabled} />
           )}
-        </div>
-        
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-          <IconNavigation />
         </div>
       </div>
     </div>

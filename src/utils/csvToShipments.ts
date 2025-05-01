@@ -45,6 +45,11 @@ export function csvToShipments(csvText: string): Shipment[] {
       destination_latitude,
       destination_longitude,
       // Defaults and neutral placeholders for required fields
+      id: request_reference, // Assuming request_reference can serve as a temporary ID
+      expected_delivery_date: null,
+      created_at: today.toISOString(),
+      updated_at: today.toISOString(),
+      status: 'delivered',
       date_of_collection: collection.toISOString().split("T")[0],
       cargo_description: "General cargo",
       item_category: "Unspecified",

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import { AppSection } from '@/types/deeptrack';
@@ -53,11 +52,6 @@ const Index = () => {
         
         {/* Navigation tabs (at the top) */}
         <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
-      </div>
-
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-        <IconNavigation />
       </div>
 
       {/* Non-visual components */}

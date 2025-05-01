@@ -1,7 +1,7 @@
-
 import { initializeConfiguration } from '@/services/configurationService';
 import { loadAllReferenceData } from '@/services/dataIngestionService';
 import { initializeIntegration } from './integrationInit';
+import { supabase } from './supabaseClient'; // Import Supabase client
 
 // Track if the system has been booted
 let _systemBooted = false;
@@ -41,20 +41,42 @@ export async function bootApp() {
     if (Object.keys(referenceData).length === 0) {
       throw new Error('Failed to load any reference data');
     }
-  } catch (error) {
-    console.error('App boot failed:', error);
-    // Handle boot failure (e.g., display error message to user)
-    return;
-  }
-  
-  // Initialize frontend-backend integration
-  try {
+
+    // Sync with Supabase
+    const { valid, conflicts } = await synchronizeWithSupabase();
+    if (!valid) {
+      console.warn('Data conflicts detected:', conflicts);
+      // Handle conflicts (e.g., prompt user or auto-resolve)
+    }
+
+    // Initialize frontend-backend integration
     await initializeIntegration();
+
+    _systemBooted = true;
   } catch (error) {
-    console.error('Failed to initialize frontend-backend integration:', error);
+    console.error('Boot failed - falling back to offline mode', error);
+    await handleOfflineBoot();
   }
+}
+
+async function synchronizeWithSupabase() {
+  const { data: remoteData, error } = await supabase
+    .from('shipments')
+    .select('*')
+    .order('created_at', { ascending: false });
+    
+  if (error) throw error;
   
-  _systemBooted = true;
+  return validateAndMergeData(remoteData);
+}
+
+async function validateAndMergeData(remoteData: any[]) {
+  // TO DO: Implement data validation and merging logic
+  return { valid: true, conflicts: [] };
+}
+
+async function handleOfflineBoot() {
+  // TO DO: Implement offline boot handling logic
 }
 
 // Boot with data

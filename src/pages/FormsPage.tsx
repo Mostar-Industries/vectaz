@@ -3,15 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EnhancedRFQForm from '@/components/forms/EnhancedRFQForm';
 import NewShipmentForm from '@/components/forms/NewShipmentForm';
 import { GlassContainer } from '@/components/ui/glass-effects';
-import AppTabs from '@/components/AppTabs';
-import { AppSection } from '@/types/deeptrack';
-import { useNavigate } from 'react-router-dom';
 import Particles from '@/components/Particles';
 import AnimatedBackground from '@/components/home/AnimatedBackground';
 import DeepCALSection from '@/components/DeepCALSection';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import IconNavigation from '@/components/IconNavigation';
 
 interface DeepCALSectionProps {
   voicePersonality: string;
@@ -19,9 +17,7 @@ interface DeepCALSectionProps {
 }
 
 const FormsPage = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<AppSection>('forms');
   const [activeFormTab, setActiveFormTab] = useState("rfq");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [voicePersonality, setVoicePersonality] = useState('sassy');
@@ -34,15 +30,6 @@ const FormsPage = () => {
     { id: '4', name: 'FedEx', reliability: 0.91 },
     { id: '5', name: 'UPS', reliability: 0.88 }
   ];
-
-  const handleTabChange = (tab: AppSection) => {
-    if (tab !== 'forms') {
-      navigate('/');
-      // The main page will handle setting the correct tab
-    } else {
-      setActiveTab(tab);
-    }
-  };
 
   const toggleVoice = () => {
     setVoiceEnabled(!voiceEnabled);
@@ -200,9 +187,6 @@ const FormsPage = () => {
         </div>
       </div>
       
-      {/* Top Navigation */}
-      <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
-      
       <div className="relative z-10 w-full pt-16 px-4">
         <div className="max-w-6xl mx-auto">
           <GlassContainer className="mb-6 p-4">
@@ -241,6 +225,11 @@ const FormsPage = () => {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
+      
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30">
+        <IconNavigation />
       </div>
     </div>
   );

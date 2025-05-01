@@ -36,7 +36,7 @@ const App = () => {
       }
 
       // Generate 105 sample shipments for accurate data representation
-      const deeptrack_3: Shipment[] = Array(  105).fill(0).map((_, i) => ({
+      const deeptrack_3: Shipment[] = Array(105).fill(0).map((_, i) => ({
         request_reference: `SR_24-${i.toString().padStart(3, '0')}_NBO`,
         origin_country: ['Kenya', 'South Africa', 'Ethiopia', 'Nigeria', 'Egypt'][i % 5],
         origin_latitude: 1.2404475 + (i * 0.01),
@@ -44,25 +44,28 @@ const App = () => {
         destination_country: ['Zimbabwe', 'Tanzania', 'Uganda', 'Sudan', 'Rwanda'][i % 5],
         destination_latitude: -17.80269125 + (i * 0.01),
         destination_longitude: 31.08848075 + (i * 0.01),
-        weight_kg: 100 + i * 10,
-        delivery_status: i % 10 === 0 ? 'Pending' : i % 5 === 0 ? 'In Transit' : 'Delivered',
-        freight_carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel', 'FedEx', 'UPS'][i % 5],
-        date_of_collection: `2024-${(Math.floor(i/30) + 1).toString().padStart(2, '0')}-${(i % 30 + 1).toString().padStart(2, '0')}`,
-        date_of_arrival_destination: i % 10 === 0 ? null : `2024-${(Math.floor(i/30) + 1).toString().padStart(2, '0')}-${((i % 30) + 5).toString().padStart(2, '0')}`,
-        cargo_description: ["Agricultural supplies", "Medical equipment", "Construction materials", "Food supplies", "Electronic devices"][i % 5],
-        item_category: ["Supplies", "Equipment", "Materials", "Food", "Electronics"][i % 5],
-        volume_cbm: 2.5 + i * 0.15,
-        initial_quote_awarded: ['Kenya Airways', 'DHL', 'Kuehne Nagel', 'FedEx', 'UPS'][i % 5],
-        final_quote_awarded_freight_forwader_Carrier: ['Kenya Airways', 'DHL', 'Kuehne Nagel', 'FedEx', 'UPS'][i % 5],
-        comments: "No issues reported",
-        mode_of_shipment: i % 3 === 0 ? "Air" : i % 3 === 1 ? "Sea" : "Road",
-        forwarder_quotes: { 
-          'kenya airways': 2500 + i * 50, 
-          'dhl': 2700 + i * 45, 
-          'kuehne nagel': 2600 + i * 55,
-          'fedex': 2800 + i * 40,
-          'ups': 2550 + i * 52
-        }
+        date_of_collection: new Date().toISOString().split('T')[0],
+        cargo_description: `Cargo ${i}`,
+        item_category: ['Electronics', 'Clothing', 'Food', 'Machinery', 'Other'][i % 5],
+        carrier: ['DHL', 'FedEx', 'UPS', 'Kuehne+Nagel', 'Maersk'][i % 5],
+        "freight_carrier+cost": `${Math.floor(Math.random() * 1000)} USD`,
+        kuehne_nagel: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        scan_global_logistics: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        dhl_express: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        dhl_global: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        bwosi: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        agl: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        siginon: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        frieght_in_time: Math.random() > 0.5 ? Math.floor(Math.random() * 1000) : 0,
+        weight_kg: Math.floor(Math.random() * 100) + 1,
+        volume_cbm: Math.random() * 10,
+        initial_quote_awarded: ['DHL', 'FedEx', 'UPS', 'Kuehne+Nagel', 'Maersk'][i % 5],
+        final_quote_awarded_freight_forwader_Carrier: ['DHL', 'FedEx', 'UPS', 'Kuehne+Nagel', 'Maersk'][i % 5],
+        comments: `Sample shipment ${i}`,
+        date_of_arrival_destination: null,
+        delivery_status: ['delivered', 'in_transit', 'pending'][i % 3],
+        mode_of_shipment: ['air', 'sea', 'road'][i % 3],
+        forwarder_quotes: {}
       }));
       
       try {

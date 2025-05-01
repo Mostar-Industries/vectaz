@@ -1,7 +1,7 @@
 import { initializeConfiguration } from '@/services/configurationService';
 import { loadAllReferenceData } from '@/services/dataIngestionService';
 import { initializeIntegration } from './integrationInit';
-import { supabase } from './supabaseClient'; // Import Supabase client
+import { supabase } from '@/lib/supabaseClient'; // Updated import path
 
 // Track if the system has been booted
 let _systemBooted = false;

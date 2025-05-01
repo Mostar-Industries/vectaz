@@ -1,29 +1,83 @@
 export interface Shipment {
-  id: string;
   date_of_collection: string;
+  
+  /** Stock Release (Shipment Number/ID) */
   request_reference: string;
+  
+  /** The name of the item that was shipped */
   cargo_description: string;
+  
+  /** The Category of Item name that was shipped */
   item_category: string;
+  
+  /** Country location of the warehouse */
   origin_country: string;
+  
+  /** Warehouse Longitude (Decimal degrees) */
   origin_longitude: number;
+  
+  /** Warehouse Latitude (Decimal degrees) */
   origin_latitude: number;
+  
+  /** Destination Country where item arrives */
   destination_country: string;
+  
+  /** Destination Longitude (Decimal degrees) */
   destination_longitude: number;
+  
+  /** Destination Latitude (Decimal degrees) */
   destination_latitude: number;
-  freight_carrier: string;
+  
+  /** Carrier used by Freight forwarder */
+  carrier: string;
+  
+  /** Carrier's total charges (local currency with formatting) */
+  "freight_carrier+cost": string;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  kuehne_nagel: number;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  scan_global_logistics: number;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  dhl_express: number;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  dhl_global: number;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  bwosi: number;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  agl: number;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  siginon: number;
+  
+  /** Freight Forwarder quote (0 = No Quote) */
+  frieght_in_time: number; // Note: Original spelling preserved
+  
+  /** Weight in kilograms (with decimal precision) */
   weight_kg: number;
+  
+  /** Volume in cubic meters (with decimal precision) */
   volume_cbm: number;
+  
+  /** Initially selected Freight Forwarder */
   initial_quote_awarded: string;
+  
+  /** Finally selected Freight Forwarder (with typo preserved) */
   final_quote_awarded_freight_forwader_Carrier: string;
+  
+  /** Comments on shipment (free text) */
   comments: string;
+  
+  /** Date of arrival at destination (ISO 8601 format) */
   date_of_arrival_destination: string | null;
-  expected_delivery_date: string | null;
   delivery_status: string;
   mode_of_shipment: string;
   forwarder_quotes: Record<string, number>;
-  created_at: string;
-  updated_at: string;
-  status: 'pending' | 'in_transit' | 'delivered';
 }
 
 export interface ForwarderPerformance {
@@ -131,7 +185,7 @@ export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' 
 export interface TabItem {
   id: AppSection;
   label: string;
-  icon: React.ComponentType<unknown>;
+  icon: React.ComponentType<any>;
 }
 
 export interface MapPoint {

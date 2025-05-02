@@ -1,12 +1,80 @@
 import { initializeConfiguration } from '@/services/configurationService';
 import { loadAllReferenceData } from '@/services/dataIngestionService';
 import { initializeIntegration } from './integrationInit';
-import { supabase } from '@/lib/supabaseClient'; // Updated import path
+import { supabase } from '@/lib/supabaseClient';
+import { z } from 'zod';
+import type { Shipment } from '@/types/deeptrack';
+import { useShipmentStore } from '@/store/shipmentStore';
+import { initShipmentTraceNodes } from '@/store/shipmentStore';
+
+// Shipment schema validation
+const ShipmentSchema = z.object({
+  id: z.string().optional(),
+  request_reference: z.string(),
+  cargo_description: z.string(),
+  item_category: z.string(),
+  origin_country: z.string(),
+  origin_latitude: z.number(),
+  origin_longitude: z.number(),
+  destination_country: z.string(),
+  destination_latitude: z.number(),
+  destination_longitude: z.number(),
+  carrier: z.string(),
+  "carrier+cost": z.string().optional(),
+  kuehne_nagel: z.string().optional(),
+  scan_global_logistics: z.string().optional(),
+  dhl_express: z.string().optional(),
+  dhl_global: z.string().optional(),
+  bwosi: z.string().optional(),
+  agl: z.string().optional(),
+  siginon: z.string().optional(),
+  frieght_in_time: z.string().optional(),
+  weight_kg: z.string(),
+  volume_cbm: z.string(),
+  initial_quote_awarded: z.string().optional(),
+  final_quote_awarded_freight_forwader_Carrier: z.string().optional(),
+  comments: z.string().optional(),
+  date_of_collection: z.string(),
+  date_of_arrival_destination: z.string().optional(),
+  delivery_status: z.string().optional(),
+  mode_of_shipment: z.string().optional(),
+  date_of_greenlight_to_pickup: z.string().nullable().optional()
+});
+
+export const loadShipmentData = (): Shipment[] => {
+  try {
+    // Check for cached data first
+    const cached = localStorage.getItem('deepcal_data');
+    if (cached) return JSON.parse(cached);
+
+    const deeptrackData = require('../core/base_data/deeptrack_3.json');
+    
+    const validated = deeptrackData.map((entry, i) => {
+      const fallback = {
+        id: entry.id ?? `shipment_${i}`,
+        ...entry,
+      };
+
+      const parsed = ShipmentSchema.safeParse(fallback);
+      if (!parsed.success) {
+        console.warn('❌ Invalid shipment at index', i, parsed.error);
+        return null;
+      }
+      return parsed.data;
+    }).filter(Boolean);
+
+    // Cache validated data
+    localStorage.setItem('deepcal_data', JSON.stringify(validated));
+    return validated as Shipment[];
+  } catch (error) {
+    console.error('Failed to load shipment data:', error);
+    return [];
+  }
+};
 
 // Track if the system has been booted
 let _systemBooted = false;
 
-// Interface for boot options
 interface BootOptions {
   file: string;
   requireShape: string[];
@@ -15,47 +83,55 @@ interface BootOptions {
   onFail?: (error: Error) => void;
 }
 
-// Check if the system is already booted
-export const isSystemBooted = (): boolean => {
-  return _systemBooted;
-};
+export const isSystemBooted = (): boolean => _systemBooted;
 
-// Initialize the decision engine
 export const initDecisionEngine = async (): Promise<boolean> => {
   console.log('Initializing decision engine...');
-  // Decision engine initialization logic would go here
   return true;
 };
 
-// Boot sequence for the application
 export async function bootApp() {
+  if (_systemBooted) return true;
+
   try {
     // Initialize configuration
     const configInitialized = await initializeConfiguration();
-    if (!configInitialized) {
-      throw new Error('Failed to initialize configuration');
-    }
+    if (!configInitialized) throw new Error('Configuration initialization failed');
 
     // Load reference data
     const referenceData = await loadAllReferenceData();
     if (Object.keys(referenceData).length === 0) {
-      throw new Error('Failed to load any reference data');
+      throw new Error('No reference data loaded');
     }
+
+    // Load and validate shipment data
+    const shipmentData = loadShipmentData();
+    
+    // Initialize store with validated data
+    useShipmentStore.getState().setShipments(shipmentData);
+    initShipmentTraceNodes();
+    
+    if (shipmentData.length === 0) {
+      console.warn('No valid shipment data loaded');
+    }
+
+    // Initialize integrations
+    await initializeIntegration();
 
     // Sync with Supabase
     const { valid, conflicts } = await synchronizeWithSupabase();
     if (!valid) {
       console.warn('Data conflicts detected:', conflicts);
-      // Handle conflicts (e.g., prompt user or auto-resolve)
     }
 
-    // Initialize frontend-backend integration
-    await initializeIntegration();
+    // Initialize decision engine
+    await initDecisionEngine();
 
     _systemBooted = true;
+    return true;
   } catch (error) {
-    console.error('Boot failed - falling back to offline mode', error);
-    await handleOfflineBoot();
+    console.error('Boot sequence failed:', error);
+    return false;
   }
 }
 

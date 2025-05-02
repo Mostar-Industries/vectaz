@@ -3,12 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState, useEffect } from "react";
-import Index from "./pages/Index";
+import { useState as useStateOriginal, useEffect as useEffectOriginal } from "react";
+import IndexPage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
 import DeepCALPage from "./pages/DeepCALPage";
-import FreightCalculatorPage from "./pages/FreightCalculatorPage";
 import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
@@ -19,11 +18,11 @@ import FloatingDeepTalk from "./components/FloatingDeepTalk";
 const queryClient = new QueryClient();
 
 // Setup App with React Query for data fetching and caching
-const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
+function App() {
+  const [isLoading, setIsLoading] = useStateOriginal(true);
   const { setShipmentData } = useBaseDataStore();
 
-  useEffect(() => {
+  useEffectOriginal(() => {
     // Load sample data faster for demonstration
     const initializeApp = async () => {
       console.log("Initializing application...");
@@ -36,8 +35,11 @@ const App = () => {
       }
 
       // Generate 105 sample shipments for accurate data representation
-      const deeptrack_3: Shipment[] = Array(105).fill(0).map((_, i) => ({
-        request_reference: `SR_24-${i.toString().padStart(3, '0')}_NBO`,
+      const shipments: any[] = Array(105).fill(0).map((_, i) => {
+        const requestRef = `SR_24-${i.toString().padStart(3, '0')}_NBO`;
+        return {
+        id: requestRef,
+        request_reference: requestRef,
         origin_country: ['Kenya', 'South Africa', 'Ethiopia', 'Nigeria', 'Egypt'][i % 5],
         origin_latitude: 1.2404475 + (i * 0.01),
         origin_longitude: 36.990054 + (i * 0.01),
@@ -62,11 +64,12 @@ const App = () => {
         initial_quote_awarded: ['DHL', 'FedEx', 'UPS', 'Kuehne+Nagel', 'Maersk'][i % 5],
         final_quote_awarded_freight_forwader_Carrier: ['DHL', 'FedEx', 'UPS', 'Kuehne+Nagel', 'Maersk'][i % 5],
         comments: `Sample shipment ${i}`,
-        date_of_arrival_destination: null,
+        date_of_arrival_destination: new Date().toISOString(),
         delivery_status: ['delivered', 'in_transit', 'pending'][i % 3],
         mode_of_shipment: ['air', 'sea', 'road'][i % 3],
         forwarder_quotes: {}
-      }));
+      };
+    });
       
       try {
         // Boot the application
@@ -74,7 +77,7 @@ const App = () => {
         console.log("Boot completed successfully");
         
         // Store the data in the global state
-        setShipmentData(deeptrack_3, 'internal', 'v1.0', 'sample-hash');
+        setShipmentData(shipments, 'internal', 'v1.0', 'sample-hash');
       } catch (error) {
         console.error("Boot failed:", error);
       } finally {
@@ -103,7 +106,7 @@ const App = () => {
             {/* Router for navigation */}
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<IndexPage />} />
                 <Route path="/forms" element={<FormsPage />} />
                 <Route path="/deepcal" element={<DeepCALPage />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
@@ -122,6 +125,6 @@ const App = () => {
       </TooltipProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

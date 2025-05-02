@@ -29,7 +29,7 @@ const technicalPhrases = [
   "Our Data Envelopment Analysis with VRS assumption reveals"
 ];
 
-export const useDeepCalHumor = () => {
+export const useDeepCalHumor = (result: any, p0: string) => {
   const [usedQuips, setUsedQuips] = useState<Set<string>>(new Set());
   
   const getRandomQuip = useCallback(() => {

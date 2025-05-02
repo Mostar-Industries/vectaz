@@ -1,83 +1,34 @@
 export interface Shipment {
-  date_of_collection: string;
-  
-  /** Stock Release (Shipment Number/ID) */
+  id?: string;
   request_reference: string;
-  
-  /** The name of the item that was shipped */
   cargo_description: string;
-  
-  /** The Category of Item name that was shipped */
   item_category: string;
-  
-  /** Country location of the warehouse */
   origin_country: string;
-  
-  /** Warehouse Longitude (Decimal degrees) */
-  origin_longitude: number;
-  
-  /** Warehouse Latitude (Decimal degrees) */
   origin_latitude: number;
-  
-  /** Destination Country where item arrives */
+  origin_longitude: number;
   destination_country: string;
-  
-  /** Destination Longitude (Decimal degrees) */
-  destination_longitude: number;
-  
-  /** Destination Latitude (Decimal degrees) */
   destination_latitude: number;
-  
-  /** Carrier used by Freight forwarder */
+  destination_longitude: number;
   carrier: string;
-  
-  /** Carrier's total charges (local currency with formatting) */
-  "freight_carrier+cost": string;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  kuehne_nagel: number;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  scan_global_logistics: number;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  dhl_express: number;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  dhl_global: number;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  bwosi: number;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  agl: number;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  siginon: number;
-  
-  /** Freight Forwarder quote (0 = No Quote) */
-  frieght_in_time: number; // Note: Original spelling preserved
-  
-  /** Weight in kilograms (with decimal precision) */
-  weight_kg: number;
-  
-  /** Volume in cubic meters (with decimal precision) */
-  volume_cbm: number;
-  
-  /** Initially selected Freight Forwarder */
-  initial_quote_awarded: string;
-  
-  /** Finally selected Freight Forwarder (with typo preserved) */
-  final_quote_awarded_freight_forwader_Carrier: string;
-  
-  /** Comments on shipment (free text) */
-  comments: string;
-  
-  /** Date of arrival at destination (ISO 8601 format) */
-  date_of_arrival_destination: string | null;
-  delivery_status: string;
-  mode_of_shipment: string;
-  forwarder_quotes: Record<string, number>;
+  "carrier+cost"?: string;
+  kuehne_nagel?: string;
+  scan_global_logistics?: string;
+  dhl_express?: string;
+  dhl_global?: string;
+  bwosi?: string;
+  agl?: string;
+  siginon?: string;
+  frieght_in_time?: string;
+  weight_kg: string;
+  volume_cbm: string;
+  initial_quote_awarded?: string;
+  final_quote_awarded_freight_forwader_Carrier?: string;
+  comments?: string;
+  date_of_collection: string;
+  date_of_arrival_destination?: string;
+  delivery_status?: string;
+  mode_of_shipment?: string;
+  date_of_greenlight_to_pickup?: string | null;
 }
 
 export interface ForwarderPerformance {
@@ -94,7 +45,6 @@ export interface ForwarderPerformance {
   serviceScore?: number;
   punctualityScore?: number;
   handlingScore?: number;
-  // Properties to match ForwarderAnalytics component usage
   shipments?: number;
   reliability?: number;
 }
@@ -108,7 +58,6 @@ export interface CarrierPerformance {
   serviceScore?: number;
   punctualityScore?: number;
   handlingScore?: number;
-  // Properties to match ForwarderAnalytics component usage
   shipments: number;
   reliability: number;
 }
@@ -124,6 +73,11 @@ export interface RoutePerformance {
 }
 
 export interface CountryPerformance {
+  totalWeight: number;
+  totalVolume: number;
+  totalCost: number;
+  avgDelayDays: number;
+  forwarder(forwarder: any): unknown;
   country: string;
   totalShipments: number;
   avgCostPerRoute: number;
@@ -156,8 +110,8 @@ export interface WarehousePerformance {
 export interface ShipmentMetrics {
   totalShipments: number;
   shipmentsByMode: Record<string, number>;
-  monthlyTrend: Array<{month: string, count: number}>;
-  delayedVsOnTimeRate: {onTime: number, delayed: number};
+  monthlyTrend: Array<{ month: string; count: number }>;
+  delayedVsOnTimeRate: { onTime: number; delayed: number };
   avgTransitTime: number;
   disruptionProbabilityScore: number;
   shipmentStatusCounts: {
@@ -218,9 +172,29 @@ interface KPIResults {
 export interface HistoricalTrends {
   totalShipments?: { change: number; direction: TrendDirection };
   onTimeRate?: { baseline: number; change: number };
-  // Add other metrics as needed
 }
 
 export interface ShipmentAnalyticsProps {
   metrics: ShipmentMetrics;
+}
+
+export interface CountryPerformance {
+  name: string;
+  country: string;
+  totalShipments: number;
+  totalWeight: number;
+  totalVolume: number;
+  totalCost: number;
+  avgDelayDays: number;
+  avgCostPerRoute: number;
+  avgCustomsClearanceTime: number;
+}
+
+export interface CSVShipment {
+  origin_country: string;
+  origin_latitude: number;
+  origin_longitude: number;
+  destination_country: string;
+  destination_latitude: number;
+  destination_longitude: number;
 }

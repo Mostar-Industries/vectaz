@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getHumorResponse } from './useDeepCalHumor';
 import { Message } from './MessageItem';
 
-export const useVoiceFunctions = () => {
+export const useVoiceFunctions = (p0: string) => {
   const { toast } = useToast();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioQueue, setAudioQueue] = useState<{ url: string, messageId?: string }[]>([]);

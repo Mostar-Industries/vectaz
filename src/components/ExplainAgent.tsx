@@ -19,7 +19,7 @@ export const ExplainAgent: React.FC<ExplainAgentProps> = ({
   onClose
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
-  const { speak, stop } = useVoice();
+  const { speak, toggleMute } = useVoice();
   
   useEffect(() => {
     if (autoSpeak && explanation && isExpanded) {
@@ -27,12 +27,12 @@ export const ExplainAgent: React.FC<ExplainAgentProps> = ({
     }
     
     return () => {
-      stop(); // Clean up any ongoing speech when component unmounts or changes
+        toggleMute(); // Clean up any ongoing speech when component unmounts or changes
     };
-  }, [explanation, autoSpeak, isExpanded, speak, stop]);
+  }, [explanation, autoSpeak, isExpanded, speak, toggleMute]);
 
   const handleClose = () => {
-    stop();
+    toggleMute();
     setIsExpanded(false);
     if (onClose) onClose();
   };

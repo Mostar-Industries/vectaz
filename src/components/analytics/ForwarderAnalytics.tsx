@@ -4,9 +4,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ForwarderPerformance, CarrierPerformance } from '@/types/deeptrack';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { Users, DollarSign, Clock, Target, Star, RotateCcw, Brain, Truck, Plane } from 'lucide-react';
+import { GlobalOperationsHeader } from './GlobalOperationsHeader';
+import { QuantumOptimizationMatrix } from './QuantumOptimizationMatrix';
+import { RiskVisualizer } from './RiskVisualizer';
+import { EthicalAlert } from './EthicalAlert';
+import { CarbonRouting } from './CarbonRouting';
+import { ScenarioEngine } from './ScenarioEngine';
 
 interface ForwarderAnalyticsProps {
   forwarders: ForwarderPerformance[];
+  shipments?: never;
   carriers: CarrierPerformance[];
 }
 
@@ -18,36 +25,36 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
   
   // Prepare data for cost comparison chart
   const costData = topForwarders.map(f => ({
-    name: f.name,
+    name: f.freight_carrier,
     cost: f.avgCostPerKg
   }));
   
   // Prepare data for transit time comparison chart
   const transitTimeData = topForwarders.map(f => ({
-    name: f.name,
-    days: f.avgTransitDays
+    name: f.freight_carrier,
+    days: f.avg_transit_days
   }));
   
   // Prepare data for on-time delivery chart
   const onTimeData = topForwarders.map(f => ({
-    name: f.name,
-    rate: (f.onTimeRate * 100).toFixed(1)
+    name: f.freight_carrier,
+    rate: (f.shipments.filter(s => s.on_time).length / f.shipments.length * 100).toFixed(1)
   }));
   
   // Prepare data for DeepScore comparison
   const deepScoreData = topForwarders.map(f => ({
-    name: f.name,
-    score: f.deepScore
+    name: f.freight_carrier,
+    score: (f.avgCostPerKg + f.avg_transit_days + f.shipments.filter(s => s.on_time).length / f.shipments.length) / 3
   }));
   
   // Prepare data for radar chart (multi-metric comparison)
   const radarData = topForwarders.map(f => ({
-    name: f.name,
+    name: f.freight_carrier,
     cost: normalizeValue(f.avgCostPerKg, 100, true), // Lower is better, so invert
-    time: normalizeValue(f.avgTransitDays, 14, true), // Lower is better, so invert
-    reliability: f.reliabilityScore * 100,
-    onTime: f.onTimeRate * 100,
-    winRate: (f.quoteWinRate || 0) * 100
+    time: normalizeValue(f.avg_transit_days, 14, true), // Lower is better, so invert
+    reliability: (f.shipments.filter(s => s.on_time).length / f.shipments.length) * 100,
+    onTime: (f.shipments.filter(s => s.on_time).length / f.shipments.length) * 100,
+    winRate: (f.shipments.filter(s => s.won).length / f.shipments.length) * 100
   }));
   
   // Helper function to normalize values to a 0-100 scale
@@ -60,8 +67,18 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
   // Process top carriers for visualization
   const topCarriers = carriers.slice(0, 5);
 
+  // Convert forwarders to shipments with required properties
+  const convertedShipments = forwarders.map(f => ({
+    ...f,
+    customs_clearance_time_days: 0, // Default value
+    freight_carrier_cost: 0, // Default value
+    // Other required Shipment properties
+  }));
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
+      <GlobalOperationsHeader />
+      
       <Tabs defaultValue="forwarder" className="w-full" onValueChange={(value) => setEntityType(value as 'forwarder' | 'carrier')}>
         <TabsList className="grid w-full grid-cols-2 mb-4">
           <TabsTrigger value="forwarder" className="flex items-center">
@@ -101,7 +118,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold truncate">
-                  {topForwarders[0]?.name || "N/A"}
+                  {topForwarders[0]?.freight_carrier || "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Based on DeepScore™
@@ -118,7 +135,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold truncate">
-                  {forwarders.sort((a, b) => a.avgCostPerKg - b.avgCostPerKg)[0]?.name || "N/A"}
+                  {forwarders.sort((a, b) => a.avgCostPerKg - b.avgCostPerKg)[0]?.freight_carrier || "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Lowest cost per kg
@@ -135,7 +152,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold truncate">
-                  {forwarders.sort((a, b) => a.avgTransitDays - b.avgTransitDays)[0]?.name || "N/A"}
+                  {forwarders.sort((a, b) => a.avg_transit_days - b.avg_transit_days)[0]?.freight_carrier || "N/A"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Lowest avg. transit time
@@ -251,7 +268,7 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
                       {radarData.map((_, index) => (
                         <Radar
                           key={index}
-                          name={topForwarders[index].name}
+                          name={topForwarders[index].freight_carrier}
                           dataKey={(value) => [
                             value.cost,
                             value.time,
@@ -286,8 +303,8 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
                 <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-100 dark:border-blue-900/50">
                   <h3 className="font-medium mb-2">Forwarder Performance Analysis</h3>
                   <p className="text-sm text-muted-foreground">
-                    {topForwarders[0]?.name} demonstrates exceptional reliability with the highest DeepScore™ of {topForwarders[0]?.deepScore?.toFixed(1) || 'N/A'}. 
-                    {topForwarders[0]?.reliabilityScore > 0.8 
+                    {topForwarders[0]?.freight_carrier} demonstrates exceptional reliability with the highest DeepScore™ of {topForwarders[0]?.score?.toFixed(1) || 'N/A'}. 
+                    {topForwarders[0]?.reliability > 0.8 
                       ? ` Their reliability under adverse conditions is particularly noteworthy.`
                       : ` Consider monitoring their performance for consistency over high-volume periods.`
                     }
@@ -458,6 +475,27 @@ const ForwarderAnalytics: React.FC<ForwarderAnalyticsProps> = ({ forwarders, car
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        
+        <TabsContent value="ultra-analytics">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-gray-900 p-4 rounded-lg">
+              <h2 className="text-xl font-bold mb-4">Quantum Optimization Matrix</h2>
+              <QuantumOptimizationMatrix forwarders={forwarders} />
+            </div>
+            
+            <div className="bg-gray-900 p-4 rounded-lg">
+              <h2 className="text-xl font-bold mb-4">War Risk Intelligence</h2>
+              <RiskVisualizer 
+                threats={['Piracy', 'Sanctions', 'FuelSpikes']} 
+                carriers={forwarders.map(f => f.freight_carrier)}
+              />
+            </div>
+          </div>
+          
+          <EthicalAlert shipments={convertedShipments} />
+          <CarbonRouting shipments={convertedShipments} />
+          <ScenarioEngine />
         </TabsContent>
       </Tabs>
     </div>

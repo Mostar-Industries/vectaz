@@ -6,6 +6,7 @@
  * make linear algebra fun (or at least tolerable).
  */
 
+import { checkNCR } from './ahpEngine';
 import { decisionCore, evaluateForwarders, generatePairwiseMatrix } from './decisionCore';
 import { CriteriaType } from './types';
 

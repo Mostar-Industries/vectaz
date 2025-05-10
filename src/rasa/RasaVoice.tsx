@@ -14,7 +14,7 @@ export const RasaVoice: React.FC<RasaVoiceProps> = ({
   message, 
   autoSpeak = true 
 }) => {
-  const { speak, stop } = useVoice();
+  const { speak, toggleMute } = useVoice();
   
   React.useEffect(() => {
     if (autoSpeak && message) {
@@ -22,9 +22,9 @@ export const RasaVoice: React.FC<RasaVoiceProps> = ({
     }
     
     return () => {
-      stop(); // Clean up any ongoing speech when component unmounts
-    };
-  }, [message, autoSpeak, speak, stop]);
+      toggleMute(); // Clean up any ongoing speech when component unmounts or changes
+    };  
+  }, [message, autoSpeak, speak, toggleMute]);
 
   return (
     <div className="rasa-voice">

@@ -1,6 +1,16 @@
-
 // Neutrosophic AHP (Analytic Hierarchy Process) module
 // Implements weight calculation using Neutrosophic logic for decision criteria
+
+/**
+ * @deprecated AHP functionality has been consolidated into DecisionCore.ts
+ * The new implementation includes:
+ * - Enhanced neutrosophic logic
+ * - Built-in consistency validation
+ * - Unified weight calculation
+ * 
+ * Migration: Use DecisionCore.runOptimization() which automatically
+ * handles all AHP weight calculations internally
+ */
 
 interface TNNJudgement {
   T: number; // Truth membership

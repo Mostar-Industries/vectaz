@@ -1,4 +1,10 @@
 export interface Shipment {
+  expected_delivery_date: string;
+  freight_carrier: string;
+  forwarder_quotes: any;
+  customs_clearance_time_days: any;
+  freight_carrier_cost: any;
+  emergency_grade: any;
   id?: string;
   request_reference: string;
   cargo_description: string;
@@ -29,24 +35,24 @@ export interface Shipment {
   delivery_status?: string;
   mode_of_shipment?: string;
   date_of_greenlight_to_pickup?: string | null;
+  distance_km?: number;
 }
 
-export interface ForwarderPerformance {
+export interface ForwarderPerformance extends Omit<Shipment, 'customs_clearance_time_days'> {
+  avg_transit_days: any;
+  shipments: any;
+  score: any;
+  reliability: number;
   name: string;
-  totalShipments: number;
   avgCostPerKg: number;
+  reliabilityScore: number;
+  totalShipments: number;
   avgTransitDays: number;
   onTimeRate: number;
-  reliabilityScore: number;
-  deepScore?: number;
-  costScore?: number;
-  timeScore?: number;
-  quoteWinRate?: number;
-  serviceScore?: number;
-  punctualityScore?: number;
-  handlingScore?: number;
-  shipments?: number;
-  reliability?: number;
+  deepScore: number;
+  costScore: number;
+  timeScore: number;
+  quoteWinRate: number;
 }
 
 export interface CarrierPerformance {
@@ -197,4 +203,83 @@ export interface CSVShipment {
   destination_country: string;
   destination_latitude: number;
   destination_longitude: number;
+}
+
+export interface ScoreWeights {
+  cost: number;
+  time: number;
+  reliability: number;
+}
+
+export interface ForwarderScore {
+  forwarder: string;
+  score: number;
+  components: {
+    costPerformance: number;
+    timePerformance: number;
+    reliabilityPerformance: number;
+  };
+  trace: {
+    shipmentIds: string[];
+    influentialFields: string[];
+    commentary: string;
+  };
+  metrics?: {
+    cost: number;
+    deliveryTime: number;
+    reliability: number;
+  };
+  reasoning?: string;
+}
+
+export interface DriftLog {
+  shipmentId: string;
+  forwarder: string;
+  predicted: ForwarderScore;
+  actual: { deliveryDays: number; cost: number };
+  driftMagnitude: number;
+  weightAdjustment: Record<string, number>;
+  reasoning: string;
+}
+
+export function adaptForwarderToShipment(fp: ForwarderPerformance): Shipment {
+  return {
+    ...fp,
+    freight_carrier: fp.name,
+    forwarder_quotes: {},
+    customs_clearance_time_days: 0,
+    freight_carrier_cost: 0,
+    emergency_grade: 0,
+    id: '',
+    request_reference: '',
+    cargo_description: '',
+    item_category: '',
+    origin_country: '',
+    origin_latitude: 0,
+    origin_longitude: 0,
+    destination_country: '',
+    destination_latitude: 0,
+    destination_longitude: 0,
+    carrier: '',
+    "carrier+cost": '',
+    kuehne_nagel: '',
+    scan_global_logistics: '',
+    dhl_express: '',
+    dhl_global: '',
+    bwosi: '',
+    agl: '',
+    siginon: '',
+    frieght_in_time: '',
+    weight_kg: '',
+    volume_cbm: '',
+    initial_quote_awarded: '',
+    final_quote_awarded_freight_forwader_Carrier: '',
+    comments: '',
+    date_of_collection: '',
+    date_of_arrival_destination: '',
+    delivery_status: '',
+    mode_of_shipment: '',
+    date_of_greenlight_to_pickup: '',
+    distance_km: 0,
+  };
 }

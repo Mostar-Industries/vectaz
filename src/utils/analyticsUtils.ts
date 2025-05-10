@@ -6,6 +6,9 @@ import {
   ShipmentMetrics,
   WarehousePerformance,
 } from "@/types/deeptrack";
+import { fetchShipmentsWithCache } from './analyticsCache';
+import { assertForwarderShape } from './typeAssertions';
+import { mean, std } from 'mathjs';
 
 export const analyzeShipmentData = (shipmentData: any[]) => {
   const deliveryStatusBreakdown = shipmentData.reduce((acc, shipment) => {
@@ -116,7 +119,7 @@ export function calculateShipmentMetrics(
     ? (shipments[0].final_quote_awarded_freight_forwader_Carrier || "Unknown")
     : "Unknown";
   const topCarrier = shipments.length > 0
-    ? (shipments[0].freight_carrier || "Unknown")
+    ? (shipments[0].carrier || "Unknown")
     : "Unknown";
   const carrierCount = new Set(shipments.map((s) => s.freight_carrier)).size;
 
@@ -181,16 +184,19 @@ function calculateAvgCostForAllShipments(shipments: Shipment[]): number {
 
   if (validShipments.length === 0) return 0;
 
-  const totalCost = validShipments.reduce(
+  const totalCost = validShipments.reduce<number>(
     (sum, s) =>
       sum +
-      (s.forwarder_quotes[
+      (Number(s.forwarder_quotes[
         s.final_quote_awarded_freight_forwader_Carrier.toLowerCase()
-      ] || 0),
+      ]) || 0),
     0,
   );
 
-  const totalWeight = validShipments.reduce((sum, s) => sum + s.weight_kg, 0);
+  const totalWeight = validShipments.reduce<number>(
+    (sum, s) => sum + (Number(s.weight_kg) || 0),
+    0,
+  );
 
   return totalWeight > 0 ? totalCost / totalWeight : 0;
 }
@@ -201,90 +207,37 @@ export function calculateForwarderPerformance(
   const forwarderMap = new Map<string, Shipment[]>();
 
   shipments.forEach((shipment) => {
-    const forwarder = shipment.final_quote_awarded_freight_forwader_Carrier;
+    const forwarder = shipment.freight_carrier;
     if (!forwarderMap.has(forwarder)) {
       forwarderMap.set(forwarder, []);
     }
     forwarderMap.get(forwarder)?.push(shipment);
   });
 
-  const forwarderPerformance: ForwarderPerformance[] = Array.from(
-    forwarderMap.entries(),
-  )
-    .filter(([name, _]) => name && name !== "Hand carried" && name !== "UNHAS")
-    .map(([name, shipments]) => {
-      const totalShipments = shipments.length;
-
-      const completedShipments = shipments.filter((s) =>
-        s.delivery_status === "Delivered" && s.date_of_collection &&
-        s.date_of_arrival_destination
-      );
-
-      const transitTimes = completedShipments.map((s) => {
-        const collectionDate = new Date(s.date_of_collection);
-        const arrivalDate = new Date(s.date_of_arrival_destination);
-        return (arrivalDate.getTime() - collectionDate.getTime()) /
-          (1000 * 60 * 60 * 24); // days
-      });
-
-      const avgTransitDays = transitTimes.length > 0
-        ? transitTimes.reduce((sum, days) => sum + days, 0) /
-          transitTimes.length
-        : 0;
-
-      const onTimeRate = completedShipments.length /
-        Math.max(totalShipments, 1);
-
-      const reliabilityScore =
-        (onTimeRate +
-          (completedShipments.length / Math.max(totalShipments, 1))) / 2;
-
-      const totalQuotes = shipments.reduce((count, s) => {
-        return count + Object.keys(s.forwarder_quotes || {}).length;
-      }, 0);
-
-      const quoteWinRate = totalQuotes > 0 ? totalShipments / totalQuotes : 0;
-
-      return {
-        name,
-        totalShipments,
-        avgCostPerKg: calculateAvgCostPerKg(shipments),
-        avgTransitDays,
-        onTimeRate,
-        reliabilityScore,
-        deepScore: reliabilityScore * 100,
-        costScore: 0.3 + Math.random() * 0.4,
-        timeScore: 0.3 + Math.random() * 0.4,
-        quoteWinRate,
+  const results = Array.from(forwarderMap.entries())
+    .filter(([name]) => name && name !== "Hand carried" && name !== "UNHAS")
+    .map(([freight_carrier, shipments]) => {
+      const result = {
+        freight_carrier,
+        avg_transit_days: calculateAvgTransitDays(shipments),
+        avg_cost_per_kg: calculateAvgCostPerKg(shipments),
+        on_time_rate: calculateOnTimeRate(shipments),
+        reliability_score: calculateReliabilityScore(shipments),
+        shipments,
+        score: 0, // Will be calculated
+        reliability: 0, // Will be calculated
+        deepScore: 0,
+        costScore: 0,
+        timeScore: 0,
+        quoteWinRate: 0,
       };
-    });
+      assertForwarderShape(result);
+      return result;
+    })
+    .sort((a, b) => b.reliability_score - a.reliability_score);
 
-  return forwarderPerformance.sort((a, b) =>
-    b.reliabilityScore - a.reliabilityScore
-  );
+  return results;
 }
-
-function calculateAvgCostPerKg(shipments: Shipment[]): number {
-  const shipmentCosts = shipments.filter((s) =>
-    s.forwarder_quotes[
-      s.final_quote_awarded_freight_forwader_Carrier.toLowerCase()
-    ]
-  ).map((s) => ({
-    cost:
-      s.forwarder_quotes[
-        s.final_quote_awarded_freight_forwader_Carrier.toLowerCase()
-      ],
-    weight: s.weight_kg,
-  }));
-
-  if (shipmentCosts.length === 0) return 0;
-
-  const totalCost = shipmentCosts.reduce((sum, item) => sum + item.cost, 0);
-  const totalWeight = shipmentCosts.reduce((sum, item) => sum + item.weight, 0);
-
-  return totalWeight > 0 ? totalCost / totalWeight : 0;
-}
-
 
 export function calculateCountryPerformance(shipments: Shipment[]): CountryPerformance[] {
   const countryMap = new Map<string, Shipment[]>();
@@ -297,12 +250,10 @@ export function calculateCountryPerformance(shipments: Shipment[]): CountryPerfo
     countryMap.get(country)?.push(shipment);
   });
 
-
   return Array.from(countryMap.values()).map(calculation => {
     return calculateCountryMetrics(calculation);
   }).sort((a, b) => b.resilienceIndex - a.resilienceIndex);
 }
-
 
 export function calculateWarehousePerformance(
   shipments: Shipment[],
@@ -361,12 +312,18 @@ export function calculateWarehousePerformance(
         .slice(0, 3);
 
       // Cost discrepancy
-      const totalWeight = sList.reduce((sum, s) => sum + (s.weight_kg || 0), 0);
-      const totalCost = sList.reduce((sum, s) => {
-        const q = s.forwarder_quotes
-          ?.[s.final_quote_awarded_freight_forwader_Carrier?.toLowerCase()];
-        return sum + (q || 0);
-      }, 0);
+      const totalWeight = sList.reduce<number>(
+        (sum, s) => sum + (Number(s.weight_kg) || 0),
+        0,
+      );
+      const totalCost = sList.reduce<number>(
+        (sum, s) => {
+          const q = s.forwarder_quotes
+            ?.[s.final_quote_awarded_freight_forwader_Carrier?.toLowerCase()];
+          return sum + (Number(q) || 0);
+        },
+        0,
+      );
       const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;
       const costDiscrepancy = globalAvgCostPerKg > 0
         ? ((avgCostPerKg - globalAvgCostPerKg) / globalAvgCostPerKg) * 100
@@ -445,8 +402,8 @@ export function calculateCarrierPerformance(shipments: Shipment[]): CarrierPerfo
           cost: s.forwarder_quotes[s.final_quote_awarded_freight_forwader_Carrier?.toLowerCase()],
           weight: s.weight_kg
         }));
-      const totalWeight = costData.reduce((sum, d) => sum + d.weight, 0);
-      const totalCost = costData.reduce((sum, d) => sum + d.cost, 0);
+      const totalWeight = costData.reduce<number>((sum, d) => sum + (Number(d.weight) || 0), 0);
+      const totalCost = costData.reduce<number>((sum, d) => sum + (Number(d.cost) || 0), 0);
       const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;
 
       // Success/failure rates
@@ -458,8 +415,9 @@ export function calculateCarrierPerformance(shipments: Shipment[]): CarrierPerfo
         return awarded && awarded === name.toLowerCase();
       }).length;
 
-      const totalQuotesReceived = sList.reduce((sum, s) =>
-        sum + Object.keys(s.forwarder_quotes || {}).length, 0);
+      const totalQuotesReceived = sList.reduce<number>(
+        (sum, s) =>
+          sum + Object.keys(s.forwarder_quotes || {}).length, 0);
       const quoteWinRate = totalQuotesReceived > 0
         ? quoteWins / totalQuotesReceived
         : 0;
@@ -495,16 +453,25 @@ export function calculateCountryMetrics(shipments: Shipment[]): CountryPerforman
   const country = shipments[0]?.destination_country?.trim() || 'Unknown';
   const totalShipments = shipments.length;
 
-  const totalWeight = shipments.reduce((sum, s) => sum + (s.weight_kg || 0), 0);
-  const totalVolume = shipments.reduce((sum, s) => sum + (s.volume_cbm || 0), 0);
+  const totalWeight = shipments.reduce<number>(
+    (sum, s) => sum + (Number(s.weight_kg) || 0),
+    0,
+  );
+  const totalVolume = shipments.reduce<number>(
+    (sum, s) => sum + (Number(s.volume_cbm) || 0),
+    0,
+  );
 
   const validQuotes = shipments.filter(s =>
     s.forwarder_quotes &&
     s.final_quote_awarded_freight_forwader_Carrier &&
     s.forwarder_quotes[s.final_quote_awarded_freight_forwader_Carrier.toLowerCase()]
   );
-  const totalCost = validQuotes.reduce((sum, s) =>
-    sum + (s.forwarder_quotes[s.final_quote_awarded_freight_forwader_Carrier.toLowerCase()] || 0), 0);
+  const totalCost = validQuotes.reduce<number>(
+    (sum, s) =>
+      sum + (Number(s.forwarder_quotes[s.final_quote_awarded_freight_forwader_Carrier.toLowerCase()]) || 0),
+    0,
+  );
 
   const avgCostPerRoute = totalShipments > 0 ? totalCost / totalShipments : 0;
 
@@ -592,3 +559,208 @@ export function calculateCountryMetrics(shipments: Shipment[]): CountryPerforman
     resilienceIndex,
   } as CountryPerformance;
 }
+
+export const getValidShipments = (shipments: Shipment[]) => shipments?.filter(s => 
+  s?.request_reference &&
+  typeof s?.freight_carrier_cost === 'number' &&
+  typeof s?.weight_kg === 'number'
+) || [];
+
+export const calculateTotalShipments = (shipments: Shipment[]) => {
+  const valid = getValidShipments(shipments);
+  return new Set(valid.map(s => s.request_reference)).size;
+};
+
+export const calculateEmergencyRatio = (shipments: Shipment[]) => {
+  const valid = shipments?.filter(s => s?.emergency_grade !== undefined) || [];
+  return valid.length ? valid.filter(s => s.emergency_grade).length / valid.length : 0;
+};
+
+export const calculateLiveMetrics = (shipments: Shipment[]) => {
+  const validShipments = shipments.filter(s => 
+    s?.request_reference && 
+    typeof s?.freight_carrier_cost === 'number' && 
+    typeof s?.weight_kg === 'number'
+  );
+
+  const totalCost = validShipments.reduce<number>(
+    (sum, s) => sum + (Number(s.freight_carrier_cost) || 0),
+    0,
+  );
+
+  const totalWeight = validShipments.reduce<number>(
+    (sum, s) => sum + (Number(s.weight_kg) || 0),
+    0,
+  );
+
+  const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;
+
+  const emergencyRatio = calculateEmergencyRatio(validShipments);
+
+  const avgTransitTime = validShipments.reduce((sum, s) => {
+    const days = (new Date(s.date_of_arrival_destination).getTime() - new Date(s.date_of_collection).getTime()) / (1000 * 60 * 60 * 24);
+    return sum + (isNaN(days) ? 0 : days);
+  }, 0) / validShipments.length
+
+  return {
+    total_shipments: new Set(validShipments.map(s => s.request_reference)).size,
+    total_cost: totalCost,
+    avg_cost_kg: avgCostPerKg,
+    emergency_ratio: emergencyRatio,
+    avg_transit_time: avgTransitTime
+  };
+};
+
+function createBaseForwarderPerformance(name: string) {
+  return {
+    name,
+    totalShipments: 0,
+    avgCostPerKg: 0,
+    avgTransitDays: 0,
+    onTimeRate: 0,
+    reliabilityScore: 0,
+    deepScore: 0,
+    costScore: 0,
+    timeScore: 0,
+    quoteWinRate: 0,
+  };
+}
+
+function calculateAvgCostPerKg(shipments: Shipment[]) {
+  const totalCost = shipments.reduce<number>(
+    (sum, s) =>
+      sum +
+      (Number(s.forwarder_quotes[
+        s.final_quote_awarded_freight_forwader_Carrier.toLowerCase()
+      ]) || 0),
+    0,
+  );
+
+  const totalWeight = shipments.reduce<number>(
+    (sum, s) => sum + (Number(s.weight_kg) || 0),
+    0,
+  );
+
+  return totalWeight > 0 ? totalCost / totalWeight : 0;
+}
+
+function calculateAvgTransitDays(shipments: Shipment[]) {
+  const completedShipments = shipments.filter((s) =>
+    s.delivery_status === "Delivered" && s.date_of_collection &&
+    s.date_of_arrival_destination
+  );
+
+  const transitTimes = completedShipments.map((s) => {
+    const collectionDate = new Date(s.date_of_collection);
+    const arrivalDate = new Date(s.date_of_arrival_destination);
+    return (arrivalDate.getTime() - collectionDate.getTime()) /
+      (1000 * 60 * 60 * 24); // days
+  });
+
+  return transitTimes.length > 0
+    ? transitTimes.reduce((sum, days) => sum + days, 0) / transitTimes.length
+    : 0;
+}
+
+function calculateOnTimeRate(shipments: Shipment[]) {
+  const completedShipments = shipments.filter((s) =>
+    s.delivery_status === "Delivered" && s.date_of_collection &&
+    s.date_of_arrival_destination
+  );
+
+  return completedShipments.length / shipments.length;
+}
+
+function calculateReliabilityScore(shipments: Shipment[]) {
+  const onTimeRate = calculateOnTimeRate(shipments);
+  const avgTransitDays = calculateAvgTransitDays(shipments);
+
+  return (onTimeRate + (1 - avgTransitDays / 30)) / 2;
+}
+
+export const computeCoreKPIs = (shipments: Shipment[]) => {
+  const validShipments = shipments.filter(s =>
+    s.delivery_status === 'Delivered' &&
+    s.weight_kg > 0 &&
+    s.forwarder_quotes &&
+    Object.keys(s.forwarder_quotes).length > 0
+  );
+
+  const totalWeight = validShipments.reduce(
+    (sum, s) => sum + (Number(s.weight_kg) || 0), 0
+  );
+
+  const totalVolume = validShipments.reduce(
+    (sum, s) => sum + (Number(s.volume_cbm) || 0), 0
+  );
+
+  const totalShipments = new Set(validShipments.map(s => s.request_reference)).size;
+
+  let totalCost = 0;
+  validShipments.forEach(s => {
+    const quoteSum = Object.values(s.forwarder_quotes).reduce((a, b) => Number(a) + Number(b), 0);
+    const quoteAvg = quoteSum / Object.keys(s.forwarder_quotes).length;
+    totalCost += quoteAvg;
+  });
+
+  const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;
+
+  const modeCounts = validShipments.reduce((acc, s) => {
+    const mode = s.mode_of_shipment || 'Unknown';
+    acc[mode] = (acc[mode] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  return {
+    total_shipments: totalShipments,
+    total_weight_kg: totalWeight,
+    total_volume_cbm: totalVolume,
+    avg_cost_per_kg: Number(avgCostPerKg.toFixed(2)),
+    mode_split: modeCounts,
+  };
+};
+
+export const computeCostConfidenceAndAnomalies = (shipments: Shipment[]) => {
+  const validShipments = shipments.filter(s =>
+    s.delivery_status === 'Delivered' &&
+    s.weight_kg > 0 &&
+    s.forwarder_quotes &&
+    Object.keys(s.forwarder_quotes).length > 0
+  );
+
+  const costPerKgArray: number[] = [];
+  const requestReferences: string[] = [];
+
+  validShipments.forEach(s => {
+    const quoteAvg = Object.values(s.forwarder_quotes).reduce((a, b) => Number(a) + Number(b), 0)
+      / Object.keys(s.forwarder_quotes).length;
+
+    const weight = Number(s.weight_kg);
+    if (weight > 0) {
+      costPerKgArray.push(quoteAvg / weight);
+      requestReferences.push(s.request_reference);
+    }
+  });
+
+  const μ = mean(costPerKgArray);
+  const σ = std(costPerKgArray);
+
+  const confidence = Number((100 - (σ / μ) * 100).toFixed(1));
+
+  const anomalies = costPerKgArray.map((cpk, i) => {
+    if (Math.abs(cpk - μ) > 2.5 * σ) {
+      return {
+        request_reference: requestReferences[i],
+        cost_per_kg: Number(cpk.toFixed(2)),
+        z_score: Number(((cpk - μ) / σ).toFixed(2))
+      };
+    }
+    return null;
+  }).filter(Boolean);
+
+  return {
+    cost_confidence_percent: Math.max(0, Math.min(confidence, 100)),
+    cost_anomaly_count: anomalies.length,
+    anomaly_details: anomalies
+  };
+};

@@ -1,11 +1,12 @@
 import { initializeConfiguration } from '@/services/configurationService';
 import { loadAllReferenceData } from '@/services/dataIngestionService';
 import { initializeIntegration } from './integrationInit';
-import { supabase } from '@/lib/supabaseClient';
+import supabase from '@/lib/supabaseClient';
 import { z } from 'zod';
 import type { Shipment } from '@/types/deeptrack';
 import { useShipmentStore } from '@/store/shipmentStore';
 import { initShipmentTraceNodes } from '@/store/shipmentStore';
+import { syncQueuedLogs } from '@/services/driftSync';
 
 // Shipment schema validation
 const ShipmentSchema = z.object({
@@ -94,6 +95,11 @@ export async function bootApp() {
   if (_systemBooted) return true;
 
   try {
+    const shipmentStore = useShipmentStore.getState();
+    if (!shipmentStore.ready) {
+      throw new Error('Store is not ready');
+    }
+    
     // Initialize configuration
     const configInitialized = await initializeConfiguration();
     if (!configInitialized) throw new Error('Configuration initialization failed');
@@ -108,7 +114,7 @@ export async function bootApp() {
     const shipmentData = loadShipmentData();
     
     // Initialize store with validated data
-    useShipmentStore.getState().setShipments(shipmentData);
+    shipmentStore.setShipments(shipmentData);
     initShipmentTraceNodes();
     
     if (shipmentData.length === 0) {
@@ -124,13 +130,17 @@ export async function bootApp() {
       console.warn('Data conflicts detected:', conflicts);
     }
 
+    // Sync any queued drift logs
+    await syncQueuedLogs();
+
     // Initialize decision engine
     await initDecisionEngine();
 
+    useShipmentStore.getState().setReady(true);
     _systemBooted = true;
     return true;
-  } catch (error) {
-    console.error('Boot sequence failed:', error);
+  } catch (err) {
+    console.error('Boot failed:', err);
     return false;
   }
 }

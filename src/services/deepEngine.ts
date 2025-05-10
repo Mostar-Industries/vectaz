@@ -1,3 +1,13 @@
+/**
+ * @deprecated This service has been consolidated into DecisionCore.ts
+ * Please migrate to the new unified decision engine:
+ * import { DecisionCore } from '@/core/DecisionCore';
+ * 
+ * Migration Guide:
+ * 1. Replace deepEngine.getKPIs() with DecisionCore.calculateKPIs()
+ * 2. Replace deepEngine.getRankedAlternatives() with DecisionCore.runOptimization()
+ * 3. All analytics functions now available through DecisionCore.analyze()
+ */
 
 // DeepCAL Engine - Main service for logistics optimization
 // Implements the Neutrosophic AHP-TOPSIS methodology for decision-making
@@ -14,6 +24,7 @@ import { applyTOPSIS, buildDecisionMatrix } from './topsisEngine';
 import { logAuditTrail } from './auditLogger';
 import { explainDecision, summarizeRankings } from './deepExplain';
 import { loadBaseData, validateDataset } from './dataIntake';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid
 
 // Utility function to normalize scores deterministically
 function normalizeScore(value: number, min: number, max: number, outMin: number, outMax: number): number {
@@ -109,16 +120,19 @@ export const loadAndValidateData = (data: any[]): boolean => {
           destination_longitude: parseFloat(item.destination_longitude),
           destination_latitude: parseFloat(item.destination_latitude),
           freight_carrier: item.freight_carrier,
-          weight_kg: parseFloat(item.weight_kg),
-          volume_cbm: parseFloat(item.volume_cbm),
+          weight_kg: String(parseFloat(item.weight_kg)),
+          volume_cbm: String(parseFloat(item.volume_cbm)),
           initial_quote_awarded: item.initial_quote_awarded,
           final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier,
           comments: item.comments,
           date_of_arrival_destination: item.date_of_arrival_destination,
-          expected_delivery_date: item.expected_delivery_date || null,
           delivery_status: item.delivery_status,
           mode_of_shipment: item.mode_of_shipment,
-          forwarder_quotes: forwarderQuotes
+          forwarder_quotes: forwarderQuotes,
+          customs_clearance_time_days: undefined,
+          freight_carrier_cost: undefined,
+          emergency_grade: undefined,
+          carrier: ""
         });
       });
       
@@ -193,12 +207,19 @@ export const getKPIs = () => {
   
   return {
     totalShipments: shipmentMetrics.totalShipments,
-    totalWeight: shipmentData.reduce((sum, item) => sum + item.weight_kg, 0),
-    totalVolume: shipmentData.reduce((sum, item) => sum + item.volume_cbm, 0),
+    totalWeight: shipmentData.reduce((sum, item) => sum + Number(item.weight_kg), 0),
+    totalVolume: shipmentData.reduce((sum, item) => sum + Number(item.volume_cbm), 0),
     avgCostPerKg: shipmentMetrics.shipmentStatusCounts.completed > 0 
       ? shipmentData.reduce((sum, shipment) => {
-          const avgCost = Object.values(shipment.forwarder_quotes).reduce((a, b) => a + b, 0) / 
-            (Object.keys(shipment.forwarder_quotes).length || 1);
+          const avgCost = (shipment.forwarder_quotes ? 
+            Object.values(shipment.forwarder_quotes).reduce(
+              (sum: number, quote: unknown) => {
+                const num = typeof quote === 'number' ? quote : Number(quote);
+                return sum + (isFinite(num) ? num : 0);
+              }, 
+              0
+            ) : 0) / 
+            Math.max(1, Object.keys(shipment.forwarder_quotes || {}).length);
           return sum + avgCost;
         }, 0) / shipmentMetrics.shipmentStatusCounts.completed
       : 0,
@@ -213,7 +234,22 @@ export const getKPIs = () => {
       sea: shipmentMetrics.shipmentsByMode['Sea'] 
         ? (shipmentMetrics.shipmentsByMode['Sea'] / shipmentMetrics.totalShipments) * 100 
         : 0
-    }
+    },
+    onTimeRate: shipmentMetrics.shipmentStatusCounts.completed > 0 
+      ? (shipmentMetrics.shipmentStatusCounts.completed / shipmentMetrics.totalShipments) * 100 
+      : 0,
+    disruptionProbabilityScore: shipmentMetrics.disruptionProbabilityScore,
+    resilienceScore: shipmentMetrics.resilienceScore,
+    shipmentStatusCounts: shipmentMetrics.shipmentStatusCounts,
+    monthlyTrend: shipmentMetrics.monthlyTrend,
+    shipmentsByMode: shipmentMetrics.shipmentsByMode,
+    delayedVsOnTimeRate: shipmentMetrics.delayedVsOnTimeRate,
+    noQuoteRatio: shipmentMetrics.noQuoteRatio,
+    topForwarder: shipmentMetrics.topForwarder,
+    topCarrier: shipmentMetrics.topCarrier,
+    carrierCount: shipmentMetrics.carrierCount,
+    forwarderPerformance: shipmentMetrics.forwarderPerformance,
+    carrierPerformance: shipmentMetrics.carrierPerformance
   };
 };
 
@@ -257,7 +293,7 @@ export const getTopRoutes = (limit: number = 5): RoutePerformance[] => {
     // Calculate disruption score based on percentage of delayed shipments
     const delayedShipments = shipments.filter(s => 
       s.delivery_status === 'Delayed' || (s.date_of_arrival_destination && 
-      new Date(s.date_of_arrival_destination) > new Date(s.expected_delivery_date || ''))
+      new Date(s.date_of_arrival_destination) > new Date(s.date_of_arrival_destination || ''))
     );
     
     // Deterministic disruption score based on delayed percentage
@@ -404,53 +440,93 @@ function deriveForwarderPerformance(dataset: any[]): ForwarderPerformance[] {
   return Array.from(forwarderMap.entries())
     .filter(([name, _]) => name && name !== 'Hand carried' && name !== 'UNHAS')
     .map(([name, shipments]) => {
-      const totalShipments = shipments.length;
-      
-      // Calculate average transit days
-      const completedShipments = shipments.filter(s => 
+      const total = shipments.length;
+      const completed = shipments.filter(s => 
         s.delivery_status === 'Delivered' && s.date_of_collection && s.date_of_arrival_destination
       );
       
-      const transitTimes = completedShipments.map(s => {
+      const transitDays = completed.map(s => {
         const collectionDate = new Date(s.date_of_collection);
         const arrivalDate = new Date(s.date_of_arrival_destination);
-        return (arrivalDate.getTime() - collectionDate.getTime()) / (1000 * 60 * 60 * 24); // days
+        return (arrivalDate.getTime() - collectionDate.getTime()) / (1000 * 60 * 60 * 24);
       });
       
-      const avgTransitDays = transitTimes.length > 0 
-        ? transitTimes.reduce((sum, days) => sum + days, 0) / transitTimes.length 
+      const avgTransitDays = transitDays.length > 0 
+        ? transitDays.reduce((sum, days) => sum + days, 0) / transitDays.length 
         : 0;
       
-      // Calculate reliability score based on on-time rate
-      const onTimeRate = completedShipments.length / Math.max(totalShipments, 1);
+      const onTimeRate = completed.length / Math.max(total, 1);
       const reliabilityScore = Math.min(1, Math.max(0, onTimeRate));
       
-      // Calculate costs
-      const costPerKgValues = shipments
+      const costPerKg = shipments
         .filter(s => s.weight_kg > 0 && s.forwarder_quotes && s.forwarder_quotes[name.toLowerCase()])
         .map(s => s.forwarder_quotes[name.toLowerCase()] / s.weight_kg);
       
-      const avgCostPerKg = costPerKgValues.length > 0
-        ? costPerKgValues.reduce((sum, cost) => sum + cost, 0) / costPerKgValues.length
+      const avgCostPerKg = costPerKg.length > 0
+        ? costPerKg.reduce((sum, cost) => sum + cost, 0) / costPerKg.length
         : 0;
         
-      // Calculate normalized scores for TOPSIS (higher is better)
       const costScore = avgCostPerKg > 0 ? 1 / avgCostPerKg : 0;
       const timeScore = avgTransitDays > 0 ? 1 / avgTransitDays : 0;
       
       return {
         name,
-        totalShipments,
+        total,
         avgCostPerKg,
         avgTransitDays,
-        onTimeRate,
+        shipments,
+        score: calculateForwarderScore(shipments),
+        reliability: calculateReliability(shipments),
+        onTimeRate: calculateOnTimeRate(shipments),
         reliabilityScore,
         costScore,
         timeScore,
-        deepScore: (reliabilityScore + costScore + timeScore) / 3 * 100,
-        id: name.toLowerCase().replace(/\s+/g, '_')
-      };
+        deepScore: calculateDeepScore(shipments),
+        id: uuidv4()
+      } as unknown as ForwarderPerformance;
     });
+}
+
+// Calculation Utilities
+function calculateForwarderScore(shipments: Shipment[]): number {
+  const completed = shipments.filter(s => s.delivery_status === 'Delivered').length;
+  const total = shipments.length;
+  const reliability = total > 0 ? completed / total : 0;
+  
+  const avgCost = shipments.reduce((sum, s) => {
+    const quotes = s.forwarder_quotes ? Object.values(s.forwarder_quotes) : [];
+    const avg = quotes.length ? quotes.reduce((a, b) => a + Number(b), 0) / quotes.length : 0;
+    return sum + avg;
+  }, 0) / Math.max(1, shipments.length);
+
+  return (reliability * 0.6) + ((1 / avgCost) * 0.4);
+}
+  
+function calculateReliability(shipments: Shipment[]): number {
+  const completed = shipments.filter(s => s.delivery_status === 'Delivered').length;
+  return shipments.length > 0 ? completed / shipments.length : 0;
+}
+
+function calculateOnTimeRate(shipments: Shipment[]): number {
+  const onTime = shipments.filter(s => 
+    s.delivery_status === 'Delivered' && 
+    s.date_of_arrival_destination && 
+    s.date_of_greenlight_to_pickup &&
+    new Date(s.date_of_arrival_destination) <= new Date(s.date_of_greenlight_to_pickup)
+  ).length;
+  
+  return shipments.length > 0 ? onTime / shipments.length : 0;
+}
+
+function calculateDeepScore(shipments: Shipment[]): number {
+  const reliability = calculateReliability(shipments);
+  const onTimeRate = calculateOnTimeRate(shipments);
+  const costScore = 1 / (shipments.reduce((sum, s) => {
+    const quotes = s.forwarder_quotes ? Object.values(s.forwarder_quotes) : [];
+    return sum + (quotes.length ? Math.min(...quotes.map(Number)) : 0);
+  }, 0) / Math.max(1, shipments.length));
+  
+  return (reliability * 0.4) + (onTimeRate * 0.3) + (costScore * 0.3);
 }
 
 // Legacy wrapper for the forwarder rankings API

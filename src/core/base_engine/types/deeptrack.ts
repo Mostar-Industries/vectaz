@@ -1,5 +1,6 @@
 
 export interface Shipment {
+  [x: string]: any;
   date_of_collection: string;
   request_reference: string;
   cargo_description: string;

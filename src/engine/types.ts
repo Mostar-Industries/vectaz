@@ -3,6 +3,10 @@
  */
 
 export interface MoScriptResult {
+  allScores: any;
+  rawTopsisScores: any;
+  greyGrades: any;
+  executionTime: number;
   topAlternative: {
     name: string;
     score: number;

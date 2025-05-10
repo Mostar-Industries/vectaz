@@ -4,6 +4,8 @@ import { CriteriaWeights } from '@/core/engine';
 
 // Define the state store interface
 interface BaseDataStore {
+  ready: any;
+  shipments: any;
   // Data state
   shipmentData: Shipment[];
   isDataLoaded: boolean;
@@ -29,6 +31,8 @@ interface BaseDataStore {
 
 // Create the store
 export const useBaseDataStore = create<BaseDataStore>((set, get) => ({
+      ready: false,
+  shipments: [],
   // Initial state
   shipmentData: [],
   isDataLoaded: false,

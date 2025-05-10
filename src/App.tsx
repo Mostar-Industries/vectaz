@@ -9,10 +9,10 @@ import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
 import DeepCALPage from "./pages/DeepCALPage";
 import LoadingScreen from "./components/LoadingScreen";
-import { isSystemBooted, bootApp } from "./init/boot";
-import { useBaseDataStore } from "@/store/baseState";
-import { Shipment } from "./types/deeptrack";
+import { bootApp, isSystemBooted } from "./init/boot";
+import { useBaseDataStore } from "./store/baseState";
 import FloatingDeepTalk from "./components/FloatingDeepTalk";
+import DriftDashboard from '@/components/analytics/DriftDashboard';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -23,7 +23,11 @@ function App() {
   const { setShipmentData } = useBaseDataStore();
 
   useEffectOriginal(() => {
-    // Load sample data faster for demonstration
+    console.log('[Boot Diagnostics]', {
+      storeReady: useBaseDataStore.getState().ready,
+      hasShipments: useBaseDataStore.getState().shipments.length > 0
+    });
+
     const initializeApp = async () => {
       console.log("Initializing application...");
       
@@ -109,6 +113,7 @@ function App() {
                 <Route path="/" element={<IndexPage />} />
                 <Route path="/forms" element={<FormsPage />} />
                 <Route path="/deepcal" element={<DeepCALPage />} />
+                <Route path="/drift-dashboard" element={<DriftDashboard />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

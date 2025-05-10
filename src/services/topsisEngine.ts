@@ -1,3 +1,13 @@
+/**
+ * @deprecated TOPSIS functionality has been consolidated into DecisionCore.ts
+ * Please use the unified optimization engine instead:
+ * import { DecisionCore } from '@/core/DecisionCore';
+ * 
+ * The new implementation includes enhanced:
+ * - Weight normalization
+ * - Multi-criteria analysis
+ * - Quantum optimization integration
+ */
 
 // TOPSIS (Technique for Order of Preference by Similarity to Ideal Solution) Engine
 // Implements the core decision-making algorithm using TOPSIS methodology

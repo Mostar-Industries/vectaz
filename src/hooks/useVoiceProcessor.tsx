@@ -1,9 +1,8 @@
 
-import { useState } from 'react';
-import { useToast } from "@/hooks/use-toast";
-import { useBaseDataStore } from '@/store/baseState';
-import { analyzeShipmentData } from '@/utils/analyticsUtils';
-import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils'; // Assuming this path is correct based on context
+import { useState } from 'react'; import { useToast } from "@/hooks/use-toast";
+import { useBaseDataStore } from "@/store/baseState";
+import { analyzeShipmentData } from "@/utils/analyticsUtils";
+import { blobToBase64, enhanceWithNigerianExpressions } from "@/utils/audioUtils"; // Assuming this path is correct based on context
 
 // Voice system removed. Replace with your new implementation.
 export const useVoiceProcessor = () => {
@@ -121,8 +120,10 @@ export const useVoiceProcessor = () => {
   return {
     processVoiceQuery,
     isProcessing,
- browserSpeech
+    browserSpeech
   };
-}               
+
+};
+
 
 export default useVoiceProcessor;

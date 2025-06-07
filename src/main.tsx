@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { ThemeProvider } from './ThemeProvider';    
-import { VoiceSettingsProvider } from './VoiceSettingsContext';
+import { VoiceSettingsProvider } from './context/VoiceSettingsContext';
 import React from 'react';
 import TestComp from '@/components/test/TestComp';
 

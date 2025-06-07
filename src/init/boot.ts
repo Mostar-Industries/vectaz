@@ -91,7 +91,7 @@ export const initDecisionEngine = async (): Promise<boolean> => {
   return true;
 };
 
-export async function bootApp() {
+export async function bootApp(): Promise<boolean> {
   if (_systemBooted) return true;
 
   try {
@@ -101,7 +101,7 @@ export async function bootApp() {
     }
     
     // Initialize configuration
-    const configInitialized = await initializeConfiguration();
+    const configInitialized: boolean = await initializeConfiguration();
     if (!configInitialized) throw new Error('Configuration initialization failed');
 
     // Load reference data
@@ -139,8 +139,13 @@ export async function bootApp() {
     useShipmentStore.getState().setReady(true);
     _systemBooted = true;
     return true;
-  } catch (err) {
-    console.error('Boot failed:', err);
+  } catch (err: unknown) {
+    // Enhanced error logging for better diagnostics
+    if (err instanceof Error) {
+      console.error('Boot failed:', err.message, err.stack);
+    } else {
+      console.error('Boot failed:', typeof err, JSON.stringify(err));
+    }
     return false;
   }
 }
@@ -168,7 +173,7 @@ async function handleOfflineBoot() {
 // Boot with data
 export async function boot(
   options: BootOptions,
-  data: any[] = []
+  data: unknown[] = []
 ): Promise<boolean> {
   try {
     console.log(`Booting with ${data.length} rows from ${options.file}`);
@@ -203,10 +208,17 @@ export async function boot(
     
     _systemBooted = true;
     return true;
-  } catch (error) {
-    console.error('Boot failed:', error);
-    if (options.onFail) {
-      options.onFail(error instanceof Error ? error : new Error(String(error)));
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('Boot failed:', error.message, error.stack);
+      if (options.onFail) {
+        options.onFail(error);
+      }
+    } else {
+      console.error('Boot failed:', typeof error, JSON.stringify(error));
+      if (options.onFail) {
+        options.onFail(new Error(String(error)));
+      }
     }
     return false;
   }

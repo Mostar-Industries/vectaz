@@ -1,8 +1,18 @@
 import { useEffect, useState } from 'react';
 import useChatterboxVoice from '@/hooks/useChatterboxVoice';
+import styles from './VoiceNarrator.module.css';
 
 // Ultra-futuristic Chatterbox integration
-const VoiceNarrator = ({ result }: { result: any }) => {
+interface VoiceNarratorProps {
+  result: {
+    topAlternative: {
+      name: string;
+      score: number;
+    };
+  };
+}
+
+const VoiceNarrator = ({ result }: VoiceNarratorProps) => {
   const { speak, isSpeaking, error } = useChatterboxVoice();
 
   const getTone = (score) => {
@@ -19,34 +29,18 @@ const VoiceNarrator = ({ result }: { result: any }) => {
   }, [result, speak]);
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '1rem',
-      left: '1rem',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      padding: '0.5rem',
-      background: '#1e293b',
-      borderRadius: '0.5rem',
-      boxShadow: '0 4px 24px 0 #00FFD1AA',
-      zIndex: 1000
-    }}>
+    <div className={styles.voiceNarrator}>
       {isSpeaking && (
-        <div style={{
-          width: '1.5rem',
-          height: '1.5rem',
-          borderRadius: '50%',
-          background: getTone(result?.topAlternative?.score || 0).color,
-          animation: 'pulse 1.5s infinite',
-          boxShadow: '0 0 12px 2px #00FFD1',
-        }} />
+        <div
+          className={styles.pulse}
+          style={{ background: getTone(result?.topAlternative?.score || 0).color }}
+        />
       )}
-      <span style={{ color: '#00FFD1', fontWeight: 700, fontSize: '1rem' }}>
+      <span className={styles.narrationName}>
         {result?.topAlternative?.name} narration
       </span>
       {error && (
-        <span style={{ color: '#f87171', fontSize: '0.9rem', marginLeft: '0.5rem' }}>
+        <span className={styles.voiceError}>
           Voice error: {error}
         </span>
       )}

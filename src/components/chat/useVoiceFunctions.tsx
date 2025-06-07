@@ -300,7 +300,7 @@ export const useVoiceFunctions = () => {
     currentPersonality,
     currentModel,
     currentMessageId,
-    useBrowserSpeech
+    browserSpeech
   };
 };
 

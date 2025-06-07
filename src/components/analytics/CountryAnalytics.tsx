@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card, CardContent, CardHeader, CardTitle
 } from '@/components/ui/card';
@@ -8,6 +8,10 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
 import { Globe, MapPin, Clock, X, Flag, Brain } from 'lucide-react';
+import CalculationResults, { NeutrosophicJudgment, DecisionMatrix } from '../decision-matrix/CalculationResults';
+import { useVoice } from '@/hooks/useVoice';
+import { useVoiceSettings } from '@/context/VoiceSettingsContext';
+import { useAnalyticsNarration } from './useAnalyticsNarration';
 
 const VALID_FORWARDERS = [
   'Kuehne Nagel', 'Freight in Time', 'Scan Global', 'Siginon Logistics',
@@ -21,6 +25,11 @@ interface CountryAnalyticsProps {
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A288E3', '#FF6B6B'];
 
 const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
+  const [calculationResult, setCalculationResult] = useState<null | any>(null);
+  const { speak } = useVoice();
+  const { personality } = useVoiceSettings();
+  const { narrateAnalytics } = useAnalyticsNarration();
+
   const topCountries = countries.slice(0, 6);
 
   const volumeData = topCountries.map(c => ({ name: c.country, shipments: c.totalShipments }));
@@ -53,6 +62,35 @@ const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
     country: c.country,
     zScore: stdDev ? ((c.avgCostPerRoute - meanCost) / stdDev).toFixed(2) : '0.00'
   })).sort((a, b) => parseFloat(b.zScore) - parseFloat(a.zScore));
+
+  // Sample judgments for demonstration
+  const sampleJudgments: NeutrosophicJudgment[] = [
+    { truth: 0.8, indeterminacy: 0.1, falsity: 0.1 }, // Cost vs Time
+    { truth: 0.6, indeterminacy: 0.2, falsity: 0.2 }, // Cost vs Reliability
+    { truth: 0.4, indeterminacy: 0.3, falsity: 0.3 }  // Time vs Reliability
+  ];
+
+  // Sample decision matrix
+  const sampleMatrix: DecisionMatrix = [
+    [0.2, 0.6, 0.9], // Forwarder A
+    [0.3, 0.5, 0.7], // Forwarder B
+    [0.1, 0.8, 0.6]  // Forwarder C
+  ];
+
+  const runCalculations = () => {
+    const result = {
+      method: 'Neutrosophic AHP-TOPSIS',
+      timestamp: new Date().toISOString(),
+      scores: [0.625, 0.362, 0.691] // Sample results
+    };
+    setCalculationResult(result);
+  };
+
+  useEffect(() => {
+    if (countries) {
+      narrateAnalytics(countries);
+    }
+  }, [countries, narrateAnalytics]);
 
   return (
     <div className="space-y-6">
@@ -103,6 +141,27 @@ const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
               <p className="text-sm text-muted-foreground">{countries.sort((a, b) => b.deliveryFailureRate - a.deliveryFailureRate)[0]?.country} leads in failures. Evaluate local partners and customs engagement strategies.</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Forwarder Comparison</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <button 
+            onClick={runCalculations}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          >
+            Run Forwarder Analysis
+          </button>
+          
+          <CalculationResults 
+            calculationResult={calculationResult}
+            judgments={sampleJudgments}
+            decisionMatrix={sampleMatrix}
+            benefitCriteria={[2]} // Index of benefit criteria (Reliability)
+          />
         </CardContent>
       </Card>
     </div>

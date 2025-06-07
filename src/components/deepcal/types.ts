@@ -1,4 +1,6 @@
 
+import { VoicePersonality } from '@/types/voice';
+
 export interface QuoteData {
   forwarder: string;
   quote: number;
@@ -20,6 +22,6 @@ export interface WeightFactors {
 }
 
 export interface DeepCALProps {
-  voicePersonality?: string;
+  voicePersonality?: VoicePersonality;
   voiceEnabled?: boolean;
 }

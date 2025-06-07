@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import { getForwarderRankings } from '@/services/deepEngine';
 import DeepCALSpinner from './DeepCALSpinner';
-import { speakText } from './deepcal/VoiceService';
+import { speakText } from '@/services/voice/VoiceService';
 import QuoteInputForm from './deepcal/QuoteInputForm';
 import AnalysisResults from './deepcal/AnalysisResults';
 import { QuoteData, ForwarderScore, WeightFactors, DeepCALProps } from './deepcal/types';
+import { VoicePersonality } from '@/types/voice';
 
 const DeepCALSection: React.FC<DeepCALProps> = ({ 
-  voicePersonality = 'sassy',
+  voicePersonality = 'sassy' as VoicePersonality,
   voiceEnabled = true 
 }) => {
   const { shipmentData } = useBaseDataStore();
@@ -59,9 +60,13 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
         // Speak a success message when analysis is complete
         if (filteredRankings.length > 0) {
           const topForwarder = filteredRankings[0]?.forwarder || "Unknown";
-          speakText(`I have completed my analysis. Based on your preferences, ${topForwarder} is the optimal choice for your shipment from ${sourceCountry} to ${destCountry}.`, voicePersonality, voiceEnabled);
+          if (voiceEnabled) {
+            speakText(`I have completed my analysis. Based on your preferences, ${topForwarder} is the optimal choice for your shipment from ${sourceCountry} to ${destCountry}.`, voicePersonality);
+          }
         } else {
-          speakText("Analysis complete. I couldn't find a perfect match, but I've ranked the options based on your criteria.", voicePersonality, voiceEnabled);
+          if (voiceEnabled) {
+            speakText("Analysis complete. I couldn't find a perfect match, but I've ranked the options based on your criteria.", voicePersonality);
+          }
         }
         
       } catch (error) {
@@ -69,7 +74,9 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
         setLoading(false);
         
         // Speak an error message
-        speakText("I encountered an error while analyzing the quotes. Please try again or check your input data.", voicePersonality, voiceEnabled);
+        if (voiceEnabled) {
+          speakText("I encountered an error while analyzing the quotes. Please try again or check your input data.", voicePersonality);
+        }
       }
     }, 2000);
   };
@@ -78,13 +85,27 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
     setShowResults(false);
   };
 
-  // Speak welcome message on component mount
+  // Dynamic voice feedback based on component state
   useEffect(() => {
     if (voiceEnabled) {
-      const welcomeMessage = "Welcome to DeepCAL Optimizer. Enter your freight quotes, and I'll analyze them for the best logistics options.";
-      speakText(welcomeMessage, voicePersonality, voiceEnabled);
+      if (!showResults && !loading) {
+        // Welcome message when first entering the component
+        const welcomeMessage = "Welcome to DeepCAL Optimizer. Enter your freight quotes, and I'll analyze them for the best logistics options.";
+        speakText(welcomeMessage, voicePersonality);
+      } else if (showResults && results.length > 0) {
+        // Speak a detailed analysis when viewing results
+        const analysisMessage = `Analysis complete. I've identified ${results.length} suitable options for your ${weightKg}kg shipment from ${source} to ${destination}.`;
+        speakText(analysisMessage, voicePersonality);
+      }
     }
-  }, [voiceEnabled, voicePersonality]);
+  }, [voiceEnabled, voicePersonality, showResults, loading, results.length]);
+  
+  // Speak feedback when user returns to the form
+  useEffect(() => {
+    if (!showResults && quotes.length > 0 && voiceEnabled) {
+      speakText("Ready for a new analysis. Please enter your updated shipping requirements.", voicePersonality);
+    }
+  }, [showResults, quotes.length, voiceEnabled, voicePersonality]);
 
   return (
     <div className="container mx-auto py-8 max-w-7xl relative z-20">

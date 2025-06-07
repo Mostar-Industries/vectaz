@@ -5,7 +5,7 @@ import { useBaseDataStore } from '@/store/baseState';
 import { analyzeShipmentData } from '@/utils/analyticsUtils';
 import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils';
 
-export const useVoiceProcessor = () => {
+// Voice system removed. Replace with your new implementation.
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { shipmentData } = useBaseDataStore();

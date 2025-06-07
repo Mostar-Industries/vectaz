@@ -6,7 +6,7 @@ import { Mic, Volume2, VolumeX, RotateCcw, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SpeechToSpeechInput from "./analytics/SpeechToSpeechInput";
 import useDeepTalkHandler from "./analytics/DeepTalkHandler";
-import { useVoiceFunctions } from "./chat/useVoiceFunctions";
+import useChatterboxVoice from "@/hooks/useChatterboxVoice";
 
 interface SpeechToSpeechInterfaceProps {
   className?: string;
@@ -14,25 +14,18 @@ interface SpeechToSpeechInterfaceProps {
 
 const SpeechToSpeechInterface: React.FC<SpeechToSpeechInterfaceProps> = ({ className }) => {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [useElevenLabs, setUseElevenLabs] = useState(true);
   const [transcript, setTranscript] = useState<string>("");
   const [response, setResponse] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { handleSpeechInput } = useDeepTalkHandler();
-  const { speakResponse } = useVoiceFunctions();
+  const { speak, isSpeaking, error } = useChatterboxVoice();
   
   // Load settings from localStorage on mount
   useEffect(() => {
     const savedVoiceEnabled = localStorage.getItem('deepcal-voice-enabled');
-    const savedUseElevenLabs = localStorage.getItem('deepcal-use-elevenlabs');
-    
     if (savedVoiceEnabled !== null) {
       setVoiceEnabled(savedVoiceEnabled === 'true');
-    }
-    
-    if (savedUseElevenLabs !== null) {
-      setUseElevenLabs(savedUseElevenLabs !== 'false');
     }
   }, []);
   
@@ -41,26 +34,13 @@ const SpeechToSpeechInterface: React.FC<SpeechToSpeechInterfaceProps> = ({ class
     const newValue = !voiceEnabled;
     setVoiceEnabled(newValue);
     localStorage.setItem('deepcal-voice-enabled', String(newValue));
-    
     toast({
       title: newValue ? "Voice Enabled" : "Voice Disabled",
       description: newValue ? "DeepCAL will speak responses." : "DeepCAL voice has been muted.",
       duration: 3000
     });
   };
-  
-  // Toggle between ElevenLabs and browser speech
-  const toggleVoiceService = () => {
-    const newValue = !useElevenLabs;
-    setUseElevenLabs(newValue);
-    localStorage.setItem('deepcal-use-elevenlabs', String(newValue));
-    
-    toast({
-      title: newValue ? "Premium Voice Enabled" : "Token-Saving Mode Enabled",
-      description: newValue ? "Using ElevenLabs premium voice service." : "Using browser's speech synthesis to save tokens.",
-      duration: 3000
-    });
-  };
+
   
   // Process the speech input
   const handleTranscriptReceived = async (text: string) => {
@@ -74,7 +54,7 @@ const SpeechToSpeechInterface: React.FC<SpeechToSpeechInterfaceProps> = ({ class
       
       // Speak the response if voice is enabled
       if (voiceEnabled) {
-        speakResponse(responseText);
+        speak(responseText);
       }
     } catch (error) {
       console.error("Error processing speech:", error);
@@ -120,18 +100,15 @@ const SpeechToSpeechInterface: React.FC<SpeechToSpeechInterfaceProps> = ({ class
             {voiceEnabled ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
           </Button>
           
-          {/* Token-saving toggle button */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleVoiceService}
-            className={`h-10 w-10 rounded-full 
-              ${useElevenLabs ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50' : 'bg-gray-800/50 text-gray-400 border-gray-700'}`}
-            title={useElevenLabs ? "Use token-saving voice" : "Use premium voice"}
-            disabled={!voiceEnabled}
-          >
-            <DollarSign className="h-5 w-5" />
-          </Button>
+          {/* Chatterbox status indicator */}
+          {isSpeaking && (
+            <div className="h-10 w-10 rounded-full bg-cyan-400/20 border border-cyan-400 flex items-center justify-center animate-pulse" title="Speaking...">
+              <Volume2 className="h-5 w-5 text-cyan-400 animate-pulse" />
+            </div>
+          )}
+          {error && (
+            <div className="text-red-500 text-xs ml-2">Voice error: {error}</div>
+          )}
           
           {/* Reset button */}
           <Button

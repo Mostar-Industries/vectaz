@@ -1,41 +1,50 @@
 import { useState, useEffect } from 'react';
+import { voiceService } from '@/services/voice/VoiceService';
+import { useVoiceSettings } from '@/context/VoiceSettingsContext';
 
-export const useVoice = () => {
-  const [isMuted, setIsMuted] = useState(false);
-  
-  const speak = (text: string, lang = "en-NG", rate = 1.2, pitch = 1.3) => {
-    if (isMuted) return;
-    
-    const synth = window.speechSynthesis;
-    synth.cancel();
+// Voice system removed. Replace with your new implementation.
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { voice } = useVoiceSettings();
 
-    // Try to get an African voice first
-    const voices = synth.getVoices();
-    const africanVoice = voices.find(v => 
-      v.lang === 'en-NG' || 
-      v.lang === 'en-ZA' ||
-      v.name.includes('Africa')
-    );
+  const speak = async (text: string) => {
+    try {
+      setIsSpeaking(true);
+      setError(null);
+      
+      const audioUrl = await voiceService.synthesize(text, voice);
+      
+      if (!audioUrl) {
+        throw new Error('Failed to generate audio');
+      }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = rate; 
-    utterance.pitch = pitch;
-    if (africanVoice) utterance.voice = africanVoice;
-
-    synth.speak(utterance);
+      const audio = new Audio(audioUrl);
+      audio.onended = () => setIsSpeaking(false);
+      audio.onerror = () => {
+        setIsSpeaking(false);
+        setError('Audio playback failed');
+      };
+      
+      await audio.play();
+    } catch (err) {
+      setIsSpeaking(false);
+      setError(err instanceof Error ? err.message : 'Voice synthesis failed');
+      console.error('useVoice error:', err);
+    }
   };
 
-  const toggleMute = () => setIsMuted(!isMuted);
-
-  // Clean up speech on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (typeof window !== "undefined") {
-        window.speechSynthesis.cancel();
-      }
+      setIsSpeaking(false);
+      setError(null);
     };
   }, []);
 
-  return { speak, isMuted, toggleMute };
-};
+  return { 
+    speak, 
+    isSpeaking, 
+    error,
+    clearError: () => setError(null)
+  };
+}

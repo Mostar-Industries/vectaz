@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import DeepCALSection from '@/components/DeepCALSection';
 import { useBaseDataStore } from '@/store/baseState';
 import DeepCALSpinner from '@/components/DeepCALSpinner';
+import { VoicePersonality } from '@/types/voice';
 
 const DeepCALPage = () => {
   const [loadingVoice, setLoadingVoice] = useState(true);
   const { isDataLoaded } = useBaseDataStore();
-  const [voicePersonality, setVoicePersonality] = useState('sassy');
+  const [voicePersonality, setVoicePersonality] = useState<VoicePersonality>('sassy');
   const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   useEffect(() => {
@@ -17,8 +18,8 @@ const DeepCALPage = () => {
     
     // Get voice settings from localStorage if available
     const savedPersonality = localStorage.getItem('deepcal-voice-personality');
-    if (savedPersonality) {
-      setVoicePersonality(savedPersonality);
+    if (savedPersonality && (['nigerian', 'sassy', 'calm', 'excited'] as VoicePersonality[]).includes(savedPersonality as VoicePersonality)) {
+      setVoicePersonality(savedPersonality as VoicePersonality);
     }
     
     const voiceEnabledSetting = localStorage.getItem('deepcal-use-elevenlabs');

@@ -1,70 +1,6 @@
+import { Message } from "./MessageItem";
 
-import { useState, useRef, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { createClient } from '@supabase/supabase-js';
-import { getHumorResponse } from './useDeepCalHumor';
-import { Message } from './MessageItem';
-
-export const useVoiceFunctions = (p0: string) => {
-  const { toast } = useToast();
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [audioQueue, setAudioQueue] = useState<{ url: string, messageId?: string }[]>([]);
-  const [currentPersonality, setCurrentPersonality] = useState<string>('sassy');
-  const [currentModel, setCurrentModel] = useState<string>('eleven_multilingual_v2');
-  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  
-  // Create audio element on component mount
-  useEffect(() => {
-    audioRef.current = new Audio();
-    
-    // Set up event listeners
-    audioRef.current.onended = () => {
-      setIsSpeaking(false);
-      setCurrentMessageId(null);
-      playNextInQueue();
-    };
-    
-    audioRef.current.onerror = (e) => {
-      console.error("Audio playback error:", e);
-      setIsSpeaking(false);
-      setCurrentMessageId(null);
-      toast({
-        title: "Voice Error",
-        description: "Could not play the voice response. Please try again.",
-        variant: "destructive",
-      });
-      playNextInQueue();
-    };
-    
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-    };
-  }, [toast]);
-  
-  // Process the audio queue
-  const playNextInQueue = () => {
-    if (audioQueue.length > 0 && audioRef.current) {
-      const nextAudio = audioQueue[0];
-      setAudioQueue(prev => prev.slice(1));
-      
-      if (nextAudio.messageId) {
-        setCurrentMessageId(nextAudio.messageId);
-      }
-      
-      audioRef.current.src = nextAudio.url;
-      audioRef.current.play()
-        .then(() => setIsSpeaking(true))
-        .catch(error => {
-          console.error("Failed to play audio:", error);
-          setIsSpeaking(false);
-          setCurrentMessageId(null);
-          
-          // Try next in queue if this one fails
-          playNextInQueue();
+// All voice logic is now handled by useChatterboxVoice. This file is deprecated and should not be used.
         });
     }
   };
@@ -86,7 +22,7 @@ export const useVoiceFunctions = (p0: string) => {
       const voices = window.speechSynthesis.getVoices();
       
       // Find an appropriate voice
-      let selectedVoice;
+      let selectedVoice: SpeechSynthesisVoice;
       if (personality === 'nigerian') {
         // Try to find an African or Nigerian voice if available
         selectedVoice = voices.find(voice => 
@@ -185,15 +121,15 @@ export const useVoiceFunctions = (p0: string) => {
     }
     
     // Default to current model
-    return currentModel;
+ return setCurrentModel;
   };
   
   // Play audio for a specific message
   const playMessageAudio = (message: Message) => {
-    if (!message.text) return false;
+ if (!message || !message.text) return false;
     
     // Already speaking this message
-    if (isSpeaking && currentMessageId === message.id) {
+    if (setIsSpeaking && setCurrentMessageId === message.id) {
       return true;
     }
     
@@ -278,7 +214,7 @@ export const useVoiceFunctions = (p0: string) => {
       setAudioQueue(prev => [...prev, { url: audioUrl, messageId }]);
       
       // If nothing is playing, start playing
-      if (!isSpeaking) {
+      if (!setIsSpeaking) {
         playNextInQueue();
       }
       
@@ -337,3 +273,38 @@ export const useVoiceFunctions = (p0: string) => {
 };
 
 export default useVoiceFunctions;
+function setIsSpeaking(_arg0: boolean) {
+  throw new Error("Function not implemented.");
+}
+
+function setCurrentMessageId(_arg0: null) {
+  throw new Error("Function not implemented.");
+}
+
+function toast(_arg0: { title: string; description: string; variant: string; }) {
+  throw new Error("Function not implemented.");
+}
+
+function getHumorResponse(_text: string) {
+  throw new Error("Function not implemented.");
+}
+
+function setCurrentPersonality(_personality: string) {
+  throw new Error("Function not implemented.");
+}
+
+function setCurrentModel(_model: string) {
+  throw new Error("Function not implemented.");
+}
+
+function createClient(_supabaseUrl: string, _supabaseAnonKey: string, _arg2: { auth: { persistSession: boolean; }; }) {
+  throw new Error("Function not implemented.");
+}
+
+function setAudioQueue(_arg0: (prev: any) => any[]) {
+  throw new Error("Function not implemented.");
+}
+
+function playNextInQueue() {
+  throw new Error("Function not implemented.");
+}

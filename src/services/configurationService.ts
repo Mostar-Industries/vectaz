@@ -1,10 +1,30 @@
-
 import { toast } from '@/hooks/use-toast';
 import { getNewPath, fetchJsonData } from '@/utils/pathMapping';
+import { safeApiCall } from '../utils/connectionUtils';
+import { voiceService } from '@/services/voice/VoiceService';
 
 // Configuration service state
 let initialized = false;
 const configCache: Record<string, any> = {};
+
+const API_ENDPOINTS = {
+  LOCAL: {
+    BASE_URL: 'http://localhost:3000',
+    HEALTH_CHECK: '/health',
+    FALLBACK_PORT: 8081
+  },
+  EXTERNAL: {
+    LOVABLE_DEV: 'https://api.lovable.dev',
+    GPT_ENGINEER: 'https://api.gptengineer.app'
+  }
+};
+
+export interface VoiceServiceConfig {
+  defaultPersonality: 'nigerian' | 'sassy' | 'calm' | 'excited';
+  fallbackToLocal: boolean;
+  volume: number;
+  rate: number;
+}
 
 /**
  * Initializes the configuration service, loading necessary configuration files
@@ -26,6 +46,9 @@ export const initializeConfiguration = async (): Promise<boolean> => {
     
     // Load schema files
     await preloadSchemas();
+    
+    // Initialize services with proper endpoint handling
+    await initializeServices();
     
     initialized = true;
     console.log('Configuration service initialized successfully');
@@ -59,6 +82,60 @@ const preloadSchemas = async (): Promise<void> => {
     console.error('Failed to preload schemas:', error);
   }
 };
+
+/**
+ * Initializes services with proper endpoint handling
+ */
+export async function initializeServices() {
+  // Check local service first
+  const isLocalRunning = await checkLocalService(3000);
+  
+  if (!isLocalRunning) {
+    console.warn('Local service not running on port 3000 - using fallback');
+    API_ENDPOINTS.LOCAL.BASE_URL = `http://localhost:${API_ENDPOINTS.LOCAL.FALLBACK_PORT}`;
+  }
+
+  // Configure external services with retry logic
+  try {
+    await Promise.all([
+      checkServiceHealth(API_ENDPOINTS.EXTERNAL.LOVABLE_DEV, 'Lovable.dev'),
+      checkServiceHealth(API_ENDPOINTS.EXTERNAL.GPT_ENGINEER, 'GPT Engineer')
+    ]);
+  } catch (error) {
+    console.error('Service initialization error:', error);
+  }
+}
+
+async function checkServiceHealth(url: string, serviceName: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${url}/health`, {
+      method: 'GET',
+      timeout: 1000
+    });
+    
+    if (response.status !== 200) {
+      voiceService.speak(`${serviceName} service is experiencing issues`);
+    }
+    
+    return response.status === 200;
+  } catch (error) {
+    voiceService.speak(`Warning: ${serviceName} service is unavailable`);
+    return false;
+  }
+}
+
+// Health check with automatic fallback
+export async function checkLocalService(port: number) {
+  try {
+    const response = await safeApiCall(`http://localhost:${port}/health`, {
+      retries: 1,
+      timeout: 1000
+    });
+    return response.status === 200;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Gets a configuration value by key
@@ -133,6 +210,15 @@ export const validateConfiguration = (): boolean => {
   }
   
   return true;
+};
+
+const DEFAULT_CONFIG = {
+  voice: {
+    defaultPersonality: 'calm',
+    fallbackToLocal: true,
+    volume: 0.8,
+    rate: 1.0
+  } as VoiceServiceConfig
 };
 
 // Auto-initialize on service import

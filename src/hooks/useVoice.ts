@@ -1,30 +1,26 @@
-import { useState, useEffect } from 'react';
-import { voiceService } from '@/services/voice/VoiceService';
-import { useVoiceSettings } from '@/context/VoiceSettingsContext';
-
 // Voice system removed. Replace with your new implementation.
+
+import { voiceService } from "@/services";
+import { useState, useEffect, useMemo } from "react";
+
+export function useVoice() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { voice } = useVoiceSettings();
 
   const speak = async (text: string) => {
     try {
       setIsSpeaking(true);
       setError(null);
-      
-      const audioUrl = await voiceService.synthesize(text, voice);
-      
+      const audioUrl = await voiceService.synthesize(text);
       if (!audioUrl) {
         throw new Error('Failed to generate audio');
       }
-
       const audio = new Audio(audioUrl);
       audio.onended = () => setIsSpeaking(false);
       audio.onerror = () => {
         setIsSpeaking(false);
         setError('Audio playback failed');
       };
-      
       await audio.play();
     } catch (err) {
       setIsSpeaking(false);
@@ -41,10 +37,10 @@ import { useVoiceSettings } from '@/context/VoiceSettingsContext';
     };
   }, []);
 
-  return { 
-    speak, 
-    isSpeaking, 
+  return {
+    speak,
+    isSpeaking,
     error,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
   };
 }

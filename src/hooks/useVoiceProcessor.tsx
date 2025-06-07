@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { useBaseDataStore } from '@/store/baseState';
 import { analyzeShipmentData } from '@/utils/analyticsUtils';
-import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils';
+import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils'; // Assuming this path is correct based on context
 
 // Voice system removed. Replace with your new implementation.
+export const useVoiceProcessor = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { shipmentData } = useBaseDataStore();
@@ -19,7 +20,7 @@ import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils
   };
 
   // Browser's built-in speech synthesis as a fallback
-  const useBrowserSpeech = (text: string, personality: string): void => {
+  const browserSpeech = (text: string, personality: string): void => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       
@@ -78,7 +79,7 @@ import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils
         throw new Error('Voice processing failed');
       }
       
-      let data = await response.json();
+      const data = await response.json();
       
       // Get current settings
       const { personality, useElevenLabs } = getVoiceSettings();
@@ -91,7 +92,7 @@ import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils
       // If we're using the browser's speech synthesis and not ElevenLabs,
       // trigger speech here (this won't be used for response text)
       if (!useElevenLabs) {
-        useBrowserSpeech(data.response, personality);
+ browserSpeech(data.response, personality);
       }
       
       return data.response;
@@ -120,8 +121,8 @@ import { blobToBase64, enhanceWithNigerianExpressions } from '@/utils/audioUtils
   return {
     processVoiceQuery,
     isProcessing,
-    useBrowserSpeech
+ browserSpeech
   };
-};
+}               
 
 export default useVoiceProcessor;

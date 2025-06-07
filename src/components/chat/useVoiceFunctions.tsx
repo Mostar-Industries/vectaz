@@ -1,16 +1,60 @@
 // DEPRECATED: All voice logic is now handled by useChatterboxVoice. This file is obsolete and should not be used or imported anywhere in the application.
 // Remove any references to useVoiceFunctions and migrate to useChatterboxVoice for seamless, ultra-futuristic voice integration.
-      if (!selectedVoice) {
-        selectedVoice = voices.find(voice => 
-          voice.name.toLowerCase().includes('female') || 
-          voice.name.toLowerCase().includes('woman')
-        );
+
+import { useState, useRef } from 'react';
+import { useToast } from "@/hooks/use-toast";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { getHumorResponse } from './useDeepCalHumor';
+
+interface Message {
+  id: string;
+  text: string;
+  sender: 'user' | 'ai';
+  timestamp: Date;
+  personality?: string;
+  model?: string;
+}
+
+interface AudioQueueItem {
+  url: string;
+  messageId?: string;
+}
+
+export const useVoiceFunctions = () => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentPersonality, setCurrentPersonality] = useState('sassy');
+  const [currentModel, setCurrentModel] = useState('eleven_multilingual_v2');
+  const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
+  const [audioQueue, setAudioQueue] = useState<AudioQueueItem[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
+
+  // Get voice personality and settings from localStorage
+  const getVoiceSettings = (): { personality: string, useElevenLabs: boolean } => {
+    return {
+      personality: localStorage.getItem('deepcal-voice-personality') || 'sassy',
+      useElevenLabs: localStorage.getItem('deepcal-use-elevenlabs') !== 'false'
+    };
+  };
+
+  // Browser's built-in speech synthesis as a fallback
+  const browserSpeech = (text: string, personality: string): void => {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
+
+      // Try to find a female voice for consistency with ElevenLabs
+      const femaleVoice = voices.find(voice =>
+        voice.name.toLowerCase().includes('female') ||
+        voice.name.toLowerCase().includes('woman')
+      );
+
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
       }
-      
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-      
+
       // Adjust settings based on personality
       if (personality === 'nigerian') {
         utterance.pitch = 1.2;  // Slightly higher pitch
@@ -32,11 +76,11 @@
         utterance.rate = 1.0;   // Normal speed
       }
       
-      setIsSpeaking(true);
-      
       utterance.onend = () => {
         setIsSpeaking(false);
         setCurrentMessageId(null);
+        // Play next in queue if available
+        playNextInQueue();
       };
       
       utterance.onerror = () => {
@@ -49,6 +93,7 @@
         });
       };
       
+      setIsSpeaking(true);
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -81,22 +126,22 @@
   const determineModel = (text: string): string => {
     // For most cases, use the multilingual model for best quality
     if (text.length > 200) {
-      return 'eleven_multilingual_v2'; // Best for longer content
+      return 'eleven_multilingual_v2'; // Best for longer content and multilingual support
     } else if (text.includes('urgent') || text.includes('quick')) {
       return 'eleven_turbo_v2.5'; // Faster response for urgent messages
     }
-    
+
     // Default to current model
- return setCurrentModel;
+    return currentModel;
   };
   
   // Play audio for a specific message
   const playMessageAudio = (message: Message) => {
- if (!message || !message.text) return false;
-    
+    if (!message || !message.text) return false;
+
     // Already speaking this message
-    if (setIsSpeaking && setCurrentMessageId === message.id) {
-      return true;
+    if (isSpeaking && currentMessageId === message.id) {
+      return false; // Don't add to queue if already speaking this one
     }
     
     // Use cached personality and model if available
@@ -105,12 +150,36 @@
     
     return speakResponse(message.text, message.id, personality, model);
   };
+
+  // Play the next audio item in the queue
+  const playNextInQueue = () => {
+    if (audioQueue.length === 0 || isSpeaking) {
+      return;
+    }
+
+    const nextItem = audioQueue[0];
+    setAudioQueue(prev => prev.slice(1)); // Remove from queue
+
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.onended = () => {
+        setIsSpeaking(false);
+        setCurrentMessageId(null);
+        playNextInQueue(); // Play the next one when this one ends
+      };
+    }
+
+    setCurrentMessageId(nextItem.messageId || null);
+    setIsSpeaking(true);
+    if (audioRef.current) {
+      audioRef.current.src = nextItem.url;
+      audioRef.current.play().catch(e => console.error("Audio playback error:", e));
+    }
+  };
   
   // Main function to speak a response
   const speakResponse = async (text: string, messageId?: string, forcedPersonality?: string, forcedModel?: string) => {
     try {
-      console.log("Speaking response:", text.substring(0, 50) + "...");
-      
       // Check if we should inject humor
       const enhancedText = getHumorResponse(text);
       
@@ -123,23 +192,21 @@
       
       // Get ElevenLabs usage setting
       const { useElevenLabs } = getVoiceSettings();
-      
-      console.log(`Using personality: ${personality}, model: ${model} for speech, ElevenLabs: ${useElevenLabs}`);
-      
-      // If token-saving mode is enabled, use browser's speech synthesis
+
+      // If ElevenLabs is disabled, use browser's speech synthesis
       if (!useElevenLabs) {
         if (messageId) {
           setCurrentMessageId(messageId);
         }
-        useBrowserSpeech(enhancedText, personality);
+        browserSpeech(enhancedText, personality);
         return true;
       }
       
-      // Create Supabase client using the environment variables or fallback to local development URL
-      const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co'; 
+      // Create Supabase client
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://hpogoxrxcnyxiqjmqtaw.supabase.co';
       const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb2dveHJ4Y255eGlxam1xdGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMDEwMjEsImV4cCI6MjA1ODc3NzAyMX0.9JA8cI1FYpyLJGn8VJGSQcUbnBmzNtMH_I_fkI-JMAE'; 
       
-      const supabase = createClient(
+      const supabase = createSupabaseClient(
         supabaseUrl,
         supabaseAnonKey,
         { auth: { persistSession: false } }
@@ -155,7 +222,7 @@
         }
       });
       
-      if (error) {
+      if (error || !data) {
         throw new Error(`Error generating speech: ${error.message}`);
       }
       
@@ -164,7 +231,7 @@
         if (messageId) {
           setCurrentMessageId(messageId);
         }
-        useBrowserSpeech(enhancedText, personality);
+        browserSpeech(enhancedText, personality);
         return true;
       }
       
@@ -179,8 +246,8 @@
       // Add to queue
       setAudioQueue(prev => [...prev, { url: audioUrl, messageId }]);
       
-      // If nothing is playing, start playing
-      if (!setIsSpeaking) {
+      // If nothing is currently speaking, start playing the queue
+      if (!isSpeaking) {
         playNextInQueue();
       }
       
@@ -188,13 +255,12 @@
     } catch (error) {
       console.error("Speech synthesis error:", error);
       setIsSpeaking(false);
-      setCurrentMessageId(null);
       
       // Fall back to browser's speech synthesis
       if (messageId) {
         setCurrentMessageId(messageId);
       }
-      useBrowserSpeech(text, forcedPersonality || 'sassy');
+      browserSpeech(text, forcedPersonality || 'sassy');
       
       toast({
         title: "Voice Generation Issue",
@@ -239,35 +305,13 @@
 };
 
 export default useVoiceFunctions;
-function setIsSpeaking(_arg0: boolean) {
-  throw new Error("Function not implemented.");
-}
 
-function setCurrentMessageId(_arg0: null) {
-  throw new Error("Function not implemented.");
-}
-
-function toast(_arg0: { title: string; description: string; variant: string; }) {
-  throw new Error("Function not implemented.");
-}
-
-function getHumorResponse(_text: string) {
-  throw new Error("Function not implemented.");
-}
-
-function setCurrentPersonality(_personality: string) {
-  throw new Error("Function not implemented.");
-}
-
-function setCurrentModel(_model: string) {
-  throw new Error("Function not implemented.");
-}
 
 function createClient(_supabaseUrl: string, _supabaseAnonKey: string, _arg2: { auth: { persistSession: boolean; }; }) {
   throw new Error("Function not implemented.");
 }
 
-function setAudioQueue(_arg0: (prev: any) => any[]) {
+function setAudioQueue(_arg0: (prev: AudioQueueItem[]) => AudioQueueItem[]) {
   throw new Error("Function not implemented.");
 }
 

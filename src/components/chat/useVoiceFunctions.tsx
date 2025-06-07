@@ -1,39 +1,5 @@
-import { Message } from "./MessageItem";
-
-// All voice logic is now handled by useChatterboxVoice. This file is deprecated and should not be used.
-        });
-    }
-  };
-  
-  // Get voice settings from localStorage
-  const getVoiceSettings = (): {personality: string, useElevenLabs: boolean} => {
-    return {
-      personality: localStorage.getItem('deepcal-voice-personality') || 'sassy',
-      useElevenLabs: localStorage.getItem('deepcal-use-elevenlabs') !== 'false'
-    };
-  };
-  
-  // Browser's built-in speech synthesis as a fallback or token-saving option
-  const useBrowserSpeech = (text: string, personality: string): void => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Try to find a female voice, preferably for consistency
-      const voices = window.speechSynthesis.getVoices();
-      
-      // Find an appropriate voice
-      let selectedVoice: SpeechSynthesisVoice;
-      if (personality === 'nigerian') {
-        // Try to find an African or Nigerian voice if available
-        selectedVoice = voices.find(voice => 
-          voice.name.toLowerCase().includes('nigerian') || 
-          voice.name.toLowerCase().includes('african') ||
-          voice.name.toLowerCase().includes('zulu') ||
-          voice.name.toLowerCase().includes('swahili')
-        );
-      }
-      
-      // If no specialized voice found, try to find a female voice
+// DEPRECATED: All voice logic is now handled by useChatterboxVoice. This file is obsolete and should not be used or imported anywhere in the application.
+// Remove any references to useVoiceFunctions and migrate to useChatterboxVoice for seamless, ultra-futuristic voice integration.
       if (!selectedVoice) {
         selectedVoice = voices.find(voice => 
           voice.name.toLowerCase().includes('female') || 

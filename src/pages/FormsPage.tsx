@@ -148,9 +148,8 @@ const FormsPage = () => {
       
       {/* Voice Controls */}
       <div className="absolute top-4 right-32 z-10 flex items-center space-x-4">
-        <div className="voice-controls flex items-center space-x-2">
           <Button 
-            variant="ghost" 
+            variant="ghost"
             size="icon"
             onClick={toggleVoice}
             className="h-10 w-10 rounded-full bg-[#0A1A2F]/80 backdrop-blur-md border border-[#00FFD1]/30 hover:bg-[#00FFD1]/10"
@@ -171,21 +170,8 @@ const FormsPage = () => {
             </Button>
           )}
           
-          <select 
-            className="h-10 bg-[#0A1A2F]/80 backdrop-blur-md text-sm border border-[#00FFD1]/30 rounded-lg px-3 text-[#00FFD1] focus:outline-none focus:ring-1 focus:ring-[#00FFD1]/50"
-            value={voicePersonality}
-            onChange={(e) => handleVoicePersonalityChange(e.target.value)}
-            disabled={!voiceEnabled}
-          >
-            <option value="nigerian">Nigerian</option>
-            <option value="sassy">Sassy</option>
-            <option value="formal">Formal</option>
-            <option value="technical">Technical</option>
-            <option value="excited">Excited</option>
-            <option value="casual">Casual</option>
-          </select>
         </div>
-      </div>
+          {/* Add title attribute for accessibility */}
       
       <div className="relative z-10 w-full pt-16 px-4">
         <div className="max-w-6xl mx-auto">
@@ -218,21 +204,17 @@ const FormsPage = () => {
             </TabsContent>
             
             <TabsContent value="calculator">
-              <DeepCALSection 
-                voicePersonality={voicePersonality} 
-                voiceEnabled={voiceEnabled} 
-              />
             </TabsContent>
           </Tabs>
         </div>
       </div>
-      
+    
       {/* Bottom Navigation */}
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30">
         <IconNavigation />
       </div>
     </div>
   );
-};
+}; 
 
-export default FormsPage;
+export default FormsPage; 

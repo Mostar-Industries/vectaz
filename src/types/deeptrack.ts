@@ -1,10 +1,16 @@
 export interface Shipment {
+  forwarder_name: any;
+  freight_provider: any;
+  freight_cost_usd: number;
+  shipment_id: string;
+  origin: string;
+  dest: string;
   expected_delivery_date: string;
   freight_carrier: string;
-  forwarder_quotes: any;
-  customs_clearance_time_days: any;
-  freight_carrier_cost: any;
-  emergency_grade: any;
+  forwarder_quotes: Record<string, number>;
+  customs_clearance_time_days?: number;
+  freight_carrier_cost?: number;
+  emergency_grade?: number;
   id?: string;
   request_reference: string;
   cargo_description: string;
@@ -17,16 +23,16 @@ export interface Shipment {
   destination_longitude: number;
   carrier: string;
   "carrier+cost"?: string;
-  kuehne_nagel?: string;
-  scan_global_logistics?: string;
-  dhl_express?: string;
-  dhl_global?: string;
-  bwosi?: string;
-  agl?: string;
-  siginon?: string;
-  frieght_in_time?: string;
-  weight_kg: string;
-  volume_cbm: string;
+  kuehne_nagel?: number;
+  scan_global_logistics?: number;
+  dhl_express?: number;
+  dhl_global?: number;
+  bwosi?: number;
+  agl?: number;
+  siginon?: number;
+  frieght_in_time?: number;
+  weight_kg: number;
+  volume_cbm: number;
   initial_quote_awarded?: string;
   final_quote_awarded_freight_forwader_Carrier?: string;
   comments?: string;
@@ -39,9 +45,9 @@ export interface Shipment {
 }
 
 export interface ForwarderPerformance extends Omit<Shipment, 'customs_clearance_time_days'> {
-  avg_transit_days: any;
-  shipments: any;
-  score: any;
+  avg_transit_days: number;
+  shipments: number;
+  score: number;
   reliability: number;
   name: string;
   avgCostPerKg: number;
@@ -83,7 +89,6 @@ export interface CountryPerformance {
   totalVolume: number;
   totalCost: number;
   avgDelayDays: number;
-  forwarder(forwarder: any): unknown;
   country: string;
   totalShipments: number;
   avgCostPerRoute: number;
@@ -140,12 +145,12 @@ export interface ShipmentMetrics {
   avgCostPerKg: number;
 }
 
-export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'forms';
+export type AppSection = 'map' | 'analytics' | 'deepcal' | 'forms' | 'about' | 'settings';
 
 export interface TabItem {
   id: AppSection;
   label: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<unknown>;
 }
 
 export interface MapPoint {
@@ -165,7 +170,7 @@ export interface Route {
 
 export type TrendDirection = 'up' | 'down' | 'neutral';
 
-interface KPIResults {
+export interface KPIResults {
   onTimeRate: number;
   avgTransitDays: number;
   modeSplit: {
@@ -182,18 +187,6 @@ export interface HistoricalTrends {
 
 export interface ShipmentAnalyticsProps {
   metrics: ShipmentMetrics;
-}
-
-export interface CountryPerformance {
-  name: string;
-  country: string;
-  totalShipments: number;
-  totalWeight: number;
-  totalVolume: number;
-  totalCost: number;
-  avgDelayDays: number;
-  avgCostPerRoute: number;
-  avgCustomsClearanceTime: number;
 }
 
 export interface CSVShipment {
@@ -244,7 +237,10 @@ export interface DriftLog {
 
 export function adaptForwarderToShipment(fp: ForwarderPerformance): Shipment {
   return {
-    ...fp,
+    shipment_id: '',
+    origin: '',
+    dest: '',
+    expected_delivery_date: '',
     freight_carrier: fp.name,
     forwarder_quotes: {},
     customs_clearance_time_days: 0,
@@ -262,16 +258,16 @@ export function adaptForwarderToShipment(fp: ForwarderPerformance): Shipment {
     destination_longitude: 0,
     carrier: '',
     "carrier+cost": '',
-    kuehne_nagel: '',
-    scan_global_logistics: '',
-    dhl_express: '',
-    dhl_global: '',
-    bwosi: '',
-    agl: '',
-    siginon: '',
-    frieght_in_time: '',
-    weight_kg: '',
-    volume_cbm: '',
+    kuehne_nagel: 0,
+    scan_global_logistics: 0,
+    dhl_express: 0,
+    dhl_global: 0,
+    bwosi: 0,
+    agl: 0,
+    siginon: 0,
+    frieght_in_time: 0,
+    weight_kg: 0,
+    volume_cbm: 0,
     initial_quote_awarded: '',
     final_quote_awarded_freight_forwader_Carrier: '',
     comments: '',
@@ -279,7 +275,7 @@ export function adaptForwarderToShipment(fp: ForwarderPerformance): Shipment {
     date_of_arrival_destination: '',
     delivery_status: '',
     mode_of_shipment: '',
-    date_of_greenlight_to_pickup: '',
-    distance_km: 0,
+    date_of_greenlight_to_pickup: null,
+    distance_km: 0
   };
 }

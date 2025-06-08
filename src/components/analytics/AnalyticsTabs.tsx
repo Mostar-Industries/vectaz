@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChartIcon, Package, Users, Globe, Warehouse } from 'lucide-react';
+import { BarChartIcon, Package, Users, Globe, Warehouse, TrendingUp, BrainCircuit } from 'lucide-react';
 
 interface AnalyticsTabsProps {
   activeTab: string;
@@ -11,6 +11,9 @@ interface AnalyticsTabsProps {
   forwardersContent: React.ReactNode;
   countriesContent: React.ReactNode;
   warehousesContent: React.ReactNode;
+  trendsContent?: React.ReactNode;
+  symbolicContent?: React.ReactNode;
+  fullData?: Record<string, unknown>;
 }
 
 const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
@@ -20,11 +23,14 @@ const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
   shipmentsContent,
   forwardersContent,
   countriesContent,
-  warehousesContent
+  warehousesContent,
+  trendsContent,
+  symbolicContent,
+  fullData
 }) => {
   return (
     <Tabs defaultValue={activeTab} onValueChange={onTabChange} className="w-full">
-      <TabsList className="grid grid-cols-5 mb-6 bg-black/60 backdrop-blur-md p-1 rounded-lg border border-mostar-light-blue/20 shadow-sm">
+      <TabsList className="grid grid-cols-7 mb-6 bg-black/60 backdrop-blur-md p-1 rounded-lg border border-mostar-light-blue/20 shadow-sm">
         <TabsTrigger value="overview" className="flex items-center gap-2 data-[state=active]:bg-mostar-blue/20 data-[state=active]:text-mostar-light-blue data-[state=active]:shadow-inner">
           <BarChartIcon className="h-4 w-4" />
           <span className="font-medium">Overview</span>
@@ -45,6 +51,14 @@ const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
           <Warehouse className="h-4 w-4" />
           <span className="font-medium">Warehouses</span>
         </TabsTrigger>
+        <TabsTrigger value="trends" className="flex items-center gap-2 data-[state=active]:bg-mostar-blue/20 data-[state=active]:text-mostar-light-blue data-[state=active]:shadow-inner">
+          <TrendingUp className="h-4 w-4" />
+          <span className="font-medium">Trends</span>
+        </TabsTrigger>
+        <TabsTrigger value="symbolic" className="flex items-center gap-2 data-[state=active]:bg-mostar-blue/20 data-[state=active]:text-mostar-light-blue data-[state=active]:shadow-inner">
+          <BrainCircuit className="h-4 w-4" />
+          <span className="font-medium">Symbolic</span>
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="overview" className="space-y-6 mt-0">
@@ -63,8 +77,14 @@ const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
         {countriesContent}
       </TabsContent>
       
-      <TabsContent value="warehouses" className="mt-0">
+      <TabsContent value="warehouses" className="space-y-6 mt-0">
         {warehousesContent}
+      </TabsContent>
+      <TabsContent value="trends" className="space-y-6 mt-0">
+        {trendsContent}
+      </TabsContent>
+      <TabsContent value="symbolic" className="space-y-6 mt-0">
+        {symbolicContent}
       </TabsContent>
     </Tabs>
   );

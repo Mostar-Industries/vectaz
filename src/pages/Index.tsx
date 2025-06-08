@@ -36,7 +36,8 @@ const Index = () => {
     <div className="h-screen w-full overflow-x-hidden relative tech-bg">
       {/* Background components */}
       <AnimatedBackground />
-      
+      {/* AppTabs Top Navigation - now global, not inside page content */}
+      {/* Removed from here; will be rendered at App root */}
       {/* Application content */}
       <div className="relative z-10">
         <AnimatePresence mode="wait">
@@ -49,9 +50,6 @@ const Index = () => {
         
         {/* App name in top right with enhanced styling */}
         <AppLogo />
-        
-        {/* Navigation tabs (at the top) */}
-        <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
 
       {/* Non-visual components */}

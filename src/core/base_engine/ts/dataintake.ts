@@ -1,4 +1,3 @@
-
 import { Shipment } from "@/types/deeptrack";
 
 // Metadata for the loaded dataset
@@ -25,60 +24,71 @@ export class BootFailure extends Error {
   }
 }
 
-// Validates the data structure against required fields
-const validateDataStructure = (data: any[], requiredFields: string[]): boolean => {
+// Validate dataset shape
+const validateDataStructure = (data: Shipment[], requiredFields: string[]): boolean => {
   if (!data || !Array.isArray(data) || data.length === 0) {
     return false;
   }
-  
   return data.every(item => 
     requiredFields.every(field => field in item && item[field] !== null)
   );
 };
 
-// Calculates a simple hash of the data for versioning
-// In production, this would use a proper SHA256 algorithm
-const calculateDataHash = (data: any[]): string => {
+// Numeric parsing helper
+const parseNumericOrNull = (value: number): number | null => {
+  if (value === null || typeof value === 'undefined') {
+    return null;
+  }
+  const num = parseFloat(String(value));
+  return Number.isNaN(num) ? null : num;
+};
+
+// Hashing for version control
+const calculateDataHash = (data: Shipment[]): string => {
   const jsonString = JSON.stringify(data);
   let hash = 0;
   for (let i = 0; i < jsonString.length; i++) {
     const char = jsonString.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
+    hash = hash & hash;
   }
   return 'sha256-' + Math.abs(hash).toString(16);
 };
 
-// Process raw data into our Shipment format
-export const processRawData = (data: any[]): Shipment[] => {
+// Extract forwarder quotes dynamically
+const extractForwarderQuotes = (item: Shipment): Record<string, number> => {
+  const quotes: Record<string, number> = {};
+  Object.entries(item).forEach(([key, value]) => {
+    if (typeof value === "number" && key.match(/^(kenya_airways|kuehne_nagel|scan_global_logistics|dhl_express|dhl_global|bwosi|agl|siginon|frieght_in_time)$/i)) {
+      quotes[key.toLowerCase()] = value;
+    }
+  });
+  return quotes;
+};
+
+// Normalize incoming data structure
+export const processRawData = (data: Shipment[]): Shipment[] => {
   return data.map(item => {
-    // Parse forwarder quotes from columns
-    const forwarderQuotes: Record<string, number> = {};
-    const knownForwarders = [
-      'kenya_airways', 'kuehne_nagel', 'scan_global_logistics', 
-      'dhl_express', 'dhl_global', 'bwosi', 'agl', 'siginon', 'frieght_in_time'
-    ];
-    
-    knownForwarders.forEach(forwarder => {
-      if (item[forwarder] && typeof item[forwarder] === 'number') {
-        forwarderQuotes[forwarder] = item[forwarder];
-      }
-    });
-    
+    const forwarderQuotes = extractForwarderQuotes(item);
     return {
+      shipment_id: item.shipment_id ?? '',
+      origin: item.origin ?? '',
+      dest: item.dest ?? '',
+      expected_delivery_date: item.expected_delivery_date ?? '',
+      carrier: item.carrier ?? '',
       date_of_collection: item.date_of_collection,
-      request_reference: item.request_reference || item.shipment_id,
+      request_reference: item.request_reference || item.id,
       cargo_description: item.cargo_description,
       item_category: item.item_category,
-      origin_country: item.origin_country || item.origin,
-      origin_longitude: parseFloat(item.origin_longitude),
-      origin_latitude: parseFloat(item.origin_latitude),
-      destination_country: item.destination_country || item.dest,
-      destination_longitude: parseFloat(item.destination_longitude),
-      destination_latitude: parseFloat(item.destination_latitude),
-      freight_carrier: item.freight_carrier || item.carrier,
-      weight_kg: parseFloat(item.weight_kg),
-      volume_cbm: parseFloat(item.volume_cbm),
+      origin_country: item.origin_country ?? item.origin,
+      origin_longitude: parseNumericOrNull(item.origin_longitude),
+      origin_latitude: parseNumericOrNull(item.origin_latitude),
+      destination_country: item.destination_country ?? item.dest,
+      destination_longitude: parseNumericOrNull(item.destination_longitude),
+      destination_latitude: parseNumericOrNull(item.destination_latitude),
+      freight_carrier: item.freight_carrier ?? item.carrier,
+      weight_kg: parseNumericOrNull(item.weight_kg),
+      volume_cbm: parseNumericOrNull(item.volume_cbm),
       initial_quote_awarded: item.initial_quote_awarded,
       final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier,
       comments: item.comments,
@@ -90,33 +100,31 @@ export const processRawData = (data: any[]): Shipment[] => {
   });
 };
 
-// Main data validation and loading function
-export const validateAndLoadData = (data: any[], config: DataValidationConfig): DatasetMetadata | null => {
+
+// Full validation + metadata
+export const validateAndLoadData = (data: Shipment[], config: DataValidationConfig): DatasetMetadata | null => {
   try {
-    // Check minimum row count
-    if (data.length < config.minRows) {
+    if (data.length < config.minRows) { 
       const error = new BootFailure(`Boot halted: dataset contains only ${data.length} rows, minimum required is ${config.minRows}`);
       config.onFail(error);
       return null;
     }
     
-    // Validate required fields
     if (!validateDataStructure(data, config.requireShape)) {
       const error = new BootFailure("Boot halted: data failed validation, required fields missing");
       config.onFail(error);
       return null;
     }
     
-    // Process successful validation
     const metadata: DatasetMetadata = {
-      version: `v1.0.0-deepbase`,
+      version: `v1.0.0-deepcal++`,
       hash: calculateDataHash(data),
-      source: "deeptrack_2.csv",
+      source: "deeptrack_corex1.csv",
       timestamp: new Date().toISOString()
     };
     
     config.onSuccess();
-    return metadata;
+    return metadata;  
     
   } catch (error) {
     config.onFail(error instanceof Error ? error : new Error(String(error)));

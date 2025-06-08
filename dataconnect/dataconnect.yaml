@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "deepcal-mission-optimizer-63ec1967"
+location: "me-west1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "deepcal-mission-optimizer-63ec1967-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

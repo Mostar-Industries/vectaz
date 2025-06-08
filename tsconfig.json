@@ -1,14 +1,7 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ],
-  "compilerOptions": {
+  "compilerOptions": { // This is likely the compiler options for the entire project, not a reference.
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
     "baseUrl": ".",
     "paths": {
       "@/*": [
@@ -26,8 +19,6 @@
       "dom.iterable",
       "esnext"
     ],
-    "strict": false,
-    "noEmit": true,
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,

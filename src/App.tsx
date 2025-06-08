@@ -7,14 +7,16 @@ import { useState as useStateOriginal, useEffect as useEffectOriginal } from "re
 import IndexPage from "./pages/Index"; // Assuming IndexPage is the default export from Index.tsx
 import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import DeepCALPage from "./pages/DeepCALPage";
+import AboutPage from "./pages/AboutPage";
+import SettingsPage from "./pages/SettingsPage";
 import LoadingScreen from "./components/LoadingScreen";
 import { bootApp, isSystemBooted } from "./init/boot";
 import { useBaseDataStore } from "./store/baseState";
 import FloatingDeepTalk from "./components/FloatingDeepTalk";
 import React from "react";
-import { AppSection } from "@/types/deeptrack";
 import AppTabs from "@/components/AppTabs";
-import DriftDashboard from '@/components/analytics/DriftDashboard';
 import { Shipment } from "@/types/deeptrack";
 // Create a client
 const queryClient = new QueryClient();
@@ -103,9 +105,6 @@ function App() {
     return () => clearTimeout(fallbackTimer);
   }, [setShipmentData]);
 
-  // Top-level navigation state for AppTabs
-  const [activeTab, setActiveTab] = React.useState<AppSection>('map');
-  const handleTabChange = (tab: AppSection) => setActiveTab(tab);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -115,10 +114,14 @@ function App() {
         ) : (
           <BrowserRouter>
             {/* Global Top Navigation */}
-            <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
+            <AppTabs />
             <Routes>
               <Route path="/" element={<IndexPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/forms" element={<FormsPage />} />
+              <Route path="/deepcal" element={<DeepCALPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -1,4 +1,3 @@
-import React from 'react'
 import { GlassContainer } from '@/components/ui/glass-effects'
 
 export default function ChartsRow({ charts }) {

@@ -39,38 +39,9 @@ const AnalyticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // Sample analytics summary data - would be computed from actual data in production
-  const [summary, setSummary] = useState<AnalyticsSummary>({
-    totalShipments: 582,
-    totalWeightKg: 248750,
-    totalVolumeCbm: 1250.5,
-    distinctDestinations: 37,
-    distinctForwarders: 14,
-    avgCostPerKg: 4.32
-  });
-  
-  // Sample charts data - would be computed from actual data in production
-  const [charts, setCharts] = useState<ChartData>({
-    shipmentsByMode: {
-      air: 243,
-      ocean: 187,
-      rail: 92,
-      road: 60
-    },
-    monthlyTrend: [
-      { month: 'Jan', count: 42 },
-      { month: 'Feb', count: 56 },
-      { month: 'Mar', count: 68 },
-      { month: 'Apr', count: 72 },
-      { month: 'May', count: 86 },
-      { month: 'Jun', count: 124 }
-    ],
-    forwarderCosts: [
-      { name: 'Global Express', cost: 3.78 },
-      { name: 'Skyline Logistics', cost: 4.12 },
-      { name: 'Quantum Shipping', cost: 5.21 },
-      { name: 'Nexus Freight', cost: 4.75 },
-      { name: 'Alpha Transport', cost: 4.08 }
+  // Analytics summary and charts are always computed from real shipmentData
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [charts, setCharts] = useState<ChartData | null>(null);
     ],
     delays: {
       onTime: 518,
@@ -84,33 +55,31 @@ const AnalyticsPage: React.FC = () => {
   useEffect(() => {
     if (shipmentData && shipmentData.length > 0) {
       setIsLoading(true);
-      // Calculate actual metrics from real shipment data
-      console.log(`Processing ${shipmentData.length} shipment records for analytics`);
-      
-      // Example calculation of summary metrics
+      // Calculate summary metrics from real shipment data
       const totalWeight = shipmentData.reduce((sum, shipment) => sum + (shipment.weight_kg || 0), 0);
       const totalVolume = shipmentData.reduce((sum, shipment) => sum + (shipment.volume_cbm || 0), 0);
       const destinations = new Set(shipmentData.map(s => s.destination_country));
       const forwarders = new Set(shipmentData.map(s => s.forwarder_name || s.freight_provider));
-      
       setSummary({
         totalShipments: shipmentData.length,
         totalWeightKg: totalWeight,
         totalVolumeCbm: totalVolume,
         distinctDestinations: destinations.size,
         distinctForwarders: forwarders.size,
-        avgCostPerKg: totalWeight > 0 ? 
-          shipmentData.reduce((sum, s) => sum + (s.freight_cost_usd || 0), 0) / totalWeight : 0
+        avgCostPerKg: totalWeight > 0 ? shipmentData.reduce((sum, s) => sum + (s.freight_cost_usd || 0), 0) / totalWeight : 0
       });
-      
-      // Process chart data would be done here
+      // Compute chart data from real shipment data
+      const shipmentsByMode: Record<string, number> = {};
+      const monthlyTrend: Array<{ month: string; count: number }> = [];
+      const forwarderCosts: Array<{ name: string; cost: number }> = [];
+      let delays = { onTime: 0, delayed: 0 };
+      // TODO: Implement real chart calculations here as needed, using only shipmentData
+      setCharts({ shipmentsByMode, monthlyTrend, forwarderCosts, delays });
       setIsLoading(false);
     } else {
-      // If no shipment data is available, use sample data after a brief loading period
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 800);
-      return () => clearTimeout(timer);
+      setSummary(null);
+      setCharts(null);
+      setIsLoading(false);
     }
   }, [shipmentData]);
   
@@ -135,9 +104,8 @@ const AnalyticsPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <GlobalSummaryRow summary={summary} />
-              
-              <ChartsRow charts={charts} />
+              {summary && <GlobalSummaryRow summary={summary} />}
+              {charts && <ChartsRow charts={charts} />}
               
               <GlassContainer className="mt-6 p-6">
                 <AnalyticsTabs

@@ -1,12 +1,10 @@
 
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import AppTabs from "@/components/AppTabs";
-import { AppSection } from "@/types/deeptrack";
 
 const NotFound = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<AppSection>('map');
   
   useEffect(() => {
     console.error(
@@ -14,9 +12,6 @@ const NotFound = () => {
     );
   }, []);
 
-  const handleTabChange = (tab: AppSection) => {
-    navigate('/');
-  };
 
   return (
     <div className="h-screen w-full overflow-x-hidden relative tech-bg">
@@ -30,7 +25,7 @@ const NotFound = () => {
       </div>
       
       {/* Top Navigation */}
-      <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      <AppTabs />
       
       <div className="relative z-10 flex flex-col items-center justify-center h-screen">
         <div className="text-[#00FFD1] text-8xl font-bold mb-4">404</div>

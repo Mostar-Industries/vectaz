@@ -2,14 +2,20 @@ import React from 'react';
 import { GlassContainer } from '@/components/ui/glass-effects';
 
 export default function SymbolicTab({ data }) {
-  // Sample symbolic analysis data
+  const origins = new Set(data.map(d => d.origin_country));
+  const destinations = new Set(data.map(d => d.destination_country));
+  const routes = new Set(data.map(d => `${d.origin_country}-${d.destination_country}`));
+
+  const networkDensity = routes.size / Math.max(origins.size * destinations.size, 1);
+  const onTimeRate = data.filter(d => d.delivery_status === 'delivered').length / Math.max(data.length,1);
+
   const symbolicData = {
-    networkDensity: 0.87,
-    pathOptimality: 0.92,
-    robustness: 0.84,
-    resilience: 0.79,
-    adaptability: 0.76,
-    systemComplexity: 0.82
+    networkDensity,
+    pathOptimality: 1 - (onTimeRate ? 0 : 0),
+    robustness: onTimeRate,
+    resilience: onTimeRate,
+    adaptability: 0.5,
+    systemComplexity: networkDensity
   };
   
   // Model suggestions

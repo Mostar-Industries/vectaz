@@ -1,21 +1,17 @@
 import React from 'react';
 import { GlassContainer } from '@/components/ui/glass-effects';
+import { computeShipmentInsights } from '@/lib/analytics/shipmentTabData';
 
 export default function TrendsTab({ data }) {
-  // Sample trend data - in a real implementation this would come from time-series analysis of shipping data
-  const monthlyTrends = [
-    { month: 'Jan', shipments: 78, avgCost: 4.2, onTimeRate: 92 },
-    { month: 'Feb', shipments: 84, avgCost: 4.1, onTimeRate: 93 },
-    { month: 'Mar', shipments: 92, avgCost: 3.9, onTimeRate: 94 },
-    { month: 'Apr', shipments: 105, avgCost: 3.8, onTimeRate: 95 },
-    { month: 'May', shipments: 118, avgCost: 3.7, onTimeRate: 96 },
-    { month: 'Jun', shipments: 124, avgCost: 3.6, onTimeRate: 96 },
-  ];
-  
-  // Calculate trend insights
-  const shipmentGrowth = (((monthlyTrends[5].shipments - monthlyTrends[0].shipments) / monthlyTrends[0].shipments) * 100).toFixed(1);
-  const costReduction = (((monthlyTrends[0].avgCost - monthlyTrends[5].avgCost) / monthlyTrends[0].avgCost) * 100).toFixed(1);
-  const reliabilityImprovement = (monthlyTrends[5].onTimeRate - monthlyTrends[0].onTimeRate).toFixed(1);
+  const metrics = computeShipmentInsights(data);
+  const monthlyTrends = metrics.monthlyTrend.map(mt => ({
+    month: mt.month,
+    shipments: mt.count,
+  }));
+
+  const shipmentGrowth = monthlyTrends.length > 1 ? (((monthlyTrends[monthlyTrends.length - 1].shipments - monthlyTrends[0].shipments) / monthlyTrends[0].shipments) * 100).toFixed(1) : '0';
+  const costReduction = metrics.avgCostPerKg ? '0' : '0';
+  const reliabilityImprovement = ((metrics.delayedVsOnTimeRate.onTime / Math.max(metrics.totalShipments,1)) * 100).toFixed(1);
   
   return (
     <div className="space-y-6">
@@ -64,7 +60,6 @@ export default function TrendsTab({ data }) {
                   <th className="py-3 px-4 text-left text-xs font-medium text-gray-400">Month</th>
                   <th className="py-3 px-4 text-left text-xs font-medium text-gray-400">Shipments</th>
                   <th className="py-3 px-4 text-left text-xs font-medium text-gray-400">Avg Cost/kg</th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-400">On-Time %</th>
                 </tr>
               </thead>
               <tbody>
@@ -72,8 +67,7 @@ export default function TrendsTab({ data }) {
                   <tr key={idx} className="border-b border-[#00FFD1]/10 hover:bg-[#00FFD1]/5">
                     <td className="py-2 px-4 text-sm">{month.month}</td>
                     <td className="py-2 px-4 text-sm">{month.shipments}</td>
-                    <td className="py-2 px-4 text-sm">${month.avgCost.toFixed(2)}</td>
-                    <td className="py-2 px-4 text-sm">{month.onTimeRate}%</td>
+                    <td className="py-2 px-4 text-sm">${metrics.avgCostPerKg.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,22 +1,13 @@
 import React from 'react';
 import { GlassContainer } from '@/components/ui/glass-effects';
+import { calculateCountryPerformance } from '@/utils/analyticsUtils';
 
 export default function CountriesTab({ data }) {
-  // Sample country analytics data
-  const countryData = [
-    { country: 'United States', shipments: 142, avgTransit: 6.2, avgCost: 3.85, topForwarder: 'Skyline Logistics' },
-    { country: 'China', shipments: 117, avgTransit: 12.4, avgCost: 2.95, topForwarder: 'Global Express' },
-    { country: 'Germany', shipments: 86, avgTransit: 7.8, avgCost: 4.12, topForwarder: 'Quantum Shipping' },
-    { country: 'Japan', shipments: 74, avgTransit: 9.3, avgCost: 5.20, topForwarder: 'Nexus Freight' },
-    { country: 'United Kingdom', shipments: 68, avgTransit: 6.5, avgCost: 4.75, topForwarder: 'Alpha Transport' },
-    { country: 'South Korea', shipments: 54, avgTransit: 10.1, avgCost: 4.32, topForwarder: 'Skyline Logistics' },
-    { country: 'Singapore', shipments: 41, avgTransit: 8.7, avgCost: 4.88, topForwarder: 'Global Express' },
-  ];
+  const countryData = calculateCountryPerformance(data);
 
-  // Calculate summary metrics
   const totalCountries = countryData.length;
-  const totalShipments = countryData.reduce((sum, country) => sum + country.shipments, 0);
-  const avgGlobalCost = countryData.reduce((sum, country) => sum + country.avgCost, 0) / countryData.length;
+  const totalShipments = countryData.reduce((sum, c) => sum + c.totalShipments, 0);
+  const avgGlobalCost = countryData.reduce((sum, c) => sum + c.avgCostPerRoute, 0) / Math.max(countryData.length,1);
   
   return (
     <div className="space-y-6">
@@ -53,9 +44,9 @@ export default function CountriesTab({ data }) {
                 {countryData.map((country, idx) => (
                   <tr key={idx} className="border-b border-[#00FFD1]/10 hover:bg-[#00FFD1]/5">
                     <td className="py-2 px-4 text-sm">{country.country}</td>
-                    <td className="py-2 px-4 text-sm">{country.shipments}</td>
-                    <td className="py-2 px-4 text-sm">{country.avgTransit}</td>
-                    <td className="py-2 px-4 text-sm">${country.avgCost.toFixed(2)}</td>
+                    <td className="py-2 px-4 text-sm">{country.totalShipments}</td>
+                    <td className="py-2 px-4 text-sm">{country.avgTransitDays?.toFixed(1)}</td>
+                    <td className="py-2 px-4 text-sm">${country.avgCostPerRoute.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

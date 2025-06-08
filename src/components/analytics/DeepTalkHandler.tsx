@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
  */
 export const useDeepTalkHandler = () => {
   const { processQuery, isProcessing: isQueryProcessing } = useQueryProcessor();
-  const { processVoiceQuery, isProcessing: isVoiceProcessing, useBrowserSpeech } = useVoiceProcessor();
+  const { processVoiceQuery, isProcessing: isVoiceProcessing, browserSpeech } = useVoiceProcessor();
   const [useSass, setUseSass] = useState<boolean>(true);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
@@ -102,7 +102,7 @@ export const useDeepTalkHandler = () => {
         // This will be handled by the calling component
       } else {
         // Use browser's built-in speech synthesis
-        useBrowserSpeech(enhancedResponse, personality);
+        browserSpeech(enhancedResponse, personality);
       }
       
       return enhancedResponse;

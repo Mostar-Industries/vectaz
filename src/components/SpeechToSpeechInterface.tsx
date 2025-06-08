@@ -148,8 +148,8 @@ const SpeechToSpeechInterface: React.FC<SpeechToSpeechInterfaceProps> = ({ class
         />
         
         <p className="text-xs text-gray-500 mt-8 max-w-sm text-center">
-          {useElevenLabs ? 
-            "Using ElevenLabs for premium voice quality. Each response consumes voice tokens." : 
+          {voiceEnabled ?
+            "Using ElevenLabs for premium voice quality. Each response consumes voice tokens." :
             "Using browser's built-in speech synthesis to save ElevenLabs tokens."
           }
         </p>

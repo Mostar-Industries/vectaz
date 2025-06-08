@@ -2,6 +2,15 @@
 import React, { useState } from 'react';
 import { BarChart, Brain, X } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
+import { Database, Clock, Wallet, Package, Box } from 'lucide-react';
+
+const iconMap: Record<string, React.ComponentType> = {
+  database: Database,
+  clock: Clock,
+  wallet: Wallet,
+  package: Package,
+  box: Box,
+};
 import DeepTalk from '@/components/DeepTalk';
 import { Button } from '@/components/ui/button';
 import { useMediaQuery } from '@/hooks/use-mobile';
@@ -76,7 +85,16 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
       {/* KPIs - Compact View */}
       {kpis && (
         <div className="mb-4 overflow-x-auto glass-panel rounded-lg border border-gray-700">
-          <KPIPanel className="min-w-max" kpis={kpis} />
+          <KPIPanel
+            className="min-w-max"
+            kpis={kpis.map(k => ({
+              label: k.label,
+              value: k.value,
+              icon: iconMap[k.iconName || 'database'],
+              color: k.color,
+              trend: k.trend ? { value: k.trend, direction: k.trendDirection || 'neutral' } : undefined,
+            }))}
+          />
         </div>
       )}
       

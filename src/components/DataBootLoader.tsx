@@ -86,6 +86,15 @@ const DataBootLoader = () => {
         // For demo purposes, we'll just set it directly
         setShipmentData(
           data.map(item => ({
+            forwarder_name: (item as any).forwarder_name || '',
+            freight_provider: (item as any).freight_provider || '',
+            freight_cost_usd: parseFloat((item as any).freight_cost_usd) || 0,
+            shipment_id: (item as any).shipment_id || '',
+            origin: (item as any).origin || '',
+            dest: (item as any).dest || '',
+            expected_delivery_date: (item as any).expected_delivery_date || '',
+            freight_carrier: item.freight_carrier || '',
+            carrier: (item as any).carrier || '',
             date_of_collection: item.date_of_collection || '',
             request_reference: item.request_reference || '',
             cargo_description: item.cargo_description || '',
@@ -96,7 +105,6 @@ const DataBootLoader = () => {
             destination_country: item.destination_country || '',
             destination_longitude: parseFloat(item.destination_longitude) || 0,
             destination_latitude: parseFloat(item.destination_latitude) || 0,
-            freight_carrier: item.freight_carrier || '',
             weight_kg: parseFloat(item.weight_kg) || 0,
             volume_cbm: parseFloat(item.volume_cbm) || 0,
             initial_quote_awarded: item.initial_quote_awarded || '',
@@ -254,6 +262,15 @@ const DataBootLoader = () => {
         // Store the data
         setShipmentData(
           mockData.map(item => ({
+            forwarder_name: (item as any).forwarder_name || '',
+            freight_provider: (item as any).freight_provider || '',
+            freight_cost_usd: parseFloat(String((item as any).freight_cost_usd)) || 0,
+            shipment_id: (item as any).shipment_id || '',
+            origin: (item as any).origin || '',
+            dest: (item as any).dest || '',
+            expected_delivery_date: (item as any).expected_delivery_date || '',
+            freight_carrier: item.freight_carrier || '',
+            carrier: (item as any).carrier || '',
             date_of_collection: item.date_of_collection || '',
             request_reference: item.request_reference || '',
             cargo_description: item.cargo_description || '',
@@ -264,7 +281,6 @@ const DataBootLoader = () => {
             destination_country: item.destination_country || '',
             destination_longitude: parseFloat(String(item.destination_longitude)) || 0,
             destination_latitude: parseFloat(String(item.destination_latitude)) || 0,
-            freight_carrier: item.freight_carrier || '',
             weight_kg: parseFloat(String(item.weight_kg)) || 0,
             volume_cbm: parseFloat(String(item.volume_cbm)) || 0,
             initial_quote_awarded: item.initial_quote_awarded || '',

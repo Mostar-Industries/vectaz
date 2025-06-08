@@ -1,32 +1,24 @@
 import React, { useState, useCallback } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
-import { AppSection } from '@/types/deeptrack';
-import AppTabs from '@/components/AppTabs';
 import EntryAnimation from '@/components/EntryAnimation';
-import { AnimatePresence } from 'framer-motion';
 
 // Import the optimized components
 import AnimatedBackground from '@/components/home/AnimatedBackground';
 import AppLogo from '@/components/home/AppLogo';
-import ContentRouter from '@/components/home/ContentRouter';
+import MapVisualizer from '@/components/MapVisualizer';
 import KonamiCodeEasterEgg from '@/components/home/KonamiCodeEasterEgg';
 import NotificationHandler from '@/components/home/NotificationHandler';
 import useRouteProcessor from '@/hooks/useRouteProcessor';
-import IconNavigation from '@/components/IconNavigation';
 
 const Index = () => {
   const { isDataLoaded } = useBaseDataStore();
   const [showEntry, setShowEntry] = useState(true);
-  const [activeTab, setActiveTab] = useState<AppSection>('map');
   const { routes } = useRouteProcessor();
 
   const handleEntryComplete = useCallback(() => {
     setShowEntry(false);
   }, []);
 
-  const handleTabChange = useCallback((tab: AppSection) => {
-    setActiveTab(tab);
-  }, []);
 
   if (showEntry) {
     return <EntryAnimation onComplete={handleEntryComplete} />;
@@ -40,13 +32,7 @@ const Index = () => {
       {/* Removed from here; will be rendered at App root */}
       {/* Application content */}
       <div className="relative z-10">
-        <AnimatePresence mode="wait">
-          <ContentRouter 
-            activeTab={activeTab} 
-            routes={routes} 
-            isDataLoaded={isDataLoaded} 
-          />
-        </AnimatePresence>
+        <MapVisualizer routes={routes} isLoading={!isDataLoaded} />
         
         {/* App name in top right with enhanced styling */}
         <AppLogo />

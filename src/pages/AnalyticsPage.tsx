@@ -16,6 +16,8 @@ import ForwardersTab from '@/components/analytics/tabs/ForwardersTab';
 import CountriesTab from '@/components/analytics/tabs/CountriesTab';
 import TrendsTab from '@/components/analytics/tabs/TrendsTab';
 import SymbolicTab from '@/components/analytics/tabs/SymbolicTab';
+import { computeShipmentInsights } from '@/lib/analytics/shipmentTabData';
+import { calculateForwarderPerformance } from '@/utils/analyticsUtils';
 
 // Define interfaces for our analytics data
 interface AnalyticsSummary {
@@ -39,44 +41,9 @@ const AnalyticsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
-  // Sample analytics summary data - would be computed from actual data in production
-  const [summary, setSummary] = useState<AnalyticsSummary>({
-    totalShipments: 582,
-    totalWeightKg: 248750,
-    totalVolumeCbm: 1250.5,
-    distinctDestinations: 37,
-    distinctForwarders: 14,
-    avgCostPerKg: 4.32
-  });
-  
-  // Sample charts data - would be computed from actual data in production
-  const [charts, setCharts] = useState<ChartData>({
-    shipmentsByMode: {
-      air: 243,
-      ocean: 187,
-      rail: 92,
-      road: 60
-    },
-    monthlyTrend: [
-      { month: 'Jan', count: 42 },
-      { month: 'Feb', count: 56 },
-      { month: 'Mar', count: 68 },
-      { month: 'Apr', count: 72 },
-      { month: 'May', count: 86 },
-      { month: 'Jun', count: 124 }
-    ],
-    forwarderCosts: [
-      { name: 'Global Express', cost: 3.78 },
-      { name: 'Skyline Logistics', cost: 4.12 },
-      { name: 'Quantum Shipping', cost: 5.21 },
-      { name: 'Nexus Freight', cost: 4.75 },
-      { name: 'Alpha Transport', cost: 4.08 }
-    ],
-    delays: {
-      onTime: 518,
-      delayed: 64
-    }
-  });
+  // Analytics summary and charts are always computed from real shipmentData
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [charts, setCharts] = useState<ChartData | null>(null);
   
   // Process shipment data when available
   // Keep simpler initialization without problematic animations
@@ -84,33 +51,40 @@ const AnalyticsPage: React.FC = () => {
   useEffect(() => {
     if (shipmentData && shipmentData.length > 0) {
       setIsLoading(true);
-      // Calculate actual metrics from real shipment data
-      console.log(`Processing ${shipmentData.length} shipment records for analytics`);
-      
-      // Example calculation of summary metrics
-      const totalWeight = shipmentData.reduce((sum, shipment) => sum + (shipment.weight_kg || 0), 0);
-      const totalVolume = shipmentData.reduce((sum, shipment) => sum + (shipment.volume_cbm || 0), 0);
+
+      const metrics = computeShipmentInsights(shipmentData);
+      const totalWeight = shipmentData.reduce((sum, s) => sum + (Number(s.weight_kg) || 0), 0);
+      const totalVolume = shipmentData.reduce((sum, s) => sum + (Number(s.volume_cbm) || 0), 0);
       const destinations = new Set(shipmentData.map(s => s.destination_country));
-      const forwarders = new Set(shipmentData.map(s => s.forwarder_name || s.freight_provider));
-      
+      const forwarders = new Set(shipmentData.map(s => s.freight_carrier || s.forwarder_name));
+
       setSummary({
-        totalShipments: shipmentData.length,
+        totalShipments: metrics.totalShipments,
         totalWeightKg: totalWeight,
         totalVolumeCbm: totalVolume,
         distinctDestinations: destinations.size,
         distinctForwarders: forwarders.size,
-        avgCostPerKg: totalWeight > 0 ? 
-          shipmentData.reduce((sum, s) => sum + (s.freight_cost_usd || 0), 0) / totalWeight : 0
+        avgCostPerKg: metrics.avgCostPerKg,
       });
-      
-      // Process chart data would be done here
+
+      const forwarderPerformance = calculateForwarderPerformance(shipmentData);
+      const forwarderCosts = forwarderPerformance.map(fp => ({
+        name: fp.freight_carrier,
+        cost: fp.avg_cost_per_kg,
+      }));
+
+      setCharts({
+        shipmentsByMode: metrics.shipmentsByMode,
+        monthlyTrend: metrics.monthlyTrend,
+        forwarderCosts,
+        delays: metrics.delayedVsOnTimeRate,
+      });
+
       setIsLoading(false);
     } else {
-      // If no shipment data is available, use sample data after a brief loading period
-      const timer = setTimeout(() => {
-        setIsLoading(false);
-      }, 800);
-      return () => clearTimeout(timer);
+      setSummary(null);
+      setCharts(null);
+      setIsLoading(false);
     }
   }, [shipmentData]);
   
@@ -135,9 +109,9 @@ const AnalyticsPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <GlobalSummaryRow summary={summary} />
-              
-              <ChartsRow charts={charts} />
+              {summary && <GlobalSummaryRow summary={summary} />}
+
+              {charts && <ChartsRow charts={charts} />}
               
               <GlassContainer className="mt-6 p-6">
                 <AnalyticsTabs

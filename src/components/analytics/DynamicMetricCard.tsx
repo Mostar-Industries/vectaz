@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import supabase from '@/lib/supabaseClient';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
 type MetricKey = 'total_shipments' | 'avg_transit_days' | 'disruption_score' | 'resilience_score';

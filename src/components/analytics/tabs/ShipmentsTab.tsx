@@ -1,33 +1,32 @@
 import React from 'react';
 import { GlassContainer } from '@/components/ui/glass-effects';
+import { computeShipmentInsights } from '@/lib/analytics/shipmentTabData';
 
 export default function ShipmentsTab({ data }) {
-  // Sample shipment metrics calculation
-  const metrics = {
-    totalActive: data?.filter(s => s.delivery_status === 'in_transit')?.length || 0,
-    totalCompleted: data?.filter(s => s.delivery_status === 'delivered')?.length || 0,
-    avgTransitTime: 5.2, // Example calculation
-    onTimeDelivery: '87%',
-  };
+  const metrics = computeShipmentInsights(data);
+  const totalActive = metrics.shipmentStatusCounts.active;
+  const totalCompleted = metrics.shipmentStatusCounts.completed;
+  const avgTransitTime = metrics.avgTransitTime.toFixed(1);
+  const onTimeDelivery = ((metrics.shipmentStatusCounts.onTime / Math.max(metrics.totalShipments,1)) * 100).toFixed(1) + '%';
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-[#0A1A2F]/80 text-white rounded-lg p-4 shadow-md border border-[#00FFD1]/30">
           <div className="text-sm text-gray-400">Active Shipments</div>
-          <div className="text-3xl font-bold text-[#00FFD1]">{metrics.totalActive}</div>
+          <div className="text-3xl font-bold text-[#00FFD1]">{totalActive}</div>
         </div>
         <div className="bg-[#0A1A2F]/80 text-white rounded-lg p-4 shadow-md border border-[#00FFD1]/30">
           <div className="text-sm text-gray-400">Completed</div>
-          <div className="text-3xl font-bold text-[#00FFD1]">{metrics.totalCompleted}</div>
+          <div className="text-3xl font-bold text-[#00FFD1]">{totalCompleted}</div>
         </div>
         <div className="bg-[#0A1A2F]/80 text-white rounded-lg p-4 shadow-md border border-[#00FFD1]/30">
           <div className="text-sm text-gray-400">Avg Transit Time</div>
-          <div className="text-3xl font-bold text-[#00FFD1]">{metrics.avgTransitTime} days</div>
+          <div className="text-3xl font-bold text-[#00FFD1]">{avgTransitTime} days</div>
         </div>
         <div className="bg-[#0A1A2F]/80 text-white rounded-lg p-4 shadow-md border border-[#00FFD1]/30">
           <div className="text-sm text-gray-400">On-Time Delivery</div>
-          <div className="text-3xl font-bold text-[#00FFD1]">{metrics.onTimeDelivery}</div>
+          <div className="text-3xl font-bold text-[#00FFD1]">{onTimeDelivery}</div>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 export type VoicePersonality = 
-  | 'nigerian'
+  | 'african'
   | 'sassy'
   | 'calm'
   | 'excited';

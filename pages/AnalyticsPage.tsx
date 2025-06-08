@@ -34,20 +34,13 @@ interface ChartData {
   delays: {onTime: number; delayed: number};
 }
 
-const AnalyticsPage: React.FC = () => {
+function AnalyticsPage() {
   const { shipmentData } = useBaseDataStore();
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  
+
   // Analytics summary and charts are always computed from real shipmentData
-  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
-  const [charts, setCharts] = useState<ChartData | null>(null);
-    ],
-    delays: {
-      onTime: 518,
-      delayed: 64
-    }
-  });
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);  const [charts, setCharts] = useState<ChartData | null>(null);
   
   // Process shipment data when available
   // Keep simpler initialization without problematic animations
@@ -72,7 +65,7 @@ const AnalyticsPage: React.FC = () => {
       const shipmentsByMode: Record<string, number> = {};
       const monthlyTrend: Array<{ month: string; count: number }> = [];
       const forwarderCosts: Array<{ name: string; cost: number }> = [];
-      let delays = { onTime: 0, delayed: 0 };
+      const delays = { onTime: 0, delayed: 0 };
       // TODO: Implement real chart calculations here as needed, using only shipmentData
       setCharts({ shipmentsByMode, monthlyTrend, forwarderCosts, delays });
       setIsLoading(false);
